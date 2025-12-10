@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:15
+    restart: always # Esto le dice a Docker que si el contenedor falla por alguna razón (por ejemplo, después de un reinicio del sistema), debe intentar reiniciarlo automáticamente.
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+
+  
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6381:6379"
+
+  amd-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8001:8000"
+    restart: always
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:

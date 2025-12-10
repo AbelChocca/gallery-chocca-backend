@@ -1,0 +1,33 @@
+# Entornos virtuales
+venv/
+.env
+*.env
+
+# Dependencias locales
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de configuración locales
+*.log
+*.db
+
+# Carpeta de tests
+tests/
+
+# Archivos del editor
+.vscode/
+.idea/
+
+# Archivos de Docker que no deben copiarse
+Dockerfile*
+docker-compose*
+
+# Cache
+.cache/
+.mypy_cache/
+.pytest_cache/
+
+# Recursos innecesarios
+*.DS_Store

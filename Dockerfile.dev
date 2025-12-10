@@ -1,0 +1,26 @@
+# Usa imagen ligera y moderna
+FROM python:3.12-slim
+
+# Setea el directorio de trabajo
+WORKDIR /app
+
+# Instala dependencias del sistema necesarias (si tienes)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copia primero solo requirements.txt para aprovechar la cache de Docker
+COPY requirements.txt .
+
+# Instala las dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia solo el código de la app después
+COPY app ./app
+
+# Expone puerto de FastAPI
+EXPOSE 8000
+
+# Comando de ejecución
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
