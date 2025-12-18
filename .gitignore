@@ -16,3 +16,4 @@ dist/
 build/
 logs/
 
+.DS_store

@@ -3,8 +3,8 @@ from app.api.dependencies.slides.case_depends import get_delete_slide_case
 from app.application.slides.cases.delete_slide import DeleteSlideCase
 from app.api.security.dependencies.sessions import get_auth_sessions, SecuritySessions
 
-from fastapi import Depends, status
-from typing import Dict, Any
+from fastapi import Depends, status, Path
+from typing import Dict, Any, Annotated
 
 @router.delete(
     "/{slide_id}",
@@ -12,9 +12,9 @@ from typing import Dict, Any
     summary="Delete an Slide by her id"
 )
 async def delete_slide(
-    slide_id: int, 
-    case: DeleteSlideCase = Depends(get_delete_slide_case),
-    auth_session: SecuritySessions = Depends(get_auth_sessions)
+    slide_id: Annotated[int, Path(title="The slide's id for delete it.")], 
+    case: Annotated[DeleteSlideCase, Depends(get_delete_slide_case)],
+    auth_session: Annotated[SecuritySessions, Depends(get_auth_sessions)]
     ) -> Dict[str, Any]:
     await auth_session.get_admin()
     return await case.execute(slide_id)

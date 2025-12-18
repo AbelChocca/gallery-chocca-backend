@@ -5,7 +5,9 @@ from app.api.schemas.slides.schema_mapper import InputSchemaMapper
 from app.application.slides.cases.publish_slide import PublishSlideCase
 from app.api.security.dependencies.sessions import get_auth_sessions, SecuritySessions
 
-from fastapi import Depends, status, UploadFile, File
+from fastapi import Depends, status, UploadFile, File, Form
+from json import loads
+from typing import Annotated
 
 @router.post(
     "/",
@@ -14,10 +16,12 @@ from fastapi import Depends, status, UploadFile, File
     summary="Publish an slide"
 )
 async def publish_slide(
-    slide_schema: PublishSlideSchema,
-    image_file: UploadFile = File(...),
-    case: PublishSlideCase = Depends(get_publish_slide_case),
-    auth_session: SecuritySessions = Depends(get_auth_sessions)
+    publish_slide_json: Annotated[str, Form(...)],
+    image_file: Annotated[UploadFile, File(...)],
+    case: Annotated[PublishSlideCase, Depends(get_publish_slide_case)],
+    auth_session: Annotated[SecuritySessions, Depends(get_auth_sessions)]
 ) -> ReadSlideSchema:
     await auth_session.get_admin()
+    data = loads(publish_slide_json)
+    slide_schema: PublishSlideSchema = PublishSlideSchema(**data)
     return await case.exec(image_file.file, InputSchemaMapper.publish_command(slide_schema))

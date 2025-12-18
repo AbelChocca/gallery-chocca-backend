@@ -17,8 +17,8 @@ from fastapi import Depends
 def get_slides_case(repo: SlideRepository = Depends(get_slide_repo)) -> GetSlidesCase:
     return GetSlidesCase(repo)
 
-def get_delete_slide_case(repo: SlideRepository = Depends(get_slide_repo)) -> DeleteSlideCase:
-    return DeleteSlideCase(repo)
+def get_delete_slide_case(repo: SlideRepository = Depends(get_slide_repo), image_repo: CloudinaryRepository = Depends(get_cloudinary_repo)) -> DeleteSlideCase:
+    return DeleteSlideCase(repo=repo, image_repo=image_repo)
 
 def get_publish_slide_case(
         repo: SlideRepository = Depends(get_slide_repo),

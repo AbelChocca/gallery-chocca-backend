@@ -28,6 +28,6 @@ class UpdateSlideSchema(BaseModel):
     delete_image: bool = False
 
 class SlideFilterSchema(BaseModel):
-    activo: Optional[bool] = None
-    fecha_creada: Optional[datetime] = None
-    fecha_actualizada: Optional[datetime] = None
+    activo: Optional[bool] = Field(default=None, examples=[None])
+    fecha_creada: Optional[datetime] = Field(default=None, examples=[None])
+    fecha_actualizada: Optional[datetime] = Field(default=None, examples=[None])
