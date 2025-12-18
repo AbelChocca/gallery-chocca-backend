@@ -6,6 +6,7 @@ from app.modules.product.domain.dto.variant_image_dto import ReadVariantImageDTO
 @dataclass
 class ReadProductVariantDTO:
     id: int
+    product_id: int
     color: str
     tallas: List[str]
     imagenes: List[ReadVariantImageDTO]

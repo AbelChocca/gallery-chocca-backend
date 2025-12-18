@@ -49,6 +49,12 @@ class Product:
 
     def update_slug(self, new_slug: str) -> None:
         self.slug = new_slug
+
+    def get_all_variants_images_id(self) -> List[str]:
+        res = []
+        for variant in self.variants:
+            res.extend(variant.get_all_images_id())
+        return res
     
     def plan_images_and_variants_deletions(self, variants_dto: List[UpdateProductVariantDTO]) -> Tuple[List[str | None], List[int | None]]:
         res = ([], [])

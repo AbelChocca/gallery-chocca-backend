@@ -8,10 +8,6 @@ class MissingSizesException(DomainException):
     def __init__(self, message: str ="Variant must have at least one size", status_code: int = 401):
         super().__init__(message, status_code)
 
-class MissingImagesException(DomainException):
-    def __init__(self, message: str = "Variant must have at least one image", status_code: int = 401):
-        super().__init__(message, status_code)
-
 class InvalidImageVariantMapping(DomainException):
     def __init__(self, message: str, status_code = 400):
         super().__init__(message, status_code)

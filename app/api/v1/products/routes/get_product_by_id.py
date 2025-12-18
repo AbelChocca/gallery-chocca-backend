@@ -4,7 +4,8 @@ from app.api.schemas.products.schema_mapper import OutputSchemaMapper
 from app.api.v1.products.product_route import router
 from app.application.products.cases.get_product_by_id import GetProductByIDCase
 
-from fastapi import status, Depends
+from fastapi import status, Depends, Path
+from typing import Annotated
 
 @router.get(
     "/{product_id}",
@@ -13,8 +14,8 @@ from fastapi import status, Depends
     summary="Get an Product by her id"
 )
 async def get_product_by_id(
-    product_id: int,
-    case: GetProductByIDCase = Depends(get_product_by_id_case)
+    product_id: Annotated[int, Path(title="The product's id to get it.")],
+    case: Annotated[GetProductByIDCase, Depends(get_product_by_id_case)]
 ) -> ProductRead:
     product = await case.execute(product_id)
     return OutputSchemaMapper.to_read_schema(product)

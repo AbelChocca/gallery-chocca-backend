@@ -31,6 +31,8 @@ class FilterSchemaDTO:
 
 @dataclass
 class UpdateProductDTO:
+    variants: List[UpdateProductVariantDTO]
+    
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
     marca: Optional[str] = None
@@ -39,5 +41,3 @@ class UpdateProductDTO:
     precio: Optional[float] = None
     descuento: Optional[float] = None
     promocion: Optional[bool] = None
-
-    variants: List[UpdateProductVariantDTO]

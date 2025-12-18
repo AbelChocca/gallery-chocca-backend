@@ -6,8 +6,9 @@ from app.api.security.dependencies.sessions import get_auth_sessions, SecuritySe
 
 from app.application.products.cases.create_product import CreateProductUseCase
 
-from fastapi import status, Depends, UploadFile, File
-from typing import List
+from fastapi import status, Depends, UploadFile, File, Form
+from json import loads
+from typing import List, Annotated
 
 @router.post(
     "/publish/",
@@ -16,12 +17,14 @@ from typing import List
     summary="Create an product"
 )
 async def create_product(
-    schema: CreateProductSchema,
-    files: List[UploadFile] = File(...),
-    case: CreateProductUseCase = Depends(get_create_product_case),
-    admin_auth: SecuritySessions = Depends(get_auth_sessions)
+    product_schema_json: Annotated[str, Form(...)],
+    files: Annotated[List[UploadFile], File(...)],
+    case: Annotated[CreateProductUseCase, Depends(get_create_product_case)],
+    admin_auth: Annotated[SecuritySessions, Depends(get_auth_sessions)]
 ) -> ProductRead:
     await admin_auth.get_admin()
+    data = loads(product_schema_json)   
+    schema: CreateProductSchema = CreateProductSchema(**data)
     res = await case.execute(
         images_file=[file.file for file in files],
         command=InputSchemaMapper.to_publish_command(schema)

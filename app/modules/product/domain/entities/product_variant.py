@@ -1,21 +1,20 @@
 from typing import List, Optional
 
 from app.modules.product.domain.entities.variant_image import VariantImage
-from app.modules.product.domain.exceptions.variant_exception import MissingSizesException, ColorTooShortException, MissingImagesException
+from app.modules.product.domain.exceptions.variant_exception import MissingSizesException, ColorTooShortException
 
 class ProductVariant:
     def __init__(
             self,
             color: str,
             tallas: List[str],
-            imagenes: Optional[List[VariantImage]] = None,
+            imagenes: List[VariantImage] = [],
             id: Optional[int] = None,
             product_id: Optional[int] = None
             ):
         self._validate_variant(
             color=color,
-            tallas=tallas,
-            imagenes=imagenes
+            tallas=tallas
         )
         
         self.id = id
@@ -30,6 +29,12 @@ class ProductVariant:
             cloudinary_id=public_id
         ))
 
+    def get_all_images_id(self) -> List[str]:
+        res: List[str] = []
+        for image in self.imagenes:
+            res.append(image.cloudinary_id)
+        return res
+
     def update_variant(
             self,
             color: Optional[str] = None,
@@ -42,11 +47,8 @@ class ProductVariant:
     def _validate_variant(
         color: str,
         tallas: List[str],
-        imagenes: List[VariantImage]
     )->None:
         if len(color) < 4:
             raise ColorTooShortException()
         if not tallas:
             raise MissingSizesException()
-        if not imagenes:
-            raise MissingImagesException()

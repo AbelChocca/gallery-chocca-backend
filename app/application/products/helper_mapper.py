@@ -59,15 +59,18 @@ class ProductEntityToDTOMapper:
             modelo=entity.modelo,
             precio=entity.precio,
             descuento=entity.descuento,
+            slug=entity.slug,
             promocion=entity.promocion,
             variants=[
                 ReadProductVariantDTO(
                     id=variant.id,
+                    product_id=variant.product_id,
                     color=variant.color,
                     tallas=variant.tallas,
                     imagenes=[
                         ReadVariantImageDTO(
                             id=image.id,
+                            variant_id=image.variant_id,
                             url=image.url,
                             cloudinary_id=image.cloudinary_id
                         )

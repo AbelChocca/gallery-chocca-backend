@@ -43,9 +43,10 @@ def get_delete_image_by_id_case(
 
 def get_delete_product_case(
     product_repo: ProductRepository = Depends(get_product_repo),
+    image_repo: CloudinaryRepository = Depends(get_cloudinary_repo),
     logger:  LoggerRepository = Depends(get_logger_repo)
 ) -> DeleteProductCase:
-    return DeleteProductCase(product_repo, logger)
+    return DeleteProductCase(repo=product_repo, image_repo=image_repo, logger=logger)
 
 def get_all_products_case(
     product_repo: ProductRepository = Depends(get_product_repo),

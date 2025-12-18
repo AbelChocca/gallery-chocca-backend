@@ -34,14 +34,9 @@ class ProductRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class CreateVariantImage(BaseModel):
-    url: str
-    cloudinary_id: str
-
 class CreateProductVariantSchema(BaseModel):
     color: str = Field(max_length=16, min_length=1)
     tallas: List[str] = Field(min_length=1)
-    imagenes: List[CreateVariantImage] = Field(min_length=1)
 
 class CreateProductSchema(BaseModel):
     nombre: str = Field(min_length=8, max_length=55)

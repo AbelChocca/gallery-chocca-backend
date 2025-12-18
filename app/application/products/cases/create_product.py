@@ -64,7 +64,10 @@ class CreateProductUseCase:
                 url=cloud_image.url,
                 cloudinary_id=cloud_image.public_id
             )
-            new_product.variants[variant_id].agregar_image(new_image)
+            new_product.variants[variant_id].agregar_image(
+                image_url=new_image.url,
+                public_id=new_image.cloudinary_id
+            )
 
         new_product = await self.repo.save(new_product)
         self.logger.info(f"Product {new_product.nombre} with id: {new_product.id} was successfully saved.")

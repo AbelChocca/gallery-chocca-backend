@@ -4,6 +4,7 @@ from typing import Optional
 @dataclass
 class ReadVariantImageDTO:
     id: int
+    variant_id: int
     url: str
     cloudinary_id: str
 
