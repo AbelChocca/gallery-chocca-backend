@@ -3,9 +3,9 @@ from redis import RedisError, ConnectionError
 from typing import Optional, List, Dict, Any
 from json import dumps, loads
 
-from app.core.log.repository_logger import LoggerRepository
+from app.core.log.logger_repository import LoggerRepository
 from app.modules.cache.cache_repository import CacheRepository
-from app.shared.exceptions.infra.infraestructure_exception import InternalCacheException
+from app.shared.exceptions.infraestructure_exception import InternalCacheException
 
 class InfraCacheRepository(CacheRepository):
     def __init__(

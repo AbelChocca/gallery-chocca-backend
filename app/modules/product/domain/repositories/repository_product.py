@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from app.modules.product.domain.entities.product import Product
-from app.shared.dto.product_dto import FilterSchemaDTO
-from typing import List, Optional
+from app.modules.product.domain.dto.product_dto import FilterSchemaDTO
+from typing import List
 
 class ProductRepository(ABC):
     @abstractmethod

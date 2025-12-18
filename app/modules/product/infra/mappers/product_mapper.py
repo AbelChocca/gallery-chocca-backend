@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app.modules.product.domain.entities.product import Product
-from app.modules.product.domain.entities.variant_color import VariantColor
+from app.modules.product.domain.entities.product_variant import ProductVariant
 from app.modules.product.domain.entities.variant_image import VariantImage
 
 from app.modules.product.infra.models.product_model import (
@@ -31,7 +31,7 @@ class ProductMapper:
             ]
 
             variants.append(
-                VariantColor(
+                ProductVariant(
                     id=variant.id,
                     product_id=variant.product_id,
                     color=variant.color,

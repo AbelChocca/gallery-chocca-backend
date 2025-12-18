@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
-from app.shared.dto.cloudinary_dto import CloudinaryImageDTO
+from app.modules.cloudinary.domain.dto import CloudinaryImageDTO
 
+from typing import BinaryIO
 
 class CloudinaryRepository(ABC):
     @abstractmethod
-    def upload_image(self, file: str, folder: str) -> CloudinaryImageDTO:
+    def upload_image(self, file: BinaryIO, folder: str) -> CloudinaryImageDTO:
         pass
 
     @abstractmethod

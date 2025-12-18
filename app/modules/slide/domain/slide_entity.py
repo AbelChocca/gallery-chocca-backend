@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import datetime, timezone
 from dataclasses import asdict
 
-from app.shared.dto.slide_dto import UpdateSlideDTO
+from app.modules.slide.domain.dto import UpdateSlideDTO
 
 class SlideEntity:
     def __init__(
@@ -28,19 +28,38 @@ class SlideEntity:
         self.fecha_creada = fecha_creada or ahora
         self.fecha_actualizada = fecha_actualizada or ahora
 
-    def actualizar_timestamp(self):
-        """Actualiza la fecha_actualizada al momento actual."""
+    def _actualizar_timestamp(self):
+        """Update the date to current date"""
         self.fecha_actualizada = datetime.now(timezone.utc)
+
+    def desactivar_slide(self):
+        self.activo = False
+
+    def slide_on(self):
+        """
+        Activate the slide 
+        
+        :param self: Default
+        """
+        self.activo = True
+
+    def actualizar_image(
+            self,
+            new_public_id: str,
+            new_url: str,
+    ) -> None:
+        self.imagen_url = new_url
+        self.cloudinary_id = new_public_id
 
     def update_slide(self, dto: UpdateSlideDTO):
         """
         Updates the entity using a dataclass DTO.
         Only updates fields that are not None.
         """
-        update_data = {k: v for k, v in asdict(dto).items() if v is not None}
+        update_data = {k: v for k, v in asdict(dto).items() if v is not None or k != "image_url" or k != "cloudinary_id"}
 
         for key, value in update_data.items():
             if hasattr(self, key):
                 setattr(self, key, value)
 
-        self.actualizar_timestamp()
+        self._actualizar_timestamp()

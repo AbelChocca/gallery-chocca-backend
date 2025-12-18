@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from datetime import datetime
 
 from app.modules.slide.domain.slide_entity import SlideEntity
-from app.shared.dto.slide_dto import SlideFiltersDTO
+from app.modules.slide.domain.dto import SlideFilterDTO
 
 class SlideRepository(ABC):
     """Abstract repository interface for managing SlideEntity persistence.
@@ -45,7 +44,7 @@ class SlideRepository(ABC):
     @abstractmethod
     async def get_slides_with_filter(
         self,
-        slide_filters: SlideFiltersDTO,
+        slide_filters: SlideFilterDTO,
         offset: int = 0,
         limit: int = 20,
     ) -> List[SlideEntity]:

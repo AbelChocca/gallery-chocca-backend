@@ -1,15 +1,15 @@
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
-from app.core.log.repository_logger import LoggerRepository
-from app.shared.dto.cloudinary_dto import CloudinaryImageDTO
-from app.shared.exceptions.infra.infraestructure_exception import CloudinaryException
+from app.modules.cloudinary.domain.dto import CloudinaryImageDTO
+from app.modules.cloudinary.infra.exceptions import CloudinaryException
+from app.core.log.logger_repository import LoggerRepository
 
 from cloudinary.uploader import upload, destroy, Error as CloudinaryError
-from typing import IO
+from typing import BinaryIO
 
 class InfraCloudinaryRepository(CloudinaryRepository):
     def __init__(self, logger: LoggerRepository):
         self.logger = logger
-    def upload_image(self, file: IO[bytes], folder: str) -> CloudinaryImageDTO:
+    def upload_image(self, file: BinaryIO, folder: str) -> CloudinaryImageDTO:
         """Uploads an image to Cloudinary."""
         try:
             result = upload(file, folder=folder, resource_type="image", format="webp")

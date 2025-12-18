@@ -1,7 +1,7 @@
-import re
+from re import match
 from typing import Optional
 
-from app.shared.exceptions.domain.user_exception import (
+from app.modules.user.domain.user_exception import (
     InvalidEmailFormatException, 
     PasswordTooShortException, 
     EmailTooShortException, 
@@ -45,7 +45,7 @@ class User:
         if (len(email) < 8):
             raise EmailTooShortException()
         
-        if re.match(r"[^@]+@[^@]+\.[^@]+", email) is None:
+        if match(r"[^@]+@[^@]+\.[^@]+", email) is None:
             raise InvalidEmailFormatException()
 
     @staticmethod
