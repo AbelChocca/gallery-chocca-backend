@@ -26,7 +26,7 @@ class RedisCacheRepository(CacheRepository):
             return False
 
 
-    async def cache_setex(self, key: str, data: Dict[str, Any], seconds: Optional[int] = None) -> Optional[bool]:
+    async def cache_set(self, key: str, data: Dict[str, Any], seconds: Optional[int] = None) -> Optional[bool]:
         if not key:
             self.logger.warning(f"The input key: {key} is empty.")
             return False
@@ -58,7 +58,7 @@ class RedisCacheRepository(CacheRepository):
 
     async def cache_delete(self, key: str) -> None:
         try:
-            delete =await self.client.delete(key)
+            delete = await self.client.delete(key)
             if delete:
                 self.logger.info(f'✅ Cache key: {key} was deleted seccessfully.')
             else:
@@ -67,4 +67,11 @@ class RedisCacheRepository(CacheRepository):
             return True
         except RedisError as e:
             self.logger.error(f'❌ Error del servidor al eliminar clave del cache: {str(e)}')
+            raise InternalCacheException()
+        
+    async def cache_set_lock(self, key: str, seconds: int = 5) -> bool:
+        lock_key: str = f"lock:{key}"
+        try:
+            return await self.client.set(name=lock_key, value="1", ex=seconds, nx=True)
+        except RedisError as e:
             raise InternalCacheException()

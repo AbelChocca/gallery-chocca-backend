@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Any, List
+from typing import Dict, Optional, Any
 
 class CacheRepository(ABC):
     @abstractmethod
@@ -61,4 +61,8 @@ class CacheRepository(ABC):
             key (str): 
                 The cache key to delete.
         """
+        pass
+
+    @abstractmethod
+    async def cache_set_lock(self, key: str, seconds: int = 5) -> bool:
         pass
