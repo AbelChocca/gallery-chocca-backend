@@ -1,4 +1,6 @@
 from app.modules.product.domain.entities.product import Product
+from app.modules.product.domain.entities.product_variant import ProductVariant
+from app.modules.product.domain.entities.variant_image import VariantImage
 from app.modules.product.domain.dto.product_dto import ReadProductDTO, FilterSchemaDTO, UpdateProductDTO
 from app.modules.product.domain.dto.variant_dto import ReadProductVariantDTO, UpdateProductVariantDTO
 from app.modules.product.domain.dto.variant_image_dto import UpdateVariantImageDTO
@@ -84,6 +86,35 @@ class ProductEntityToDTOMapper:
         )
     
 class ProductEntityToDictMapper:
+    @staticmethod
+    def dict_to_product(d: dict) -> Product:
+        variants = [
+            ProductVariant(
+                color=v["color"],
+                tallas=v["tallas"],
+                imagenes=[
+                    VariantImage(url=i["url"], cloudinary_id=i["cloudinary_id"], id=i.get("id"), variant_id=i.get("variant_id"))
+                    for i in v.get("imagenes", [])
+                ],
+                id=v.get("id"),
+                product_id=v.get("product_id")
+            )
+            for v in d.get("variants", [])
+        ]
+        return Product(
+            nombre=d["nombre"],
+            descripcion=d["descripcion"],
+            precio=d["precio"],
+            categoria=d["categoria"],
+            slug=d["slug"],
+            variants=variants,
+            modelo=d.get("modelo"),
+            id=d.get("id"),
+            descuento=d.get("descuento", 0.0),
+            marca=d.get("marca"),
+            promocion=d.get("promocion", False)
+        )
+
     @staticmethod
     def to_read_dict(entity: Product) -> Dict[str, Any]:
         return {
