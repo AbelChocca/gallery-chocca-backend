@@ -87,7 +87,7 @@ class ProductEntityToDTOMapper:
     
 class ProductEntityToDictMapper:
     @staticmethod
-    def dict_to_product(d: dict) -> Product:
+    def dict_to_product(d: Dict[str, Any]) -> Product:
         variants = [
             ProductVariant(
                 color=v["color"],

@@ -6,6 +6,8 @@ from app.core.log.logger_repository import LoggerRepository
 from app.core.settings.pydantic_settings import Settings
 from app.application.products.helper_mapper import ProductEntityToDTOMapper, ProductEntityToDictMapper
 
+from typing import Dict, Any
+
 class GetProductByIDCase:
     def __init__(
             self,
@@ -19,23 +21,37 @@ class GetProductByIDCase:
         self.logger = logger
         self.settings = settings_repo
 
+    def _dict_to_dto(self, data: Dict[str, Any]) -> ReadProductDTO:
+        product = ProductEntityToDictMapper.dict_to_product(data)
+        return ProductEntityToDTOMapper.to_read_dto(product)
+
     async def execute(self, product_id: int) -> ReadProductDTO:
         product_key: str = f"products:{product_id}"
-        data: Product = await self.cache_repo.cache_get(product_key)
+        data: Dict[str, Any] = await self.cache_repo.cache_get(product_key)
+
         if data:
-            return ProductEntityToDTOMapper.to_read_dto(data)
+            self.logger.info(f"Product with id:{product_id} was successfully get.")
+            return self._dict_to_dto(data)
         
         if (await self.cache_repo.cache_set_lock(key=product_key, seconds=self.settings.REDIS_LOCK_TTL)):
-            data = await self.repo.get_by_id(product_id)
-            value_to_encode = ProductEntityToDictMapper.to_read_dict(data)
+            product = await self.repo.get_by_id(product_id)
+            value_to_encode = ProductEntityToDictMapper.to_read_dict(product)
 
             await self.cache_repo.cache_set(key=product_key, data=value_to_encode, seconds=self.settings.REDIS_MEDIUM_TTL)
-            self.logger.info(f"Product {data.nombre} was set to the cache service succesfully")
-            return ProductEntityToDTOMapper.to_read_dto(data)
-        
-        
 
-        self.logger.info(f"Product with id:{product_id} was successfully get.")
+            self.logger.info(f"Product {product.nombre} was set to the cache service succesfully")
+            return ProductEntityToDTOMapper.to_read_dto(product)   
+        
+        data = await self.cache_repo.cache_retry_get(
+            retries=self.settings.REDIS_MAX_RETRIES,
+            seconds_delay=self.settings.REDIS_SECONDS_DELAY,
+            key=product_key
+        )
+        if data:
+            self.logger.info(f"Product with id:{product_id} was successfully get.")
+            return self._dict_to_dto(data)
 
+        product = await self.repo.get_by_id(product_id)
+        self.logger.warning(f"⚠️ Product with id: {product_id} was getting from database after retry get from cache.")
         return ProductEntityToDTOMapper.to_read_dto(product)
 
