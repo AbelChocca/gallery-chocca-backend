@@ -15,6 +15,10 @@ services:
     restart: always
     ports:
       - "6381:6379"
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lfu
 
   amd-app:
     build: 
