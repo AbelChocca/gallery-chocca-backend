@@ -1,0 +1,70 @@
+from redis.asyncio import Redis
+from redis import RedisError, ConnectionError
+from typing import Optional, Dict, Any
+from json import dumps, loads
+
+from app.core.log.logger_repository import LoggerRepository
+from app.modules.cache.cache_repository import CacheRepository
+from app.modules.cache.exceptions import InternalCacheException
+
+class RedisCacheRepository(CacheRepository):
+    def __init__(
+            self,
+            cache_client: Redis,
+            logger: LoggerRepository
+            ):
+        self.client = cache_client
+        self.logger = logger
+
+    async def cache_verify_connection(self) -> bool:
+        try:          
+            pong = await self.client.ping()
+            self.logger.info('✅ Conexión activa del cliente Redis verificada.')
+            return pong is True
+        except ConnectionError as e:
+            self.logger.error(f'Error al hacer PING al cliente REDIS: {str(e)}')
+            return False
+
+
+    async def cache_setex(self, key: str, data: Dict[str, Any], seconds: Optional[int] = None) -> Optional[bool]:
+        if not key:
+            self.logger.warning(f"The input key: {key} is empty.")
+            return False
+        if not data:
+           self.logger.warning('⚠️ The object data is empty.')
+           return False
+        try:
+            json_data = dumps(data)
+            await self.client.set(name=key, ex=seconds, value=json_data, nx=True)
+            return True
+        except RedisError as e:
+            self.logger.error(f'❌ Error al guardar la clave al cache: {str(e)}')
+            raise InternalCacheException()
+    
+    async def cache_get(self, key: str) -> Optional[Dict[str, Any]]:
+        self.logger.info('⚙️ Verificando datos antes de obtener...')
+
+        json_data = await self.client.get(key)
+        if not json_data:
+           self.logger.error('❌ La clave que intenta buscar no existe en el cache o ya venció.')
+           return None
+    
+        try:
+            result = loads(json_data)
+            return result
+        except RedisError as e:
+            self.logger.error(f'❌ Error del servidor al obtener el valor del cache: {str(e)}')
+            raise InternalCacheException()
+
+    async def cache_delete(self, key: str) -> None:
+        try:
+            delete =await self.client.delete(key)
+            if delete:
+                self.logger.info(f'✅ Cache key: {key} was deleted seccessfully.')
+            else:
+                self.logger.warning(f'⚠️ The key: {key} not exist in cache.')
+
+            return True
+        except RedisError as e:
+            self.logger.error(f'❌ Error del servidor al eliminar clave del cache: {str(e)}')
+            raise InternalCacheException()

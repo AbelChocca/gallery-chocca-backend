@@ -49,6 +49,28 @@ class Product:
 
     def update_slug(self, new_slug: str) -> None:
         self.slug = new_slug
+    
+    def get_filter_key(
+            self,
+            category: Optional[str] = None,
+            model: Optional[str] = None,
+            slug: Optional[str] = None,
+            promotion: Optional[bool] = None,
+            color: Optional[str] = None
+    ) -> str:
+        key: str = "products"
+
+        if category:
+            key += f":category:{category}"
+        if model:
+            key += f":model:{model}"
+        if slug:
+            key += f":{slug}"
+        if promotion:
+            key += f":promotion:true" if promotion is True else f":promotion:false"
+        if color:
+            key += f":color:{color}"
+        return key
 
     def get_all_variants_images_id(self) -> List[str]:
         res = []

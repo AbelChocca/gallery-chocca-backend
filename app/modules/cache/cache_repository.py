@@ -14,11 +14,11 @@ class CacheRepository(ABC):
         pass
 
     @abstractmethod
-    async def cache_setex(
+    async def cache_set(
         self, 
         key: str, 
         data: Dict[str, Any], 
-        ttl: Optional[int] = None
+        seconds: Optional[int] = None
     ) -> bool:
         """
         Stores a single dictionary value in the cache with an optional expiration time.
@@ -53,56 +53,12 @@ class CacheRepository(ABC):
         pass
 
     @abstractmethod
-    async def cache_delete(self, key: str) -> bool:
+    async def cache_delete(self, key: str) -> None:
         """
         Removes a key-value pair from the cache.
 
         Args:
             key (str): 
                 The cache key to delete.
-
-        Returns:
-            bool:
-                True if the deletion was successful or the key did not exist; 
-                otherwise, False.
-        """
-        pass
-
-    @abstractmethod
-    async def cache_set_list(
-        self, 
-        key: str, 
-        data: List[Dict[str, Any]], 
-        ttl: Optional[int] = None
-    ) -> bool:
-        """
-        Stores a list of dictionaries in the cache with optional expiration.
-
-        Args:
-            key (str): 
-                The cache key where the list will be stored.
-            data (List[Dict[str, Any]]): 
-                The list of dictionaries to serialize and store.
-            ttl (Optional[int], optional): 
-                Time-to-live in seconds. If None, the key does not expire.
-
-        Returns:
-            bool:
-                True if the list was cached successfully; otherwise, False.
-        """
-        pass
-
-    @abstractmethod
-    async def cache_get_list(self, key: str) -> Optional[List[Dict[str, Any]]]:
-        """
-        Retrieves and deserializes a list of dictionaries stored under the given key.
-
-        Args:
-            key (str): 
-                The cache key to look up.
-
-        Returns:
-            Optional[List[Dict[str, Any]]]: 
-                The stored list of dictionaries if found; otherwise, None.
         """
         pass

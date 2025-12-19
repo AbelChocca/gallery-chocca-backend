@@ -8,10 +8,6 @@ class DatabaseException(InfraestructureException):
     def __init__(self, message, status_code = 500):
         super().__init__(message, status_code)
 
-class InternalCacheException(InfraestructureException):
-    def __init__(self, message: str = "Cache Internal's error", status_code = 503):
-        super().__init__(message, status_code)
-
 class JWTException(InfraestructureException):
     def __init__(self, message, status_code = 500):
         super().__init__(message, status_code)

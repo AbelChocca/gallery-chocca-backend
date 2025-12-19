@@ -1,6 +1,9 @@
 from app.modules.product.domain.repositories.repository_product import ProductRepository
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
+from app.modules.cache.cache_repository import CacheRepository
 from app.core.log.logger_repository import LoggerRepository
+from app.shared.services.slug.domain.slug_repository import SlugRepository
+
 from app.modules.product.domain.entities.product import Product
 from app.modules.product.domain.entities.product_variant import ProductVariant
 from app.modules.product.domain.entities.variant_image import VariantImage
@@ -8,9 +11,9 @@ from app.modules.product.domain.dto.product_dto import ReadProductDTO
 from app.application.products.commands import PublishProductCommand
 from app.application.products.exceptions import MissMatchLength
 from app.application.products.helper_mapper import ProductEntityToDTOMapper
-from app.shared.services.slug.domain.slug_repository import SlugRepository
 
 from typing import List, BinaryIO
+
 
 class CreateProductUseCase:
     def __init__(
@@ -18,11 +21,13 @@ class CreateProductUseCase:
             repo: ProductRepository,
             image_repo: CloudinaryRepository,
             slug_repo: SlugRepository,
+            cache_repo: CacheRepository,
             logger: LoggerRepository
             ):
         self.repo = repo
         self.logger = logger
         self.image_repo = image_repo
+        self.cache_repo = cache_repo
         self.slug_repo = slug_repo
 
     async def execute(
@@ -70,6 +75,11 @@ class CreateProductUseCase:
             )
 
         new_product = await self.repo.save(new_product)
+
+        # Invalidating cache
+        await self.cache_repo.cache_delete(new_product.get_filter_key(slug=new_product.slug))
+        await self.cache_repo.cache_delete(new_product.get_filter_key(category=new_product.categoria))
+
         self.logger.info(f"Product {new_product.nombre} with id: {new_product.id} was successfully saved.")
 
         return ProductEntityToDTOMapper.to_read_dto(new_product)
