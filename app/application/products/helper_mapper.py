@@ -5,6 +5,8 @@ from app.modules.product.domain.dto.variant_image_dto import UpdateVariantImageD
 from app.modules.product.domain.dto.variant_image_dto import ReadVariantImageDTO
 from app.application.products.commands import FilterProductCommand, UpdateProductCommand
 
+from typing import Dict, Any
+
 class ProductCommandToDTOMapper:
     @staticmethod
     def to_filter_dto(command: FilterProductCommand)-> FilterSchemaDTO:
@@ -80,3 +82,35 @@ class ProductEntityToDTOMapper:
                 for variant in entity.variants
             ]
         )
+    
+class ProductEntityToDictMapper:
+    @staticmethod
+    def to_read_dict(entity: Product) -> Dict[str, Any]:
+        return {
+            "id": entity.id,
+            "nombre": entity.nombre,
+            "descripcion": entity.descripcion,
+            "precio": entity.precio,
+            "descuento": entity.descuento,
+            "marca": entity.marca,
+            "categoria": entity.categoria,
+            "modelo": entity.modelo,
+            "promocion": entity.promocion,
+            "slug": entity.slug,
+            "variants": [
+                {
+                    "id": variant.id,
+                    "color": variant.color,
+                    "tallas": variant.tallas,
+                    "product_id": variant.product_id,
+                    "imagenes": [
+                        {
+                            "id": img.id,
+                            "url": img.url,
+                            "cloudinary_id": img.cloudinary_id,
+                            "variant_id": img.variant_id
+                        } for img in variant.imagenes
+                    ]
+                } for variant in entity.variants
+            ]
+        }
