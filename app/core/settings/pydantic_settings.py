@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     # REDIS
     REDIS_URL: str
 
+    # REDIS TTL
+    REDIS_LARGE_TTL=1800
+    REDIS_MEDIUM_TTL=900
+    REDIS_SHORT_TTL=300
+
     # LOGGER
     LOG_FORMAT: str
     LOG_LEVEL: str
