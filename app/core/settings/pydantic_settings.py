@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     REDIS_MEDIUM_TTL: int
     REDIS_SHORT_TTL: int
     REDIS_LOCK_TTL: int
+    REDIS_MAX_RETRIES: int
 
     # LOGGER
     LOG_FORMAT: str
