@@ -66,3 +66,7 @@ class CacheRepository(ABC):
     @abstractmethod
     async def cache_set_lock(self, key: str, seconds: int = 5) -> bool:
         pass
+
+    @abstractmethod
+    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Dict[str, Any]]:
+        pass

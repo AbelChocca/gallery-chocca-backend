@@ -2,6 +2,7 @@ from redis.asyncio import Redis
 from redis import RedisError, ConnectionError
 from typing import Optional, Dict, Any
 from json import dumps, loads
+from asyncio import sleep
 
 from app.core.log.logger_repository import LoggerRepository
 from app.modules.cache.cache_repository import CacheRepository
@@ -74,4 +75,13 @@ class RedisCacheRepository(CacheRepository):
         try:
             return await self.client.set(name=lock_key, value="1", ex=seconds, nx=True)
         except RedisError as e:
+            self.logger.error(f"Redis service error to set the lock of key: {str(e)}")
             raise InternalCacheException()
+        
+    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Dict[str, Any]]:
+        for _ in range(retries):
+            sleep(seconds_delay)
+            data = self.client.get(key)
+            if data:
+                return data
+        return None
