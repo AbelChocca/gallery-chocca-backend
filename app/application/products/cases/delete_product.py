@@ -1,6 +1,8 @@
 from app.modules.product.domain.repositories.repository_product import ProductRepository
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
 from app.core.log.logger_repository import LoggerRepository
+from app.modules.cache.cache_repository import CacheRepository
+
 from app.modules.product.domain.entities.product import Product
 
 from typing import List
@@ -10,10 +12,12 @@ class DeleteProductCase:
             self,
             repo: ProductRepository,
             image_repo: CloudinaryRepository,
+            cache_repo: CacheRepository,
             logger: LoggerRepository
             ):
         self.repo: ProductRepository = repo
         self.image_repo: CloudinaryRepository = image_repo
+        self.cache_repo: CacheRepository = cache_repo
         self.logger: LoggerRepository = logger
 
     async def execute(
@@ -29,6 +33,11 @@ class DeleteProductCase:
         """
         product_to_delete: Product = await self.repo.get_by_id(product_id)
 
+        # Cache invalidation
+        await self.cache_repo.cache_delete(product_to_delete.get_filter_key(slug=product_to_delete.slug))
+        await self.cache_repo.cache_delete(product_to_delete.get_filter_key(category=product_to_delete.categoria))
+
+        # Del images from cloud service
         images_to_delete: List[str] = product_to_delete.get_all_variants_images_id()
         for image_id in images_to_delete:
             self.image_repo.delete_image(image_id)
