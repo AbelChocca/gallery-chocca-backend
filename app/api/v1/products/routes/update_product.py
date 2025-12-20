@@ -5,8 +5,9 @@ from app.application.products.cases.update_product import UpdateProductCase
 from app.api.dependencies.products.case_depends import get_update_product_case
 from app.api.security.dependencies.sessions import get_auth_sessions, SecuritySessions
 
-from fastapi import status, Depends, UploadFile, File
-from typing import List, Optional
+from fastapi import status, Depends, UploadFile, File, Form, Path
+from typing import List, Optional, Annotated
+from json import loads
 
 @router.patch(
     "/update/{product_id}",
@@ -15,17 +16,19 @@ from typing import List, Optional
     summary="Update an product"
 )
 async def update_product(
-    product_id: int,
-    update_schema: UpdateProductSchema,
-    files: Optional[List[UploadFile]] = File(None),
-    case: UpdateProductCase = Depends(get_update_product_case),
-    auth_session: SecuritySessions = Depends(get_auth_sessions)
-) -> UpdateProductSchema:
+    product_id: Annotated[int, Path(...)],
+    update_json: Annotated[str, Form(...)],
+    files: Annotated[Optional[List[UploadFile]], File(None)],
+    case: Annotated[UpdateProductCase, Depends(get_update_product_case)],
+    auth_session: Annotated[SecuritySessions, Depends(get_auth_sessions)]
+) -> ProductRead:
     await auth_session.get_admin()
-    command = InputSchemaMapper.to_update_command(update_schema)
+    data = loads(update_json)
+    update_schema: UpdateProductSchema = UpdateProductSchema(**data)
+    new_images = [file.file for file in files] if files else None
     res = await case.execute(
-        command=command,
+        command=InputSchemaMapper.to_update_command(update_schema),
         product_id=product_id,
-        new_images_file=[file.file for file in files]
+        new_images_file=new_images
         )
     return OutputSchemaMapper.to_read_schema(res)
