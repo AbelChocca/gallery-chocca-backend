@@ -7,11 +7,15 @@ from app.application.products.cases.delete_image_product import DeleteImageProdu
 from app.application.products.cases.delete_variant_product import DeleteProductVariantCase
 from app.modules.product.domain.repositories.repository_product import ProductRepository
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
+from app.modules.cache.cache_repository import CacheRepository
+from app.core.settings.pydantic_settings import Settings
 from app.core.log.logger_repository import LoggerRepository
 from app.shared.services.slug.domain.slug_repository import SlugRepository
 
+from app.core.settings.pydantic_settings import get_settings
 from app.api.dependencies.products.repo import get_product_repo
 from app.api.dependencies.cloudinary.repo import get_cloudinary_repo
+from app.api.dependencies.cache.repo import get_cache_repo
 from app.core.log.loguru_logger_repository import get_logger_repo
 from app.shared.services.slug.infraestructure.slugify_repository import get_slugify_repository
 
@@ -32,9 +36,16 @@ def get_create_product_case(
 
 def get_product_by_id_case(
     product_repo: ProductRepository = Depends(get_product_repo),
+    cache_repo: CacheRepository = Depends(get_cache_repo),
+    settings_repo: Settings = Depends(get_settings),
     logger: LoggerRepository = Depends(get_logger_repo)
 ) -> CreateProductUseCase:
-    return GetProductByIDCase(product_repo, logger)
+    return GetProductByIDCase(
+        repo=product_repo,
+        cache_repo=cache_repo,
+        settings_repo=settings_repo,
+        logger=logger
+    )
 
 def get_delete_image_by_id_case(
     product_repo: ProductRepository = Depends(get_product_repo)
