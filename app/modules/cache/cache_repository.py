@@ -26,8 +26,8 @@ class CacheRepository(ABC):
         Args:
             key (str): 
                 The cache key where the data will be stored.
-            data (Dict[str, Any]): 
-                The dictionary to serialize and store.
+            data (Union[List[Dict], Dict]): 
+                The List of dictionary or dictionary to serialize and store.
             ttl (Optional[int], optional): 
                 Time-to-live in seconds. If None, the key does not expire.
 
@@ -38,7 +38,7 @@ class CacheRepository(ABC):
         pass
 
     @abstractmethod
-    async def cache_get(self, key: str) -> Optional[Dict[str, Any]]:
+    async def cache_get(self, key: str) -> Optional[Any]:
         """
         Retrieves and deserializes a dictionary from the cache using the provided key.
 
@@ -79,7 +79,7 @@ class CacheRepository(ABC):
         pass
 
     @abstractmethod
-    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Dict[str, Any]]:
+    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Any]:
         """
         Method to execute a loop in a range of retries count for obtain the key value
         
@@ -91,6 +91,6 @@ class CacheRepository(ABC):
         :param seconds_delay: delay in seconds after retry obtain the value
         :type seconds_delay: float
         :return: None if the method wasn't return any value. Key value if it could be obtained
-        :rtype: Dict[str, Any] | None
+        :rtype: any | None
         """
         pass

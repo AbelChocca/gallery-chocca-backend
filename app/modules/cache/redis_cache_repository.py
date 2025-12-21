@@ -46,15 +46,14 @@ class RedisCacheRepository(CacheRepository):
             self.logger.error(f'❌ Error al guardar la clave al cache: {str(e)}')
             raise InternalCacheException()
     
-    async def cache_get(self, key: str) -> Optional[Dict[str, Any]]:
+    async def cache_get(self, key: str) -> Optional[Any]:
         self.logger.info('⚙️ Verificando datos antes de obtener...')
-
-        json_data = await self.client.get(key)
-        if not json_data:
-           self.logger.error('❌ La clave que intenta buscar no existe en el cache o ya venció.')
-           return None
     
         try:
+            json_data = await self.client.get(key)
+            if not json_data:
+                self.logger.error('❌ La clave que intenta buscar no existe en el cache o ya venció.')
+                return None
             result = loads(json_data)
             return result
         except RedisError as e:
@@ -82,10 +81,10 @@ class RedisCacheRepository(CacheRepository):
             self.logger.error(f"Redis service error to set the lock of key: {str(e)}")
             raise InternalCacheException()
         
-    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Dict[str, Any]]:
+    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Any]:
         for _ in range(retries):
             sleep(seconds_delay)
-            data = self.client.get(key)
+            data = await self.client.get(key)
             if data:
                 return data
         return None

@@ -26,7 +26,7 @@ class GetProductByIDCase:
         return ProductEntityToDTOMapper.to_read_dto(product)
 
     async def execute(self, product_id: int) -> ReadProductDTO:
-        product_key: str = f"products:{product_id}"
+        product_key: str = Product.get_filter_key(id=product_id)
         data: Dict[str, Any] = await self.cache_repo.cache_get(product_key)
 
         if data:

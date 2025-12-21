@@ -77,8 +77,7 @@ class CreateProductUseCase:
         new_product = await self.repo.save(new_product)
 
         # Invalidating cache
-        await self.cache_repo.cache_delete(new_product.get_filter_key(slug=new_product.slug))
-        await self.cache_repo.cache_delete(new_product.get_filter_key(category=new_product.categoria))
+        await self.cache_repo.cache_delete(Product.get_filter_key(category=new_product.categoria))
 
         self.logger.info(f"Product {new_product.nombre} with id: {new_product.id} was successfully saved.")
 
