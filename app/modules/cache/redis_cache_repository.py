@@ -1,6 +1,6 @@
 from redis.asyncio import Redis
 from redis import RedisError, ConnectionError
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Union
 from json import dumps, loads
 from asyncio import sleep
 
@@ -27,7 +27,11 @@ class RedisCacheRepository(CacheRepository):
             return False
 
 
-    async def cache_set(self, key: str, data: Dict[str, Any], seconds: Optional[int] = None) -> Optional[bool]:
+    async def cache_set(
+            self, key: str, 
+            data: Union[Dict[str, Any], List[Dict[str, Any]]], 
+            seconds: Optional[int] = None
+        ) -> Optional[bool]:
         if not key:
             self.logger.warning(f"The input key: {key} is empty.")
             return False

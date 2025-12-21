@@ -18,9 +18,9 @@ from json import loads
 async def update_product(
     product_id: Annotated[int, Path(...)],
     update_json: Annotated[str, Form(...)],
-    files: Annotated[Optional[List[UploadFile]], File(None)],
     case: Annotated[UpdateProductCase, Depends(get_update_product_case)],
-    auth_session: Annotated[SecuritySessions, Depends(get_auth_sessions)]
+    auth_session: Annotated[SecuritySessions, Depends(get_auth_sessions)],
+    files: Annotated[Optional[List[UploadFile]], File()] = None
 ) -> ProductRead:
     await auth_session.get_admin()
     data = loads(update_json)

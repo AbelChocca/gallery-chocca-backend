@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Union, List
 
 class CacheRepository(ABC):
     @abstractmethod
@@ -17,7 +17,7 @@ class CacheRepository(ABC):
     async def cache_set(
         self, 
         key: str, 
-        data: Dict[str, Any], 
+        data: Union[Dict[str, Any], List[Dict[str, Any]]], 
         seconds: Optional[int] = None
     ) -> bool:
         """
