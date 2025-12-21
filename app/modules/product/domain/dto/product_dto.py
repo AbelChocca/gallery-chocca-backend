@@ -19,6 +19,11 @@ class ReadProductDTO:
     variants: List[ReadProductVariantDTO]
 
 @dataclass
+class GetProductsResponseDTO:
+    total: int
+    products: List[ReadProductDTO]
+
+@dataclass
 class FilterSchemaDTO:
     name: Optional[str] = None
     marca: Optional[str] = None

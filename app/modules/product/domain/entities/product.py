@@ -129,7 +129,7 @@ class Product:
     def get_filter_key(
             category: Optional[str] = None,
             model: Optional[str] = None,
-            slug: Optional[str] = None,
+            id: Optional[int] = None,
             promotion: Optional[bool] = None,
             color: Optional[str] = None
     ) -> str:
@@ -139,13 +139,14 @@ class Product:
             key += f":category:{category}"
         if model:
             key += f":model:{model}"
-        if slug:
-            key += f":{slug}"
+        if id:
+            key += f":{id}"
         if promotion:
             key += f":promotion:true" if promotion is True else f":promotion:false"
         if color:
             key += f":color:{color}"
         return key
+
     @staticmethod
     def _verify_created_product(
         nombre: str,
