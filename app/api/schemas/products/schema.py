@@ -83,6 +83,7 @@ class UpdateProductSchema(BaseModel):
     promocion: Optional[bool] = Field(default=None, examples=[False])
 
     variants: Optional[List[UpdateProductVariantSchema]] = Field(default=None, min_length=1)
+    temp_variants_id: Optional[List[int]] = Field(default=None)
 
     # flags
     name_changed: bool = False
