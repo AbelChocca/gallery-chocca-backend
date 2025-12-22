@@ -15,9 +15,9 @@ from typing import Annotated
 )
 async def get_products(
     filter_schema: Annotated[FilterSchema, Body()],
-    offset: Annotated[int, Query(default=0, ge=0)],
-    limit: Annotated[int, Query(default=20, ge=1, le=100)],
-    case: Annotated[GetProductsCase, Depends(get_all_products_case)]
+    case: Annotated[GetProductsCase, Depends(get_all_products_case)],
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20
 ) -> GetProductsResponse:
     filter_command = InputSchemaMapper.to_filter_command(filter_schema)
     res = await case.execute(
