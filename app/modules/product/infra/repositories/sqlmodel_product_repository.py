@@ -149,49 +149,21 @@ class PostgresProductRepository(ProductRepository):
             await self.db_session.rollback()
             raise DatabaseException(f"Cannot delete the product with id: {id} from database") from e
         
-    async def delete_image_by_id(self, cloudinary_id: str) -> None:
-        stmt = select(VariantImageTable).where(VariantImageTable.cloudinary_id == cloudinary_id)
-        image = (await self.db_session.exec(stmt)).first()
-        if not image:
-            raise VariantImageNotFound(f"Image with id:{cloudinary_id} was not found.")
-        
-        query = (
-            select(VariantColorTable)
-            .options(selectinload(VariantColorTable.imagenes))
-            .where(VariantColorTable.id == image.variant_id)
-        )
-        res = await self.db_session.exec(query)
-        variant = res.first()
-        
-        if len(variant.imagenes) <= 1:
-            raise CannotDeleteVariantImage("Cannot delete image from database, need atleast two images to delete one")
+    async def search_related(self, query: str, offset: int, limit: int) -> List[Product]:
         try:
-            await self.db_session.delete(image)
-            await self.db_session.commit()
-        except SQLAlchemyError as e:
-            await self.db_session.rollback()
-            raise DatabaseException("Cannot delete the image from database") from e
-        
-    async def delete_variant_by_id(self, variant_id: int) -> None:
-        variant = await self.db_session.get(VariantColorTable, variant_id)
-        if not variant:
-            raise VariantProductNotFound(f"Variant with id: {variant_id} was not found.")
-        
-        query = (
-            select(ProductTable)
-            .options(selectinload(ProductTable.variants))
-            .where(ProductTable.id == variant.product_id)
-        )
-        result = await self.db_session.exec(query)
-        product = result.first()
-        if not product:
-            raise DatabaseException("Product not found in this variant.")
-        if len(product.variants) <= 1:
-            raise CannotDeleteVariantProduct("You need atleast two variants to delete one.")
+            statement = (
+                select(ProductTable)
+                .options(selectinload(ProductTable.variants))
+                .where(ProductTable.nombre.ilike((f"%{query}%")))
+                .offset(offset)
+                .limit(limit)
+            )
 
-        try:
-            await self.db_session.delete(variant)
-            await self.db_session.commit()
-        except SQLAlchemyError as e:
-            await self.db_session.rollback()
-            raise DatabaseException("Cannot delete the variant from database") from e
+            products = await self.db_session.exec(statement)
+            return [
+                ProductMapper.to_entity(product)
+                for product in products
+            ]
+        except SQLAlchemyError as s:
+            self.logger.error(f"SQLModel error for get products related to {query}: {str(s)}")
+            raise DatabaseException(f"Cannot get the related products of {query}") from s

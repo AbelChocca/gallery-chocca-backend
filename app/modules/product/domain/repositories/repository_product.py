@@ -64,9 +64,18 @@ class ProductRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete_variant_by_id(self, variant_id: int) -> None:
-        pass
-
-    @abstractmethod
-    async def delete_image_by_id(self, cloudinary_id: str) -> None:
+    async def search_related(self, query: str, offset: int, limit: int) -> List[Product]:
+        """
+        Search a short list of products related to the query param
+        
+        :param self: default
+        :param query: text related to product's name
+        :type query: str
+        :param offset: start of pagination
+        :type offset: int
+        :param limit: limit of the page
+        :type limit: int
+        :return: The list of products related to query param
+        :rtype: List[Product]
+        """
         pass
