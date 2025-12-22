@@ -41,6 +41,8 @@ class RedisCacheRepository(CacheRepository):
         try:
             json_data = dumps(data)
             await self.client.set(name=key, ex=seconds, value=json_data, nx=True)
+
+            self.logger.info(f"Key: {key} was setted on cache successfully")
             return True
         except RedisError as e:
             self.logger.error(f'❌ Error al guardar la clave al cache: {str(e)}')
@@ -55,6 +57,8 @@ class RedisCacheRepository(CacheRepository):
                 self.logger.error('❌ La clave que intenta buscar no existe en el cache o ya venció.')
                 return None
             result = loads(json_data)
+
+            self.logger.info(f"Key: {key} value was getting successfully from redis service")
             return result
         except RedisError as e:
             self.logger.error(f'❌ Error del servidor al obtener el valor del cache: {str(e)}')

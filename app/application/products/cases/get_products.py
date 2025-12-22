@@ -48,7 +48,7 @@ class GetProductsCase:
          limit: int,
     ) -> GetProductsResponseDTO:
         products_key: str = Product.get_filter_key(category=command.categoria, model=command.modelo, promotion=command.promocion, color=command.color)
-        data = self.cache_repo.cache_get(key=products_key)
+        data = await self.cache_repo.cache_get(key=products_key)
         if data:
             self.logger.info("Products with filter was successfully get.")
             return self._dict_to_responde_dto(data)
