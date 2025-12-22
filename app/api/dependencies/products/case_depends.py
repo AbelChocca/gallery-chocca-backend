@@ -3,8 +3,6 @@ from app.application.products.cases.delete_product import DeleteProductCase
 from app.application.products.cases.get_products import GetProductsCase
 from app.application.products.cases.update_product import UpdateProductCase
 from app.application.products.cases.get_product_by_id import GetProductByIDCase
-from app.application.products.cases.delete_image_product import DeleteImageProductCase
-from app.application.products.cases.delete_variant_product import DeleteProductVariantCase
 from app.modules.product.domain.repositories.repository_product import ProductRepository
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
 from app.modules.cache.cache_repository import CacheRepository
@@ -25,12 +23,14 @@ def get_create_product_case(
     product_repo: ProductRepository = Depends(get_product_repo),
     image_repo: CloudinaryRepository = Depends(get_cloudinary_repo),
     logger: LoggerRepository = Depends(get_logger_repo),
+    cache_repo: CacheRepository = Depends(get_cache_repo),
     slug_repo: SlugRepository = Depends(get_slugify_repository)
 ) -> CreateProductUseCase:
     return CreateProductUseCase(
         repo=product_repo,
         image_repo=image_repo,
         slug_repo=slug_repo,
+        cache_repo=cache_repo,
         logger=logger
         )
 
@@ -47,23 +47,26 @@ def get_product_by_id_case(
         logger=logger
     )
 
-def get_delete_image_by_id_case(
-    product_repo: ProductRepository = Depends(get_product_repo)
-) -> DeleteImageProductCase:
-    return DeleteImageProductCase(product_repo)
-
 def get_delete_product_case(
     product_repo: ProductRepository = Depends(get_product_repo),
     image_repo: CloudinaryRepository = Depends(get_cloudinary_repo),
+    cache_repo: CacheRepository = Depends(get_cache_repo),
     logger:  LoggerRepository = Depends(get_logger_repo)
 ) -> DeleteProductCase:
-    return DeleteProductCase(repo=product_repo, image_repo=image_repo, logger=logger)
+    return DeleteProductCase(repo=product_repo, image_repo=image_repo, logger=logger, cache_repo=cache_repo)
 
 def get_all_products_case(
     product_repo: ProductRepository = Depends(get_product_repo),
+    cache_repo: CacheRepository = Depends(get_cache_repo),
+    settings: Settings = Depends(get_settings),
     logger: LoggerRepository = Depends(get_logger_repo)
 ) -> GetProductsCase:
-    return GetProductsCase(product_repo, logger)
+    return GetProductsCase(
+        repo=product_repo,
+        cache_repo=cache_repo,
+        settings=settings,
+        logger=logger
+    )
 
 def get_update_product_case(
     product_repo: ProductRepository = Depends(get_product_repo),
@@ -77,8 +80,3 @@ def get_update_product_case(
         image_repo=image_repo,
         slug_repo=slug_repo
         )
-
-def get_delete_variant_by_id(
-    product_repo: ProductRepository = Depends(get_product_repo)
-) -> DeleteProductVariantCase:
-    return DeleteProductVariantCase(product_repo)

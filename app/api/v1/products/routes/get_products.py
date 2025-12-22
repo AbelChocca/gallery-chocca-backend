@@ -1,10 +1,11 @@
 from app.api.v1.products.product_route import router
-from app.api.schemas.products.schema import ProductRead, FilterSchema, GetProductsResponse
+from app.api.schemas.products.schema import FilterSchema, GetProductsResponse
 from app.api.dependencies.products.case_depends import get_all_products_case
 from app.api.schemas.products.schema_mapper import InputSchemaMapper, OutputSchemaMapper
 from app.application.products.cases.get_products import GetProductsCase
 
-from fastapi import status, Query, Depends
+from fastapi import status, Query, Depends, Body
+from typing import Annotated
 
 @router.post(
     "/all",
@@ -13,23 +14,22 @@ from fastapi import status, Query, Depends
     summary="Get all products"
 )
 async def get_products(
-    filter_schema: FilterSchema,
-    offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, ge=1, le=100),
-    case: GetProductsCase = Depends(get_all_products_case)
+    filter_schema: Annotated[FilterSchema, Body()],
+    offset: Annotated[int, Query(default=0, ge=0)],
+    limit: Annotated[int, Query(default=20, ge=1, le=100)],
+    case: Annotated[GetProductsCase, Depends(get_all_products_case)]
 ) -> GetProductsResponse:
     filter_command = InputSchemaMapper.to_filter_command(filter_schema)
-    products = await case.execute(
+    res = await case.execute(
         filter_command, 
         offset, 
         limit
         )
-    total_products = await case.count_products(filter_command)
     return GetProductsResponse(
-        total=total_products,
+        total=res.total,
         productos=[
         OutputSchemaMapper.to_read_schema(product)
-        for product in products
+        for product in res.products
     ]
     )
     
