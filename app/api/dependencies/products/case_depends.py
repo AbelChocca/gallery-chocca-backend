@@ -3,6 +3,8 @@ from app.application.products.cases.delete_product import DeleteProductCase
 from app.application.products.cases.get_products import GetProductsCase
 from app.application.products.cases.update_product import UpdateProductCase
 from app.application.products.cases.get_product_by_id import GetProductByIDCase
+from app.application.products.cases.search_product import SearchProductCase
+
 from app.modules.product.domain.repositories.repository_product import ProductRepository
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
 from app.modules.cache.cache_repository import CacheRepository
@@ -80,3 +82,8 @@ def get_update_product_case(
         image_repo=image_repo,
         slug_repo=slug_repo
         )
+
+def get_search_products_case(
+        product_repo: ProductRepository = Depends(get_product_repo)
+) -> SearchProductCase:
+    return SearchProductCase(repo=product_repo)
