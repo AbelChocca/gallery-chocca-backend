@@ -7,7 +7,7 @@ from app.modules.product.domain.dto.product_dto import GetProductsResponseDTO
 from app.application.products.commands import FilterProductCommand
 from app.application.products.helper_mapper import ProductCommandToDTOMapper, ProductEntityToDTOMapper, ProductDictToReadDTOMapper, ProductEntityToDictMapper
 
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 
 class GetProductsCase:
