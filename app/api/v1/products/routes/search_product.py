@@ -11,7 +11,7 @@ from typing import List, Annotated
 
 @router.post(
     path="/related/",
-    dependencies=[Depends(limiter.limiter(limit=10, window=60))],
+    dependencies=[Depends(limiter.limiter(limit=25, window=30))],
     status_code=status.HTTP_200_OK,
     summary="Returns realted product to query param",
     response_model=List[ProductRead]

@@ -1,5 +1,5 @@
 from fastapi import Request, Depends, HTTPException, status
-from redis import Redis
+from redis.asyncio import Redis
 
 from typing import Callable, Optional, Awaitable
 
@@ -13,7 +13,7 @@ class RateLimiter:
             if current == 1:
                 await redis_client.expire(key, window)
             if current > limit:
-                return HTTPException(
+                raise HTTPException(
                     detail={"message": f"Rate limit exceeded. Try again in {window} seconds."},
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS
                 )

@@ -5,7 +5,7 @@ from app.core.log.logger_repository import LoggerRepository
 from app.core.log.loguru_logger_repository import get_logger_repo
 from app.core.clients.redis_client import get_redis_client
 
-from redis import Redis
+from redis.asyncio import Redis
 from fastapi import Depends
 
 
