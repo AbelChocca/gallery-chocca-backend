@@ -131,20 +131,23 @@ class Product:
             model: Optional[str] = None,
             id: Optional[int] = None,
             promotion: Optional[bool] = None,
-            color: Optional[str] = None
+            color: Optional[str] = None,
+            name: Optional[str] = None
     ) -> str:
         key: str = "products"
 
+        if name:
+            key += f"/related:{name}"
         if category:
-            key += f":category:{category}"
+            key += f"/category:{category}"
         if model:
-            key += f":model:{model}"
+            key += f"/model:{model}"
         if id:
-            key += f":{id}"
+            key += f"/{id}"
         if promotion:
-            key += f":promotion:true" if promotion is True else f":promotion:false"
+            key += f"/promotion:true" if promotion is True else f":promotion:false"
         if color:
-            key += f":color:{color}"
+            key += f"/color:{color}"
         return key
 
     @staticmethod

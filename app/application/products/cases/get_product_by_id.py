@@ -4,7 +4,7 @@ from app.modules.cache.cache_repository import CacheRepository
 from app.modules.product.domain.dto.product_dto import ReadProductDTO
 from app.core.log.logger_repository import LoggerRepository
 from app.core.settings.pydantic_settings import Settings
-from app.application.products.helper_mapper import ProductEntityToDTOMapper, ProductEntityToDictMapper
+from app.application.products.helper_mapper import ProductEntityToDTOMapper, ProductEntityToDictMapper, ProductDictToReadDTOMapper
 
 from typing import Dict, Any
 
@@ -22,8 +22,7 @@ class GetProductByIDCase:
         self.settings = settings_repo
 
     def _dict_to_dto(self, data: Dict[str, Any]) -> ReadProductDTO:
-        product = ProductEntityToDictMapper.dict_to_product(data)
-        return ProductEntityToDTOMapper.to_read_dto(product)
+        return ProductDictToReadDTOMapper.to_read_dto(data)
 
     async def execute(self, product_id: int) -> ReadProductDTO:
         product_key: str = Product.get_filter_key(id=product_id)
