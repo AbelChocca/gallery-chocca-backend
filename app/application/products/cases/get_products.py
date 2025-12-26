@@ -61,15 +61,12 @@ class GetProductsCase:
                 filter_dto=ProductCommandToDTOMapper.to_filter_dto(command)
             )
             object_value = ProductEntityToDictMapper.products_to_response_dict(total_count=count_products, products=products)
-            await self.cache_repo.cache_set(key=products_key, data=object_value, seconds=self.settings.REDIS_LARGE_TTL)
-            return GetProductsResponseDTO(
-                total=count_products,
-                products=products
-            )
+            await self.cache_repo.cache_set(key=products_key, data=object_value, seconds=self.settings.REDIS_MEDIUM_TTL)
+            return self._dict_to_responde_dto(object_value)
         
         data = await self.cache_repo.cache_retry_get(retries=self.settings.REDIS_MAX_RETRIES, key=products_key, seconds_delay=self.settings.REDIS_SECONDS_DELAY)
         if data:
-            self.logger.info("Products with filter was successfully get.")
+            self.logger.info("Products with filter was successfully get from cache after few retries.")
             return self._dict_to_responde_dto(data)
 
         products_response = await self.repo.get_all(
@@ -79,5 +76,8 @@ class GetProductsCase:
             )
         return GetProductsResponseDTO(
             total=self._count_products(command=command),
-            products=products_response
+            products=[
+                ProductEntityToDTOMapper.to_read_dto(product)
+                for product in products_response
+            ]
         )

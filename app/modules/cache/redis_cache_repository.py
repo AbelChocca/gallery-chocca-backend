@@ -86,9 +86,12 @@ class RedisCacheRepository(CacheRepository):
             raise InternalCacheException()
         
     async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Any]:
-        for _ in range(retries):
-            sleep(seconds_delay)
+        for attempt in range(retries):
             data = await self.client.get(key)
-            if data:
-                return data
+
+            if data is not None:
+                return loads(data)
+
+            if attempt < retries - 1:
+                await sleep(seconds_delay)
         return None

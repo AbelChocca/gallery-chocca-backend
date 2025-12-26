@@ -74,12 +74,14 @@ def get_update_product_case(
     product_repo: ProductRepository = Depends(get_product_repo),
     logger: LoggerRepository = Depends(get_logger_repo),
     image_repo: CloudinaryRepository = Depends(get_cloudinary_repo),
+    cache_repo: CacheRepository = Depends(get_cache_repo),
     slug_repo: SlugRepository = Depends(get_slugify_repository)
 ) -> UpdateProductCase:
     return UpdateProductCase(
         repo=product_repo,
         logger=logger,
         image_repo=image_repo,
+        cache_repo=cache_repo,
         slug_repo=slug_repo
         )
 

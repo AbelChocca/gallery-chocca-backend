@@ -2,6 +2,7 @@ from app.modules.product.domain.dto.product_dto import ReadProductDTO
 from app.modules.product.domain.exceptions.variant_exception import InvalidImageVariantMapping
 from app.modules.product.domain.repositories.repository_product import ProductRepository
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
+from app.modules.cache.cache_repository import CacheRepository
 from app.core.log.logger_repository import LoggerRepository
 from app.shared.services.slug.domain.slug_repository import SlugRepository
 from app.application.products.commands import UpdateProductCommand
@@ -15,11 +16,13 @@ class UpdateProductCase:
             repo: ProductRepository,
             logger: LoggerRepository,
             image_repo: CloudinaryRepository,
+            cache_repo: CacheRepository,
             slug_repo: SlugRepository
             ):
         self.repo: ProductRepository = repo
         self.logger: LoggerRepository = logger
         self.image_repo: CloudinaryRepository = image_repo
+        self.cache_repo: CacheRepository = cache_repo
         self.slug_repo: SlugRepository = slug_repo
 
     async def execute(
@@ -81,6 +84,8 @@ class UpdateProductCase:
         )
 
         new_product = await self.repo.save(existing_product)
+        await self.cache_repo.cache_delete(key=existing_product.get_filter_key(id=existing_product.id))
+        await self.cache_repo.cache_delete(key=existing_product.get_filter_key(category=existing_product.categoria))
 
         self.logger.info(f"Product {new_product.nombre} was saved and updated successfully!")
         return ProductEntityToDTOMapper.to_read_dto(new_product)
