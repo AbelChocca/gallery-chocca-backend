@@ -79,3 +79,11 @@ class ProductRepository(ABC):
         :rtype: List[Product]
         """
         pass
+
+    @abstractmethod
+    async def delete_variant_by_id(self, variant_id: int) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_image_by_id(self, image_id: str) -> None:
+        pass

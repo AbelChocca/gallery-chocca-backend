@@ -2,7 +2,7 @@ from app.modules.product.domain.repositories.repository_product import ProductRe
 from app.modules.product.domain.entities.product import Product
 from app.modules.product.infra.models.product_model import ProductTable, VariantColorTable, VariantImageTable
 from app.modules.product.infra.mappers.product_mapper import ProductMapper
-from app.modules.product.infra.exceptions import ProductNotFound, VariantImageNotFound, CannotDeleteVariantImage, CannotDeleteVariantProduct, VariantProductNotFound
+from app.modules.product.infra.exceptions import ProductNotFound, VariantImageNotFound, VariantProductNotFound
 
 from app.modules.product.domain.dto.product_dto import FilterSchemaDTO
 
@@ -167,3 +167,30 @@ class PostgresProductRepository(ProductRepository):
         except SQLAlchemyError as s:
             self.logger.error(f"SQLModel error for get products related to {query}: {str(s)}")
             raise DatabaseException(f"Cannot get the related products of {query}") from s
+        
+    async def delete_variant_by_id(self, variant_id: int) -> None:
+        try:
+            variant = await self.db_session.get(VariantColorTable, variant_id)
+            if not variant:
+                self.logger.error(f"Variant with id: {variant_id} was not found in database, delete option cancelled.")
+                return None
+
+            await self.db_session.delete(variant)
+            await self.db_session.commit()
+        except SQLAlchemyError as e:
+            await self.db_session.rollback()
+            raise DatabaseException(f"Cannot delete the variant with id: {variant_id} from database") from e
+
+    async def delete_image_by_id(self, image_id: str) -> None:
+        try:
+            statement = select(VariantImageTable).where(VariantImageTable.cloudinary_id == image_id)
+            image = (await self.db_session.exec(statement)).first()
+            if not image:
+                self.logger.error(f"Image with id: {image_id} was not found on database, delete option cancelled.")
+                return None
+
+            await self.db_session.delete(image)
+            await self.db_session.commit()
+        except SQLAlchemyError as e:
+            await self.db_session.rollback()
+            raise DatabaseException(f"Cannot delete the image with id: {image_id} from database") from e
