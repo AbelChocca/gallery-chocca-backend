@@ -11,3 +11,7 @@ class MissingSizesException(DomainException):
 class InvalidImageVariantMapping(DomainException):
     def __init__(self, message: str, status_code = 400):
         super().__init__(message, status_code)
+
+class CannotDeleteVariantImage(DomainException):
+    def __init__(self, message: str, status_code = 400):
+        super().__init__(message, status_code)

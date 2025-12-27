@@ -15,3 +15,7 @@ class InvalidDiscountPercentException(DomainException):
 class InvalidVariantImageException(DomainException):
     def __init__(self, message: str, status_code = 400):
         super().__init__(message, status_code)
+
+class CannotDeleteVariantProduct(DomainException):
+    def __init__(self, message: str, status_code: int = 400):
+        super().__init__(message, status_code)
