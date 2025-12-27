@@ -31,16 +31,21 @@ class UpdateProductCase:
             product_id: int,
             new_images_file: Optional[List[BinaryIO]] = None,
     ) -> ReadProductDTO:
-        if len(new_images_file) != len(command.temp_variants_id):
+        if new_images_file is not None and command.temp_variants_id is not None and (len(new_images_file) != len(command.temp_variants_id)):
             raise InvalidImageVariantMapping("Missing match length of the new_images_file and temp_variants_id")
         
         existing_product = await self.repo.get_by_id(product_id)
         self.logger.info(f"Start updating the product {existing_product.nombre} with id: {product_id}")
 
         update_variants_dto = ProductCommandToDTOMapper.to_update_dto(command).variants
+        images_to_delete, variants_to_delete = (
+            existing_product.plan_images_and_variants_deletions(update_variants_dto)
+        )
 
         existing_product.sync_variants(update_variants_dto)
         existing_product.raise_invalid_variants_index(command.temp_variants_id)
+        existing_product.raise_cannot_delete_variants(variants_to_delete)
+        existing_product.cannot_delete_image(images_to_delete)
 
         if new_images_file is not None and command.temp_variants_id is not None:
             for image, temp_id in zip(new_images_file, command.temp_variants_id):
@@ -53,10 +58,6 @@ class UpdateProductCase:
                     url=new_image.url,
                     public_id=new_image.public_id
                 )
-
-        images_to_delete, variants_to_delete = (
-            existing_product.plan_images_and_variants_deletions(update_variants_dto)
-        )
 
         for image_id in images_to_delete:
             if image_id is not None:
@@ -85,7 +86,8 @@ class UpdateProductCase:
 
         new_product = await self.repo.save(existing_product)
         await self.cache_repo.cache_delete(key=existing_product.get_filter_key(id=existing_product.id))
-        await self.cache_repo.cache_delete(key=existing_product.get_filter_key(category=existing_product.categoria))
+        await self.cache_repo.cache_delete(key=existing_product.get_filter_key(category=new_product.categoria))
+        await self.cache_repo.cache_delete(key=existing_product.get_filter_key(category=new_product.categoria, brand=new_product.marca))
 
         self.logger.info(f"Product {new_product.nombre} was saved and updated successfully!")
         return ProductEntityToDTOMapper.to_read_dto(new_product)
