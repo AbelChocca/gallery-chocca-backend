@@ -128,6 +128,7 @@ class Product:
     @staticmethod
     def get_filter_key(
             category: Optional[str] = None,
+            brand: Optional[str] = None,
             model: Optional[str] = None,
             id: Optional[int] = None,
             promotion: Optional[bool] = None,
@@ -138,6 +139,8 @@ class Product:
 
         if name:
             key += f"/related:{name}"
+        if brand:
+            key += f"/brand:{brand}"
         if category:
             key += f"/category:{category}"
         if model:
