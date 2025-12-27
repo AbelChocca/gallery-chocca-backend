@@ -1,8 +1,8 @@
 from app.modules.product.domain.entities.product_variant import ProductVariant
 from app.modules.product.domain.dto.variant_dto import UpdateProductVariantDTO
-from app.modules.product.domain.exceptions.product_exception import MissingVariantsException, InvalidProductNameException, InvalidDiscountPercentException, InvalidVariantImageException
+from app.modules.product.domain.exceptions.product_exception import MissingVariantsException, InvalidProductNameException, InvalidDiscountPercentException, InvalidVariantImageException, CannotDeleteVariantProduct
 
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Union
 
 class Product:
     def __init__(
@@ -120,10 +120,22 @@ class Product:
         self.marca = marca if marca is not None else self.marca
         self.promocion = promocion if promocion is not None else self.promocion
 
-    def raise_invalid_variants_index(self, new_variants_index: List[int]) -> None:
+    def raise_invalid_variants_index(self, new_variants_index: Optional[List[int]]  = None) -> None:
+        if not new_variants_index:
+            return None
+
         for variant_idx in new_variants_index:
             if variant_idx < 0 or variant_idx >= len(self.variants):
                 raise InvalidVariantImageException(f"The image with temp's variant id: {variant_idx} cannot upload cause the id didn't match the variants product length")
+            
+    def raise_cannot_delete_variants(self, variants_id_to_delete: List[Union[int, None]]) -> None:
+       diff: int = len(self.variants) - len(variants_id_to_delete)
+       if diff < 1:
+           raise CannotDeleteVariantProduct(f"Product must be at least one variant, current variants count: {len(self.variants)}, variants to delete count: {len(variants_id_to_delete)}")
+
+    def cannot_delete_image(self, images_id_to_delete: List[Union[str, None]]) -> None:
+        for variant in self.variants:
+            variant.raise_cannot_delete_image(images_id_to_delete)
 
     @staticmethod
     def get_filter_key(
