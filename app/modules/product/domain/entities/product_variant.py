@@ -1,7 +1,7 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from app.modules.product.domain.entities.variant_image import VariantImage
-from app.modules.product.domain.exceptions.variant_exception import MissingSizesException, ColorTooShortException
+from app.modules.product.domain.exceptions.variant_exception import MissingSizesException, ColorTooShortException, CannotDeleteVariantImage
 
 class ProductVariant:
     def __init__(
@@ -42,6 +42,12 @@ class ProductVariant:
             ):
         self.color = color if color is not None else self.color
         self.tallas = tallas if tallas is not None else self.tallas
+
+    def raise_cannot_delete_image(self, images_id_to_delete: List[Union[str, None]]) -> None:
+        diff: int = len(self.imagenes) - len(images_id_to_delete)
+
+        if diff < 1:
+            raise CannotDeleteVariantImage(f"Variant: {self.id} must be at least one image, cannot delete")
 
     @staticmethod
     def _validate_variant(

@@ -47,7 +47,7 @@ class GetProductsCase:
          offset: int,
          limit: int,
     ) -> GetProductsResponseDTO:
-        products_key: str = Product.get_filter_key(name=command.name, category=command.categoria, model=command.modelo, promotion=command.promocion, color=command.color)
+        products_key: str = Product.get_filter_key(brand=command.marca, name=command.name, category=command.categoria, model=command.modelo, promotion=command.promocion, color=command.color)
         data = await self.cache_repo.cache_get(key=products_key)
         if data:
             self.logger.info("Products with filter was successfully get.")
