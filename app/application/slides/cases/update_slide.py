@@ -6,7 +6,7 @@ from app.application.slides.helper_mapper import CommandToDTOInterpreter
 
 from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
 
-from typing import IO, Optional
+from typing import Optional, BinaryIO
 
 class UpdateSlideCase:
     def __init__(
@@ -23,7 +23,7 @@ class UpdateSlideCase:
         self, 
         slide_id: int, 
         new_slide_command: UpdateSlideCommand,
-        new_image: Optional[IO[bytes]] = None
+        new_image: Optional[BinaryIO] = None
     ) -> ReadSlideDTO:
         slide = await self.repo.get_by_id(slide_id)
 

@@ -94,6 +94,6 @@ class InfraSlideRepository(SlideRepository):
             if not slide_db:
                 raise SlideNotFound(f"Slide with id: {slide_id} not found")
 
-            return slide_db
+            return SlideMapper.to_entity(slide_db)
         except SQLAlchemyError as s:
             raise DatabaseException("Error during get slide by id") from s

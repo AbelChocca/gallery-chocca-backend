@@ -8,7 +8,7 @@ class ProductVariant:
             self,
             color: str,
             tallas: List[str],
-            imagenes: List[VariantImage] = [],
+            imagenes: Optional[List[VariantImage]] = None,
             id: Optional[int] = None,
             product_id: Optional[int] = None
             ):
@@ -21,7 +21,7 @@ class ProductVariant:
         self.product_id = product_id
         self.color = color
         self.tallas = tallas
-        self.imagenes = imagenes
+        self.imagenes = imagenes if imagenes is not None else []
 
     def agregar_image(self, image_url: str, public_id: str) -> None:
         self.imagenes.append(VariantImage(

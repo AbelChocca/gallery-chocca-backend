@@ -56,7 +56,11 @@ class SlideEntity:
         Updates the entity using a dataclass DTO.
         Only updates fields that are not None.
         """
-        update_data = {k: v for k, v in asdict(dto).items() if v is not None or k != "image_url" or k != "cloudinary_id"}
+        update_data = {
+            k: v 
+            for k, v in asdict(dto).items() 
+            if v is not None and k not in {"image_url", "cloudinary_id"}
+        }
 
         for key, value in update_data.items():
             if hasattr(self, key):

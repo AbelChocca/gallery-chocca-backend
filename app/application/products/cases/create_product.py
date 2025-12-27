@@ -65,14 +65,11 @@ class CreateProductUseCase:
                 file=file,
                 folder="products"
             )
-            new_image = VariantImage(
+            new_product.add_image_on_specify_variant(
+                variant_index=variant_id,
                 url=cloud_image.url,
-                cloudinary_id=cloud_image.public_id
-            )
-            new_product.variants[variant_id].agregar_image(
-                image_url=new_image.url,
-                public_id=new_image.cloudinary_id
-            )
+                public_id=cloud_image.public_id
+                )
 
         new_product = await self.repo.save(new_product)
 
