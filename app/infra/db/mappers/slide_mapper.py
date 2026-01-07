@@ -1,39 +1,40 @@
-from app.modules.slide.domain.slide_entity import SlideEntity
+from app.domain.slide.slide_entity import SlideEntity
 from app.infra.db.models.slide_model import SlideTable
+from app.infra.db.mappers.base_mapper import BaseMapper
 
 from typing import Optional
 
-class SlideMapper:
+class SlideMapper(BaseMapper[SlideEntity, SlideTable]):
     @staticmethod
-    def to_entity(slide_db: SlideTable) -> SlideEntity:
+    def to_entity(model: SlideTable) -> SlideEntity:
         return SlideEntity(
-            imagen_url=slide_db.imagen_url,
-            enlace_boton=slide_db.enlace_boton,
-            activo=slide_db.activo,
-            cloudinary_id=slide_db.cloudinary_id,
-            orden=slide_db.orden,
-            fecha_actualizada=slide_db.fecha_actualizada,
-            fecha_creada=slide_db.fecha_creada,
-            id=slide_db.id
+            imagen_url=model.imagen_url,
+            enlace_boton=model.enlace_boton,
+            activo=model.activo,
+            cloudinary_id=model.cloudinary_id,
+            orden=model.orden,
+            fecha_actualizada=model.fecha_actualizada,
+            fecha_creada=model.fecha_creada,
+            id=model.id
         )
 
     @staticmethod
-    def to_db_model(slide: SlideEntity, slide_db: Optional[SlideTable] = None) -> SlideTable:
-        if slide_db:
-            slide_db.imagen_url = slide.imagen_url
-            slide_db.enlace_boton = slide.enlace_boton
-            slide_db.activo = slide.activo
-            slide_db.fecha_actualizada = slide.fecha_actualizada
-            slide_db.fecha_creada = slide.fecha_creada
-            slide_db.orden = slide.orden
-            slide_db.cloudinary_id = slide.cloudinary_id
-            return slide_db
+    def to_db_model(entity: SlideEntity, existing_model: Optional[SlideTable] = None) -> SlideTable:
+        if existing_model:
+            existing_model.imagen_url = entity.imagen_url
+            existing_model.enlace_boton = entity.enlace_boton
+            existing_model.activo = entity.activo
+            existing_model.fecha_actualizada = entity.fecha_actualizada
+            existing_model.fecha_creada = entity.fecha_creada
+            existing_model.orden = entity.orden
+            existing_model.cloudinary_id = entity.cloudinary_id
+            return existing_model
         return SlideTable(
-            imagen_url=slide.imagen_url,
-            enlace_boton=slide.enlace_boton,
-            cloudinary_id=slide.cloudinary_id,
-            activo=slide.activo,
-            orden=slide.orden,
-            fecha_actualizada=slide.fecha_actualizada,
-            fecha_creada=slide.fecha_creada
+            imagen_url=entity.imagen_url,
+            enlace_boton=entity.enlace_boton,
+            cloudinary_id=entity.cloudinary_id,
+            activo=entity.activo,
+            orden=entity.orden,
+            fecha_actualizada=entity.fecha_actualizada,
+            fecha_creada=entity.fecha_creada
         )

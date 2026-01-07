@@ -1,17 +1,19 @@
-from app.modules.user.domain.user import User
+from app.domain.user.entity import User
 from app.infra.db.models.model_user import UserTable
+
+from app.infra.db.mappers.base_mapper import BaseMapper
 
 from typing import Optional
 
 class UserMapper:
     @staticmethod
-    def to_entity(user_db: UserTable) -> User:
+    def to_entity(model: UserTable) -> User:
         return User(
-            id=user_db.id,
-            name=user_db.nombre,
-            email=user_db.email,
-            role=user_db.role,
-            hashed_password=user_db.hashed_password
+            id=model.id,
+            name=model.nombre,
+            email=model.email,
+            role=model.role,
+            hashed_password=model.hashed_password
         )
     
     @staticmethod

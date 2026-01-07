@@ -1,8 +1,10 @@
 from typing import Optional
 
-from app.modules.product.domain.entities.product import Product
-from app.modules.product.domain.entities.product_variant import ProductVariant
-from app.modules.product.domain.entities.variant_image import VariantImage
+from app.domain.product.entities.product import Product
+from app.domain.product.entities.product_variant import ProductVariant
+from app.domain.product.entities.variant_image import VariantImage
+
+from app.infra.db.mappers.base_mapper import BaseMapper
 
 from app.infra.db.models.product_model import (
     ProductTable,
@@ -10,15 +12,15 @@ from app.infra.db.models.product_model import (
     VariantImageTable
 )
 
-class ProductMapper:
+class ProductMapper(BaseMapper[Product, ProductTable]):
     # ==========================================================
     #                 DB → ENTITY
     # ==========================================================
     @staticmethod
-    def to_entity(product_db: ProductTable) -> Product:
+    def to_entity(model: ProductTable) -> Product:
         variants = []
 
-        for variant in (product_db.variants or []):
+        for variant in (model.variants or []):
             # Mapear imagenes
             images = [
                 VariantImage(
@@ -41,46 +43,46 @@ class ProductMapper:
             )
 
         return Product(
-            id=product_db.id,
-            nombre=product_db.nombre,
-            descripcion=product_db.descripcion,
-            precio=product_db.precio,
-            categoria=product_db.categoria,
-            modelo=product_db.modelo,
-            marca=product_db.marca,
-            slug=product_db.slug,
-            descuento=product_db.descuento,
-            promocion=product_db.promocion,
+            id=model.id,
+            nombre=model.nombre,
+            descripcion=model.descripcion,
+            precio=model.precio,
+            categoria=model.categoria,
+            modelo=model.modelo,
+            marca=model.marca,
+            slug=model.slug,
+            descuento=model.descuento,
+            promocion=model.promocion,
             variants=variants
         )
 
 
     @staticmethod
-    def to_db_model(product: Product, existing_db: Optional[ProductTable] = None) -> ProductTable:
+    def to_db_model(entity: Product, existing_model: Optional[ProductTable] = None) -> ProductTable:
 
         # =====================================================
         #           MODO UPDATE 
         # =====================================================
-        if existing_db:
-            existing_db.nombre = product.nombre
-            existing_db.descripcion = product.descripcion
-            existing_db.precio = product.precio
-            existing_db.categoria = product.categoria
-            existing_db.marca = product.marca
-            existing_db.modelo = product.modelo
-            existing_db.slug = product.slug
-            existing_db.descuento = product.descuento
-            existing_db.promocion = product.promocion
+        if existing_model:
+            existing_model.nombre = entity.nombre
+            existing_model.descripcion = entity.descripcion
+            existing_model.precio = entity.precio
+            existing_model.categoria = entity.categoria
+            existing_model.marca = entity.marca
+            existing_model.modelo = entity.modelo
+            existing_model.slug = entity.slug
+            existing_model.descuento = entity.descuento
+            existing_model.promocion = entity.promocion
 
             new_variants = []
 
-            for variant in (product.variants or []):
+            for variant in (entity.variants or []):
 
                 variant_db = VariantColorTable(
                     id=variant.id,
                     color=variant.color,
                     tallas=variant.tallas,
-                    product_id=existing_db.id
+                    product_id=existing_model.id
                 )
 
                 variant_db.imagenes = [
@@ -95,12 +97,12 @@ class ProductMapper:
 
                 new_variants.append(variant_db)
 
-            existing_db.variants = new_variants
-            return existing_db
+            existing_model.variants = new_variants
+            return existing_model
 
         product_variants = []
 
-        for variant in (product.variants or []):
+        for variant in (entity.variants or []):
             images_db = [
                 VariantImageTable(
                     url=img.url,
@@ -118,14 +120,14 @@ class ProductMapper:
             product_variants.append(variant_db)
 
         return ProductTable(
-            nombre=product.nombre,
-            descripcion=product.descripcion,
-            precio=product.precio,
-            categoria=product.categoria,
-            marca=product.marca,
-            modelo=product.modelo,
-            slug=product.slug,
-            descuento=product.descuento,
-            promocion=product.promocion,
+            nombre=entity.nombre,
+            descripcion=entity.descripcion,
+            precio=entity.precio,
+            categoria=entity.categoria,
+            marca=entity.marca,
+            modelo=entity.modelo,
+            slug=entity.slug,
+            descuento=entity.descuento,
+            promocion=entity.promocion,
             variants=product_variants
         )
