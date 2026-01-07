@@ -1,10 +1,11 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import Generic, Type, Optional
+from typing import Generic, Optional, Type
 from app.infra.db.types import E, M
 from sqlalchemy.exc import SQLAlchemyError
+from sqlmodel import select
 
 from app.infra.db.mappers.base_mapper import BaseMapper
-from app.core.log.logger_repository import LoggerProtocol
+from app.core.log.protocole import LoggerProtocol
 
 from app.infra.db.exceptions import DatabaseException, ModelNotFound
 
@@ -12,9 +13,9 @@ class BaseRepository(Generic[E, M]):
     def __init__(
             self,
             db_session: AsyncSession,
-            base_model: Type[M],
             base_mapper: BaseMapper[E, M],
-            logger: LoggerProtocol
+            logger: LoggerProtocol,
+            base_model: Type[M]
         ):
         self._db_session: AsyncSession = db_session
         self._base_model: Type[M] = base_model
@@ -22,7 +23,12 @@ class BaseRepository(Generic[E, M]):
         self._logger: LoggerProtocol= logger
 
     async def _get_model_by_id_non_raise(self, model_id: int) -> Optional[M]:
-        model: M = await self._db_session.get(self._base_model, model_id)
+        statement = (
+            select(self._base_model)
+            .where(self._base_model.id == model_id)
+        )
+        
+        model: Optional[M] = (await self._db_session.exec(statement)).first()
         if not model:
             self._logger.warning(
                 f"Model {self._base_model.__name__} with id: {model_id} wasn't found.",
