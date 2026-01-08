@@ -1,9 +1,9 @@
-from app.domain.media.dto import CloudinaryImageDTO
+from app.domain.media.dto import MediaImageDTO
 
 from typing import BinaryIO, Protocol
 
 class MediaProtocol(Protocol):
-    def upload_image(self, file: BinaryIO, folder: str) -> CloudinaryImageDTO:
+    def upload_image(self, file: BinaryIO, folder: str) -> MediaImageDTO:
         """
         Method for upload image to cloudinary service
         
@@ -13,7 +13,7 @@ class MediaProtocol(Protocol):
         :param folder: the destinatary folder to upload the image
         :type folder: str
         :return: The image url value and his publid id
-        :rtype: CloudinaryImageDTO
+        :rtype: MediaImageDTO
         """
         ...
 
