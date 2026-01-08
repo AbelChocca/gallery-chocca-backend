@@ -1,14 +1,13 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
-from app.modules.product.domain.entities.variant_image import VariantImage
-from app.modules.product.domain.exceptions.variant_exception import MissingSizesException, ColorTooShortException, CannotDeleteVariantImage
+from app.domain.media.entities.image import ImageEntity
+from app.domain.product.exceptions.variant_exception import MissingSizesException, ColorTooShortException, CannotDeleteVariantImage
 
 class ProductVariant:
     def __init__(
             self,
             color: str,
             tallas: List[str],
-            imagenes: Optional[List[VariantImage]] = None,
             id: Optional[int] = None,
             product_id: Optional[int] = None
             ):
@@ -21,19 +20,21 @@ class ProductVariant:
         self.product_id = product_id
         self.color = color
         self.tallas = tallas
-        self.imagenes = imagenes if imagenes is not None else []
+        self.imagenes: List[ImageEntity] = []
 
-    def agregar_image(self, image_url: str, public_id: str) -> None:
-        self.imagenes.append(VariantImage(
-            url=image_url,
-            cloudinary_id=public_id
-        ))
+    def agregar_image(
+            self, 
+            new_image: ImageEntity
+            ) -> None:
+        if self.id is not None:
+            new_image.set_id(self.id)
+        self.imagenes.append(new_image)
 
-    def get_all_images_id(self) -> List[str]:
-        res: List[str] = []
-        for image in self.imagenes:
-            res.append(image.cloudinary_id)
-        return res
+    def get_all_images_public_id(self) -> List[str]:
+        return [image.service_id for image in self.imagenes]
+    
+    def get_images(self) -> List[ImageEntity]:
+        return self.imagenes
 
     def update_variant(
             self,
@@ -43,9 +44,14 @@ class ProductVariant:
         self.color = color if color is not None else self.color
         self.tallas = tallas if tallas is not None else self.tallas
 
-    def get_images_public_id(self) -> List[str]:
-        return [image.cloudinary_id for image in self.imagenes]
-
+    def sync_images_id(
+        self,
+        services_id: Dict[str, int]
+    ) -> None:
+        for image in self.imagenes:
+            if image.service_id in services_id:
+                image.set_id(services_id[image.service_id])
+         
     def raise_cannot_delete_image(self, images_id_to_delete: List[Union[str, None]]) -> None:
         diff: int = len(self.imagenes) - len(images_id_to_delete)
 
