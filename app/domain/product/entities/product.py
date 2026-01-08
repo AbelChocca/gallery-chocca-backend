@@ -1,6 +1,7 @@
-from app.modules.product.domain.entities.product_variant import ProductVariant
-from app.modules.product.domain.dto.variant_dto import UpdateProductVariantDTO
-from app.modules.product.domain.exceptions.product_exception import MissingVariantsException, InvalidProductNameException, InvalidDiscountPercentException, InvalidVariantImageException, CannotDeleteVariantProduct
+from app.domain.product.entities.product_variant import ProductVariant
+from app.domain.product.dto.variant_dto import UpdateProductVariantDTO
+from app.domain.media.entities.image import ImageEntity
+from app.domain.product.exceptions.product_exception import MissingVariantsException, InvalidProductNameException, InvalidVariantImageException, CannotDeleteVariantProduct
 
 from typing import List, Optional, Tuple, Dict, Union
 
@@ -36,14 +37,6 @@ class Product:
         self.modelo = modelo
         self.slug = slug
 
-    def apply_discount(self, discount_percent: float):
-        if discount_percent < 0 or discount_percent > 100:
-            raise InvalidDiscountPercentException()
-        self.descuento = (self.precio * discount_percent) / 100
-
-    def set_promotion(self, toggle: bool):
-        self.promocion = toggle
-
     def add_variant(self, variant: ProductVariant) -> None:
         self.variants.append(variant)
 
@@ -53,8 +46,11 @@ class Product:
     def get_all_variants_images_id(self) -> List[str]:
         res = []
         for variant in self.variants:
-            res.extend(variant.get_all_images_id())
+            res.extend(variant.get_all_images_public_id())
         return res
+    
+    def get_variants_id(self) -> List[int]:
+        return [variant.id for variant in self.variants]
     
     def plan_images_and_variants_deletions(self, variants_dto: List[UpdateProductVariantDTO]) -> Tuple[List[str | None], List[int | None]]:
         res = ([], [])
@@ -65,6 +61,11 @@ class Product:
             if variant.to_delete:
                 res[1].append(variant.id)
         return res
+    
+    def sync_images_id(self, images: List[ImageEntity]) -> None:
+        images_service_id: Dict[str, int] = {image.service_id: image.id for image in images}
+        for variant in self.variants:
+            variant.sync_images_id(images_service_id)
     
     def sync_variants(self, variants_dto: List[UpdateProductVariantDTO]):
         existing_variants: Dict[int, ProductVariant] = {
@@ -93,16 +94,31 @@ class Product:
                 new_variants.append(prev_variant)
         self.variants = new_variants
 
+    def sync_images_to_variants(self, images: List[ImageEntity]) -> None:
+        images_owners_id: Dict[str, ImageEntity] = {image.owner_id: image for image in images}
+        for variant in self.variants:
+            if variant.id in images_owners_id:
+                variant.agregar_image(images_owners_id[variant.id])
+
     def add_image_on_specify_variant(
             self, 
             variant_index: int,
-            url: str,
-            public_id: str
+            image_url: str,
+            service_id: str
             ) -> None:
-        self.variants[variant_index].agregar_image(
-            image_url=url,
-            public_id=public_id
+        new_image: ImageEntity = ImageEntity(
+            image_url=image_url,
+            owner_type="product_variant",
+            service_id=service_id
         )
+        self.variants[variant_index].agregar_image(new_image)
+
+    def get_all_images_from_variants(self) -> List[ImageEntity]:
+        res: List[ImageEntity] = []
+        for variant in self.variants:
+            res.extend(variant.get_images())
+        return res
+
     def update_product(
             self,
             nombre: Optional[str] = None,
@@ -152,7 +168,7 @@ class Product:
         if not variant_filtered:
             return None
         
-        return variant_filtered.get_images_public_id()
+        return variant_filtered.get_all_images_public_id()
 
     @staticmethod
     def get_filter_key(
@@ -191,18 +207,3 @@ class Product:
             raise InvalidProductNameException()
         if not variants:
             raise MissingVariantsException()
-        
-    def debug_snapshot(self):
-        return {
-            "id": self.id,
-            "nombre": self.nombre,
-            "slug": self.slug,
-            "variants": [
-                {
-                    "id": variant.id,
-                    "color": variant.color,
-                    "imagenes": len(variant.imagenes)
-                }
-                for variant in self.variants
-            ]
-        }
