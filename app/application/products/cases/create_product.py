@@ -1,13 +1,13 @@
-from app.modules.product.domain.repositories.repository_product import ProductRepository
-from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
-from app.modules.cache.cache_repository import CacheRepository
-from app.core.log.logger_repository import LoggerRepository
-from app.shared.services.slug.domain.slug_repository import SlugRepository
+from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
+from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRepository
+from app.domain.media.protocol import MediaProtocol
+from app.domain.cache.protocole import CacheProtocol
+from app.core.log.protocole import LoggerProtocol
+from app.shared.services.slug.protocol import SlugProtocol
 
-from app.modules.product.domain.entities.product import Product
-from app.modules.product.domain.entities.product_variant import ProductVariant
-from app.modules.product.domain.entities.variant_image import VariantImage
-from app.modules.product.domain.dto.product_dto import ReadProductDTO
+from app.domain.product.entities.product import Product
+from app.domain.product.entities.product_variant import ProductVariant
+from app.domain.product.dto.product_dto import ReadProductDTO
 from app.application.products.commands import PublishProductCommand
 from app.application.products.exceptions import MissMatchLength
 from app.application.products.helper_mapper import ProductEntityToDTOMapper
@@ -18,17 +18,19 @@ from typing import List, BinaryIO
 class CreateProductUseCase:
     def __init__(
             self, 
-            repo: ProductRepository,
-            image_repo: CloudinaryRepository,
-            slug_repo: SlugRepository,
-            cache_repo: CacheRepository,
-            logger: LoggerRepository
+            product_repo: PostgresProductRepository,
+            image_repo: PostgresImageRepository,
+            media_service: MediaProtocol,
+            slug_service: SlugProtocol,
+            cache_service: CacheProtocol,
+            logger: LoggerProtocol
             ):
-        self.repo = repo
-        self.logger = logger
+        self.product_repo = product_repo
         self.image_repo = image_repo
-        self.cache_repo = cache_repo
-        self.slug_repo = slug_repo
+        self.logger = logger
+        self.media_service = media_service
+        self.cache_service = cache_service
+        self.slug_service = slug_service
 
     async def execute(
             self, 
@@ -55,26 +57,31 @@ class CreateProductUseCase:
             modelo=command.modelo,
             descuento=command.descuento,
             variants=product_variants,
-            slug=self.slug_repo.generate(command.nombre),
+            slug=self.slug_service.generate(command.nombre),
             promocion=command.promocion
         )
         new_product.raise_invalid_variants_index(command.temp_variants_id)
+
+        new_product = await self.product_repo.save(new_product)
         
-        for file, variant_id in zip(images_file, command.temp_variants_id):
-            cloud_image = self.image_repo.upload_image(
+        for file, variant_index in zip(images_file, command.temp_variants_id):
+            cloud_image = self.media_service.upload_image(
                 file=file,
                 folder="products"
             )
+
             new_product.add_image_on_specify_variant(
-                variant_index=variant_id,
-                url=cloud_image.url,
-                public_id=cloud_image.public_id
+                variant_index=variant_index,
+                image_url=cloud_image.url,
+                service_id=cloud_image.public_id
                 )
-
-        new_product = await self.repo.save(new_product)
-
+            
+        new_images = await self.image_repo.save_many(
+            entities=new_product.get_all_images_from_variants()
+        )
+        new_product.sync_images_id(new_images)
         # Invalidating cache
-        await self.cache_repo.cache_delete(Product.get_filter_key(category=new_product.categoria))
+        await self.cache_service.cache_delete(Product.get_filter_key(category=new_product.categoria))
 
         self.logger.info(f"Product {new_product.nombre} with id: {new_product.id} was successfully saved.")
 
