@@ -62,6 +62,7 @@ class BaseRepository(Generic[E, M]):
                 raise ModelNotFound(f"Model {self._base_model.__name__} with id: {model_id} wasn't found, cannot deleted.")
 
             await self._db_session.delete(model_db)
+            await self._db_session.commit()
         except SQLAlchemyError as s:
             await self._db_session.rollback()
             raise DatabaseException(f"Database error while deleting {self._base_model.__name__}.") from s
