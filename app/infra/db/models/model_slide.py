@@ -9,5 +9,6 @@ class SlideTable(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     activo: bool = Field(default=True, index=True)
     orden: int = Field(default=0)
+    button_href: Optional[str] = Field(default=None)
     fecha_creada: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     fecha_actualizada: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
