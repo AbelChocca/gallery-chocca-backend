@@ -97,8 +97,7 @@ class Product:
     def sync_images_to_variants(self, images: List[ImageEntity]) -> None:
         images_owners_id: Dict[str, ImageEntity] = {image.owner_id: image for image in images}
         for variant in self.variants:
-            if variant.id in images_owners_id:
-                variant.agregar_image(images_owners_id[variant.id])
+            variant.agregar_image(images_owners_id.get(variant.id, []))
 
     def add_image_on_specify_variant(
             self, 
@@ -156,9 +155,9 @@ class Product:
         for variant in self.variants:
             variant.raise_cannot_delete_image(images_id_to_delete)
 
-    def get_variant_images(self, variant_id: Optional[int] = None) -> Optional[List[str]]:
+    def get_variant_images(self, variant_id: Optional[int] = None) -> List[str]:
         if not variant_id:
-            return None
+            return []
         
         variant_filtered: ProductVariant = None
         for variant in self.variants:
