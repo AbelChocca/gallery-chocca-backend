@@ -1,47 +1,55 @@
 from app.application.user.commands import LoginUserCommand
-from app.modules.user.domain.repository_user import UserRepository
+from app.infra.db.repositories.sqlmodel_user_repository import PostgresUserRepository
 from app.api.security.hashing.hash_repository import HashRepository
-from app.core.log.logger_repository import LoggerRepository
-from app.api.security.jwt.jwt_repository import JWTRepository
-from app.shared.exceptions.infraestructure_exception import JWTException
-from app.modules.user.domain.user_exception import InvalidPassword
+from app.core.log.protocole import LoggerProtocol
+from app.core.settings.pydantic_settings import Settings
+from app.api.security.jwt.protocole import JWTProtocole
+from app.domain.user.user_exception import InvalidPassword
 
-from typing import Dict
+from typing import Dict, Any
 
 class LoginUserCase:
     def __init__(
             self,
-            repo: UserRepository,
+            repo: PostgresUserRepository,
             hasher: HashRepository,
-            logger: LoggerRepository,
-            jwt: JWTRepository
+            logger: LoggerProtocol,
+            jwt: JWTProtocole,
+            settings: Settings
             ):
-        self.repo = repo
-        self.hasher = hasher
-        self.logger = logger
-        self.jwt = jwt
+        self._repo = repo
+        self._hasher = hasher
+        self._logger = logger
+        self._jwt = jwt
+        self._settings = settings
 
 
     async def execute(
             self,
             command: LoginUserCommand
     ) -> Dict[str, str]:
-        try:
-            user = await self.repo.get_by_email(command.email)
+        user = await self._repo.get_by_email(command.email)
 
-            if not self.hasher.verify(command.password, user.hashed_password):
-                self.logger.warning(f"Password incorrect, retry.")
-                raise InvalidPassword()
-            
-            a_token = self.jwt.generate_token({'sub': command.email, 'role': user.role})
-            r_token = self.jwt.generate_token({'sub': command.email, 'role': user.role}, True)
+        if not self._hasher.verify(command.password, user.hashed_password):
+            self._logger.warning(f"Password incorrect, retry.")
+            raise InvalidPassword()
+        
+        payload: Dict[str, Any] = {'sub': command.email, 'role': user.role}
+        
+        a_token = self._jwt.generate_token(payload)
+        r_token = self._jwt.generate_token(payload, True)
 
-            self.jwt.set_jwt_cookie(a_token)
-            self.jwt.set_refresh_token_cookie(r_token)
-            return {"message": "Login successful"}
-        except JWTException as e:
-            self.logger.error(f"JWT Internal's error: {str(e)}")
-            raise e
+        self._jwt.set_cookie(
+            key="session_cookie",
+            token=a_token,
+            expires=self._settings.ACCESS_TOKEN_EXPIRES_SECONDS
+        )
+        self._jwt.set_cookie(
+            key="refresh_cookie",
+            token=r_token,
+            expires=self._settings.REFRESH_TOKEN_EXPIRES_SECONDS
+        )
+        return {"message": "Login successful"}
         
         
 

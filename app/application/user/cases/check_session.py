@@ -1,40 +1,31 @@
-from app.api.security.jwt.jwt_repository import JWTRepository
-from app.modules.user.domain.repository_user import UserRepository
-from app.core.log.logger_repository import LoggerRepository
-from app.modules.user.domain.dto import ReadUserDTO
-
-from app.modules.user.domain.user_exception import UserNotFoundException
-from app.api.security.jwt.jwt_exception import TokenNotFound, ForceLoginError
-from app.shared.exceptions.infraestructure_exception import JWTException
-
+from app.api.security.jwt.protocole import JWTProtocole
+from app.infra.db.repositories.sqlmodel_user_repository import PostgresUserRepository
+from app.core.log.protocole import LoggerProtocol
+from app.domain.user.dto import ReadUserDTO
 
 class CheckUserSessionCase:
     def __init__(
             self,
-            repo: UserRepository,
-            jwt: JWTRepository,
-            logger: LoggerRepository
+            repo: PostgresUserRepository,
+            jwt: JWTProtocole,
+            logger: LoggerProtocol
             ):
-        self.jwt: JWTRepository = jwt
-        self.repo: UserRepository = repo
-        self.logger: LoggerRepository = logger
+        self.jwt: JWTProtocole = jwt
+        self.repo: PostgresUserRepository = repo
+        self.logger: LoggerProtocol = logger
 
 
     async def execute(
             self
     ) -> ReadUserDTO:
-        try:
-            payload = self.jwt.get_token_from_cookies()
+        payload = self.jwt.get_token_from_cookies()
 
-            user = await self.repo.get_by_email(payload.get('sub'))
+        user = await self.repo.get_by_email(payload.get('sub'))
 
-            return ReadUserDTO(
-                id=user.id,
-                nombre=user.name,
-                email=user.email,
-                role=user.role
-            )
-        except (TokenNotFound, JWTException, UserNotFoundException, ForceLoginError) as e:
-            self.logger.warning(f"User session check failed: {str(e)}")
-            raise e
+        return ReadUserDTO(
+            id=user.id,
+            nombre=user.name,
+            email=user.email,
+            role=user.role
+        )
         

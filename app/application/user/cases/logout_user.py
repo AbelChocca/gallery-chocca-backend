@@ -1,5 +1,5 @@
-from app.modules.user.domain.repository_user import UserRepository
-from app.api.security.jwt.jwt_repository import JWTRepository
+from app.infra.db.repositories.sqlmodel_user_repository import PostgresUserRepository
+from app.api.security.jwt.protocole import JWTProtocole
 
 from app.api.security.jwt.jwt_exception import TokenNotFound
 
@@ -8,11 +8,11 @@ from typing import Dict
 class LogoutUserCase:
     def __init__(
             self,
-            repo: UserRepository,
-            jwt: JWTRepository
+            repo: PostgresUserRepository,
+            jwt: JWTProtocole
             ):
-        self.repo = repo
-        self.jwt = jwt
+        self._repo = repo
+        self._jwt = jwt
 
 
     async def execute(
@@ -23,13 +23,13 @@ class LogoutUserCase:
         and removing JWT cookies from the response.
         """
         try:
-            payload_verify = self.jwt.get_token_from_cookies()
+            payload_verify = self._jwt.get_token_from_cookies()
 
         except TokenNotFound:
             auth_token = None
 
-        self.jwt.delete_refresh_cookie()
-        self.jwt.delete_session_cookie()
+        self._jwt.delete_cookie("session_cookie")
+        self._jwt.delete_cookie("refresh_cookie")
 
         return {"message": "Logout was successful!"}
         

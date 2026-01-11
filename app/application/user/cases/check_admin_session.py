@@ -1,48 +1,42 @@
-from app.api.security.jwt.jwt_repository import JWTRepository
-from app.modules.user.domain.repository_user import UserRepository
-from app.core.log.logger_repository import LoggerRepository
-from app.modules.user.domain.dto import ReadUserDTO
+from app.api.security.jwt.protocole import JWTProtocole
+from app.core.log.protocole import LoggerProtocol
+from app.domain.user.dto import ReadUserDTO
+from app.infra.db.repositories.sqlmodel_user_repository import PostgresUserRepository
 
-from app.modules.user.domain.user_exception import UserNotFoundException
-from app.api.security.jwt.jwt_exception import TokenNotFound, ForceLoginError, ForbiddenException
-from app.shared.exceptions.infraestructure_exception import JWTException
+from app.api.security.jwt.jwt_exception import ForbiddenException
 
 
 class CheckAdminSessionCase:
     def __init__(
             self,
-            repo: UserRepository,
-            jwt: JWTRepository,
-            logger: LoggerRepository
+            repo: PostgresUserRepository,
+            jwt: JWTProtocole,
+            logger: LoggerProtocol
             ):
-        self.jwt: JWTRepository = jwt
-        self.repo: UserRepository = repo
-        self.logger: LoggerRepository = logger
+        self.jwt: JWTProtocole = jwt
+        self.repo: PostgresUserRepository = repo
+        self.logger: LoggerProtocol = logger
 
 
     async def execute(
         self
     ) -> ReadUserDTO:
-        try:
-            payload = self.jwt.get_token_from_cookies()
-            user_role = payload.get("role")
-            user_email = payload.get("sub")
-            if user_role != "admin":
-                self.logger.warning(f"Unknow user with email: {user_email} was tried to access admin route.")
-                raise ForbiddenException()
+        payload = self.jwt.get_token_from_cookies()
+        user_role = payload.get("role")
+        user_email = payload.get("sub")
+        if user_role != "admin":
+            self.logger.warning(f"Unknow user with email: {user_email} was tried to access admin route.")
+            raise ForbiddenException()
 
-            admin = await self.repo.get_by_email(user_email)
+        admin = await self.repo.get_by_email(user_email)
 
-            if admin.role != "admin":
-                raise ForbiddenException("User role in DB is not admin.")
+        if admin.role != "admin":
+            raise ForbiddenException("User role in DB is not admin.")
 
-            return ReadUserDTO(
-                id=admin.id,
-                nombre=admin.name,
-                email=admin.email,
-                role=admin.role
-            )
-        except (TokenNotFound, JWTException, UserNotFoundException, ForceLoginError) as e:
-            self.logger.warning(f"Admin session check failed: {str(e)}")
-            raise e
+        return ReadUserDTO(
+            id=admin.id,
+            nombre=admin.name,
+            email=admin.email,
+            role=admin.role
+        )
         
