@@ -1,10 +1,8 @@
-from abc import ABC, abstractmethod
+from typing import Protocol
 
-class HashRepository(ABC):
-    @abstractmethod
+class HashProtocole(Protocol):
     def hash(self, password: str) -> str:
         pass
 
-    @abstractmethod
     def verify(self, password: str, hashed_password: str)-> bool:
         pass

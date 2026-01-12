@@ -1,9 +1,8 @@
-from app.api.security.jwt.jwt_repository import JWTRepository
-from app.core.log.logger_repository import LoggerRepository
-from app.core.log.loguru_logger_repository import get_logger_repo
+from app.api.security.jwt.protocole import JWTProtocole
+from app.core.log.protocole import LoggerRepository
+from app.core.log.loguru_service import get_logger_repo
 from app.core.settings.pydantic_settings import get_settings
-from app.shared.exceptions.infraestructure_exception import JWTException
-from app.api.security.jwt.jwt_exception import TokenNotFound, TokenExpired, ForceLoginError
+from app.api.security.jwt.jwt_exception import TokenNotFound, TokenExpired, ForceLoginError, JWTException
 
 from pydantic_settings import BaseSettings
 from fastapi import Request, Response, Depends
@@ -11,7 +10,7 @@ from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError, ExpiredSignatureError
 from typing import Dict, Any, Optional
 
-class JWTRepositoryInfra(JWTRepository):
+class JWTRepositoryInfra(JWTProtocole):
     def __init__(self, request: Request, response: Response, settings: BaseSettings, logger: LoggerRepository):
         self.request = request
         self.response = response
@@ -70,25 +69,18 @@ class JWTRepositoryInfra(JWTRepository):
             return encoded_jwt
         except JWTError as e:
             raise JWTException("Error to encoding the data.") from e
-    
-    def set_jwt_cookie(self, token: str):
+        
+    def set_cookie(
+            self, 
+            key: str,
+            token: str,
+            expires: int
+            ) -> None:
         self.response.set_cookie(
-            key='access_token',
+            key=key,
             value=token,
-            max_age=self.settings.ACCESS_TOKEN_EXPIRES_SECONDS,
-            expires=timedelta(seconds=self.settings.ACCESS_TOKEN_EXPIRES_SECONDS),
-            path='/',
-            secure=False, # Aun no estamos en produccion
-            httponly=True,
-            samesite='lax'
-        )
-    
-    def set_refresh_token_cookie(self, refresh_token: str):
-        self.response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
-            max_age=self.settings.REFRESH_TOKEN_EXPIRES_SECONDS,
-            expires=timedelta(seconds=self.settings.REFRESH_TOKEN_EXPIRES_SECONDS),
+            max_age=expires,
+            expires=timedelta(seconds=expires),
             path='/',
             secure=False, # Aun no estamos en produccion
             httponly=True,
@@ -105,16 +97,13 @@ class JWTRepositoryInfra(JWTRepository):
         except JWTError as e:
             raise JWTException("The token is invalid in any way.") from e
         
-    def delete_session_cookie(self) -> None:
-        self.response.delete_cookie("access_token", path='/')
-
-    def delete_refresh_cookie(self) -> None:
-        self.response.delete_cookie("refresh_token", '/')
+    def delete_cookie(self, key: str) -> None:
+        self.response.delete_cookie(key, '/')
 
 def get_jwt_repo(
         request: Request, 
         response: Response, 
         settings: BaseSettings = Depends(get_settings), 
         logger: LoggerRepository = Depends(get_logger_repo)
-        ) -> JWTRepository:
+        ) -> JWTProtocole:
     return JWTRepositoryInfra(request, response, settings, logger)

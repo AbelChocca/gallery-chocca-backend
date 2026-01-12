@@ -1,8 +1,8 @@
 import bcrypt
 
-from app.api.security.hashing.hash_repository import HashRepository
+from app.api.security.hashing.protocole import HashProtocole
 
-class BcryptHasher(HashRepository):
+class BcryptService(HashProtocole):
     def hash(self, password: str) -> str:
         hashed = bcrypt.hashpw(password=password.encode(), salt=bcrypt.gensalt())
         return hashed.decode()
@@ -13,5 +13,5 @@ class BcryptHasher(HashRepository):
             hashed_password=hashed_password.encode()
             )
 
-def get_hasher_repo() -> HashRepository:
-    return BcryptHasher()
+def get_hasher_service() -> HashProtocole:
+    return BcryptService()
