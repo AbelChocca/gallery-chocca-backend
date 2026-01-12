@@ -3,7 +3,7 @@ from redis.asyncio import Redis
 
 from typing import Callable, Optional, Awaitable
 
-from app.core.clients.redis_client import get_redis_client
+from app.infra.cache.config import get_redis_client
 
 class RateLimiter:
     def limiter(self, limit = 5, window = 60) -> Callable[[Request], Awaitable[Optional[HTTPException]]]:

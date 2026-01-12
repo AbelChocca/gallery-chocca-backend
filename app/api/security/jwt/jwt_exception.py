@@ -1,4 +1,8 @@
-from app.shared.exceptions.domain_exception import DomainException
+from app.domain.exception import DomainException
+
+class JWTException(DomainException):
+    def __init__(self, message, status_code = 400):
+        super().__init__(message, status_code)
 
 class TokenNotFound(DomainException):
     def __init__(self, message = "Token from cookies wasn't found.", status_code = 404):

@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from app.shared.exceptions.domain_exception import DomainException
-from app.shared.exceptions.infraestructure_exception import InfraestructureException
-from app.shared.exceptions.application_exception import ApplicationException
+from app.domain.exception import DomainException
+from app.infra.exceptions import InfraestructureException
+from app.application.exception import ApplicationException
 
 from app.core.log.config import logger_service
 
