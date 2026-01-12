@@ -6,27 +6,27 @@ from app.application.user.cases.check_admin_session import CheckAdminSessionCase
 
 from fastapi import Depends
 
-from app.core.log.loguru_logger_repository import get_logger_repo
-from app.api.security.hashing.bcrypt_hash_repository import get_hasher_repo
-from app.api.security.jwt.jose_jwt_repository import get_jwt_repo
+from app.core.log.loguru_service import get_logger_service
+from app.api.security.hashing.bcrypt_service import get_hasher_service
+from app.api.security.jwt.jwt_service import get_jwt_repo
 from app.api.dependencies.user.repo import get_user_repo
 
 # dependencies
 def get_register_user_case(
         user_repo = Depends(get_user_repo),
-        hasher_repo = Depends(get_hasher_repo),
-        logger_repo= Depends(get_logger_repo, use_cache=True)
+        hasher_repo = Depends(get_hasher_service),
+        logger_service= Depends(get_logger_service, use_cache=True)
 ) -> RegisterUserCase:
     return RegisterUserCase(
         repo=user_repo,
         hasher=hasher_repo,
-        logger=logger_repo
+        logger=logger_service
     )
 
 def get_login_user_case(
         user_repo = Depends(get_user_repo), 
-        hasher_repo = Depends(get_hasher_repo),
-        logger_repo= Depends(get_logger_repo, use_cache=True),
+        hasher_repo = Depends(get_hasher_service),
+        logger_repo= Depends(get_logger_service, use_cache=True),
         jwt_repo = Depends(get_jwt_repo)
 ) -> LoginUserCase:
     return LoginUserCase(
@@ -48,7 +48,7 @@ def get_logout_user_case(
 def get_check_user_session_case(
         user_repo = Depends(get_user_repo), 
         jwt_repo = Depends(get_jwt_repo),
-        logger_repo= Depends(get_logger_repo, use_cache=True)
+        logger_repo= Depends(get_logger_service, use_cache=True)
 ) -> CheckUserSessionCase:
     return CheckUserSessionCase(
         repo=user_repo,
@@ -59,6 +59,6 @@ def get_check_user_session_case(
 def get_check_admin_session_case(
     user_repo = Depends(get_user_repo), 
     jwt_repo = Depends(get_jwt_repo),
-    logger_repo= Depends(get_logger_repo, use_cache=True)
+    logger_repo= Depends(get_logger_service, use_cache=True)
 ) -> CheckAdminSessionCase:
     return CheckAdminSessionCase(user_repo, jwt_repo, logger_repo)
