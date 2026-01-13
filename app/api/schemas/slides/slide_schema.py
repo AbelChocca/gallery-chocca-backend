@@ -2,6 +2,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional
 
+from app.api.schemas.media.media_schema import ReadImage
+
 class PublishSlideSchema(BaseModel):
     orden: int = Field(ge=0)
     enlace_boton: Optional[str] = None
@@ -9,8 +11,7 @@ class PublishSlideSchema(BaseModel):
 
 class ReadSlideSchema(BaseModel):
     id: int
-    imagen_url: str
-    cloudinary_id: str
+    image: ReadImage
     enlace_boton: Optional[str] = None
     activo: bool
     orden: int

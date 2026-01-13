@@ -1,6 +1,8 @@
 from app.api.schemas.slides.slide_schema import PublishSlideSchema, ReadSlideSchema, SlideFilterSchema, UpdateSlideSchema
 from app.application.slides.commands import PublishSlideCommand, SlideFiltersCommand, UpdateSlideCommand
-from app.modules.slide.domain.dto import ReadSlideDTO
+from app.domain.slide.slide_dto import ReadSlideDTO
+
+from app.api.schemas.media.media_schema import ReadImage
 
 class InputSchemaMapper:
     @staticmethod
@@ -31,10 +33,17 @@ class InputSchemaMapper:
 class OutputSchemaMapper:
     @staticmethod
     def to_schema(dto: ReadSlideDTO) -> ReadSlideSchema:
+        image = dto.image
         return ReadSlideSchema(
             id=dto.id,
-            imagen_url=dto.imagen_url,
-            cloudinary_id=dto.cloudinary_id,
+            image=ReadImage(
+                image_url=image.image_url,
+                owner_type=image.owner_type,
+                service_id=image.service_id,
+                owner_id=image.owner_id,
+                id=image.id,
+                alt_text=image.alt_text
+            ),
             enlace_boton=dto.enlace_boton,
             activo=dto.activo,
             orden=dto.orden,
