@@ -10,7 +10,6 @@ from app.application.products.helper_mapper import ProductCommandToDTOMapper, Pr
 
 from typing import Dict, Any, List
 
-
 class GetProductsCase:
     def __init__(
             self,
@@ -53,7 +52,8 @@ class GetProductsCase:
 
         images = await self.image_repo.get_images(
             owner_type="product_variant",
-            owners_id=variant_ids
+            multiply=True,
+            owner_id=variant_ids
         )
         
         for product in products:
