@@ -1,5 +1,4 @@
 from typing import Any, Optional, Dict, Protocol
-from datetime import datetime
 
 class JWTProtocole(Protocol):
     def generate_token(self, data: dict, refresh: Optional[bool] = False) -> str:

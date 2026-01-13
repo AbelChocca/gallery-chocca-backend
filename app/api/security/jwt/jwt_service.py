@@ -1,6 +1,6 @@
 from app.api.security.jwt.protocole import JWTProtocole
-from app.core.log.protocole import LoggerRepository
-from app.core.log.loguru_service import get_logger_repo
+from app.core.log.protocole import LoggerProtocol
+from app.core.log.loguru_service import get_logger_service
 from app.core.settings.pydantic_settings import get_settings
 from app.api.security.jwt.jwt_exception import TokenNotFound, TokenExpired, ForceLoginError, JWTException
 
@@ -11,7 +11,7 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from typing import Dict, Any, Optional
 
 class JWTRepositoryInfra(JWTProtocole):
-    def __init__(self, request: Request, response: Response, settings: BaseSettings, logger: LoggerRepository):
+    def __init__(self, request: Request, response: Response, settings: BaseSettings, logger: LoggerProtocol):
         self.request = request
         self.response = response
         self.settings = settings
@@ -104,6 +104,6 @@ def get_jwt_repo(
         request: Request, 
         response: Response, 
         settings: BaseSettings = Depends(get_settings), 
-        logger: LoggerRepository = Depends(get_logger_repo)
+        logger: LoggerProtocol = Depends(get_logger_service)
         ) -> JWTProtocole:
     return JWTRepositoryInfra(request, response, settings, logger)
