@@ -1,6 +1,6 @@
 from app.api.schemas.user.schema_model import ReadUserSchema, LoginUserSchema, RegisterUserSchema
 from app.application.user.commands import LoginUserCommand, RegisterUserCommand
-from app.modules.user.domain.dto import ReadUserDTO
+from app.domain.user.dto import ReadUserDTO
 
 
 class InputSchemaMapper:
