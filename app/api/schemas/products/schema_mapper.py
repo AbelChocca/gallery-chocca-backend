@@ -1,6 +1,8 @@
-from app.modules.product.domain.dto.product_dto import ReadProductDTO
-from app.api.schemas.products.schema import CreateProductSchema, ProductRead, FilterSchema, UpdateProductSchema, ProductVariantRead, VariantImageRead
-from app.application.products.commands import PublishProductCommand, PublishProductVariantCommand, UpdateProductCommand, UpdateProductVariantCommand, UpdateVariantImageCommand, FilterProductCommand
+from app.domain.product.dto.product_dto import ReadProductDTO
+from app.api.schemas.products.schema import CreateProductSchema, ProductRead, FilterSchema, UpdateProductSchema, ProductVariantRead
+from app.api.schemas.media.media_schema import ReadImage
+from app.application.products.commands import PublishProductCommand, PublishProductVariantCommand, UpdateProductCommand, UpdateProductVariantCommand, FilterProductCommand
+from app.application.media.commands import UpdateImageCommand
 
 
 class InputSchemaMapper:
@@ -39,11 +41,11 @@ class InputSchemaMapper:
                     tallas=v.tallas,
                     imagenes=(
                         [
-                            UpdateVariantImageCommand(
+                            UpdateImageCommand(
                                 id=img.id,
-                                variant_id=img.variant_id,
-                                url=img.url,
-                                cloudinary_id=img.cloudinary_id,
+                                owner_id=img.owner_id,
+                                image_url=img.image_url,
+                                service_id=img.service_id,
                                 to_delete=img.to_delete
                             )
                             for img in v.imagenes
@@ -93,11 +95,13 @@ class OutputSchemaMapper:
                 color=v.color,
                 tallas=v.tallas,
                 imagenes=[
-                    VariantImageRead(
+                    ReadImage(
+                        image_url=img.image_url,
+                        owner_type=img.owner_type,
+                        service_id=img.service_id,
+                        owner_id=img.owner_id,
                         id=img.id,
-                        variant_id=img.variant_id,
-                        url=img.url,
-                        cloudinary_id=img.cloudinary_id
+                        alt_text=img.alt_text
                     )
                     for img in v.imagenes
                 ]
