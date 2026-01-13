@@ -1,20 +1,14 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 
-class VariantImageRead(BaseModel):
-    id: Optional[int]
-    variant_id: Optional[int]
-    url: str
-    cloudinary_id: str
-
-    model_config = ConfigDict(from_attributes=True)
+from app.api.schemas.media.media_schema import ReadImage, UpdateImage
 
 class ProductVariantRead(BaseModel):
     id: Optional[int] 
     product_id: Optional[int]
     color: str
     tallas: List[str]
-    imagenes: List[VariantImageRead]
+    imagenes: List[ReadImage]
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -52,21 +46,12 @@ class CreateProductSchema(BaseModel):
 
     temp_variants_id:List[int] = Field(min_length=1)
 
-class UpdateVariantImage(BaseModel):
-    id: Optional[int] = None
-    variant_id: Optional[int] = None
-    url: Optional[str] = Field(default=None, examples=[None])
-    cloudinary_id: Optional[str] = Field(default=None, examples=[None])
-
-    # flags
-    to_delete: bool = False
-
 class UpdateProductVariantSchema(BaseModel):
     id: Optional[int] = None
     product_id: Optional[int] = None
     color: Optional[str] = Field(default=None, min_length=1, max_length=16, examples=[None])
     tallas: Optional[List[str]] = Field(default=None, min_length=1, examples=[None])
-    imagenes: Optional[List[UpdateVariantImage]] = Field(default=None, min_length=1)
+    imagenes: Optional[List[UpdateImage]] = Field(default=None, min_length=1)
 
     # flags
     to_delete: bool = False
