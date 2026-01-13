@@ -1,9 +1,9 @@
-from app.api.security.jwt.jwt_repository import JWTRepository
-from app.api.security.jwt.jose_jwt_repository import get_jwt_repo
+from app.api.security.jwt.protocole import JWTProtocole
+from app.api.security.jwt.jwt_service import get_jwt_repo
 from app.api.security.jwt.jwt_exception import Unauthorized, ForbiddenException
 
 # Ocassionally
-from app.modules.user.domain.repository_user import UserRepository
+from app.infra.db.repositories.sqlmodel_user_repository import PostgresUserRepository
 from app.api.dependencies.user.repo import get_user_repo
 from fastapi import Depends
 
@@ -11,8 +11,8 @@ from fastapi import Depends
 class SecuritySessions:
     def __init__(
             self,
-            jwt: JWTRepository,
-            user_repo: UserRepository
+            jwt: JWTProtocole,
+            user_repo: PostgresUserRepository
             ):
         self.jwt = jwt
         self.user_repo = user_repo
@@ -40,5 +40,12 @@ class SecuritySessions:
         if admin.role != "admin":
             raise ForbiddenException()
     
-def get_auth_sessions(jwt: JWTRepository = Depends(get_jwt_repo), user_repo: UserRepository = Depends(get_user_repo)) -> SecuritySessions:
+def get_auth_sessions(jwt: JWTProtocole = Depends(get_jwt_repo), user_repo: PostgresUserRepository = Depends(get_user_repo)) -> SecuritySessions:
     return SecuritySessions(jwt=jwt, user_repo=user_repo)
+
+
+async def get_admin_session(auth: SecuritySessions = Depends(get_auth_sessions)) -> None:
+    await auth.get_admin()
+
+async def get_user_session(auth: SecuritySessions = Depends(get_auth_sessions)) -> None:
+    await auth.get_user_session()
