@@ -1,19 +1,46 @@
 from app.infra.db.repositories.base_repository import BaseRepository
-from app.modules.product.domain.entities.product import Product
-from app.infra.db.models.product_model import ProductTable, VariantColorTable, VariantImageTable
-from app.infra.db.mappers.product_mapper import ProductMapper
+from app.domain.product.entities.product import Product
+from app.infra.db.models.model_product import ProductTable, VariantColorTable
 
-from app.modules.product.domain.dto.product_dto import FilterSchemaDTO
+from app.domain.product.dto.product_dto import FilterSchemaDTO
 
-from app.infra.db.exceptions import DatabaseException
+from app.infra.db.exceptions import DatabaseException, ModelNotFound
 
-from typing import List
+from typing import List, Optional
 from sqlalchemy.exc import SQLAlchemyError
-from sqlmodel import select
+from sqlmodel import select, col
 from sqlalchemy.orm import selectinload
 from sqlalchemy import func
 
 class PostgresProductRepository(BaseRepository[Product, ProductTable]):
+    async def get_products_with_similar_ids(self, similar_ids: List[int]) -> List[Product]:
+        statement = (
+            select(ProductTable)
+            .options(selectinload(ProductTable.variants))
+            .where(col(ProductTable.id).in_(similar_ids))
+        )
+
+        response = (await self._db_session.exec(statement)).all()
+
+        return [
+            self._base_mapper.to_entity(product)
+            for product in response
+        ]
+
+    async def get_by_id(self, model_id: int) -> Product:
+        try:
+            statement = (
+                select(ProductTable)
+                .options(selectinload(ProductTable.variants))
+                .where(ProductTable.id == model_id)
+            )
+            res = (await self._db_session.exec(statement)).first()
+            if not res:
+                raise ModelNotFound(f"Product with id: {model_id} wasn't found")
+            return self._base_mapper.to_entity(res)
+        except SQLAlchemyError as s:
+            raise DatabaseException(f"Exception while trying to found Product with id {model_id}: {str(s)}") from s
+
     async def count_filtered_products(
         self,
         filter_dto: FilterSchemaDTO
@@ -59,7 +86,8 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
     ) -> List[Product]:
         stmt = (
             select(ProductTable)
-            .options(selectinload(ProductTable.variants))) # Definimos consulta estandar
+            .options(selectinload(ProductTable.variants))
+        ) # Definimos consulta estandar
 
         if filter_dto.name is not None:
             stmt = stmt.where(ProductTable.nombre.ilike(f"%{filter_dto.name}%"))
@@ -94,7 +122,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         res = (await self._db_session.exec(stmt)).all()
 
         products = [
-            ProductMapper.to_entity(product_table)
+            self._base_mapper.to_entity(product_table)
             for product_table in res
         ]
         return products
@@ -111,38 +139,27 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
 
             products = await self._db_session.exec(statement)
             return [
-                ProductMapper.to_entity(product)
+                self._base_mapper.to_entity(product)
                 for product in products
             ]
         except SQLAlchemyError as s:
             self._logger.error(f"SQLModel error for get products related to {query}: {str(s)}")
             raise DatabaseException(f"Cannot get the related products of {query}") from s
         
-    async def delete_variant_by_id(self, variant_id: int) -> None:
+    async def delete_variant_by_id(self, variant_id: Optional[int] = None) -> None:
+        if not variant_id: return None
         try:
-            variant = await self._db_session.get(VariantColorTable, variant_id)
+            statement = (
+                select(VariantColorTable)
+                .where(VariantColorTable.id == variant_id)
+            )
+            variant = (await self._db_session.exec(statement)).first()
             if not variant:
                 self._logger.error(f"Variant with id: {variant_id} was not found in database, delete option cancelled.")
                 return None
-
             await self._db_session.delete(variant)
             await self._db_session.commit()
             self._logger.info(f"Variant with id: {variant_id} was deleted successfuly from database")
         except SQLAlchemyError as e:
             await self._db_session.rollback()
             raise DatabaseException(f"Cannot delete the variant with id: {variant_id} from database") from e
-
-    async def delete_image_by_id(self, image_id: str) -> None:
-        try:
-            statement = select(VariantImageTable).where(VariantImageTable.cloudinary_id == image_id)
-            image = (await self._db_session.exec(statement)).first()
-            if not image:
-                self._logger.error(f"Image with id: {image_id} was not found on database, delete option cancelled.")
-                return None
-
-            await self._db_session.delete(image)
-            await self._db_session.commit()
-            self._logger.info(f"Image with id: {image_id} was deleted successfuly from database")
-        except SQLAlchemyError as e:
-            await self._db_session.rollback()
-            raise DatabaseException(f"Cannot delete the image with id: {image_id} from database") from e
