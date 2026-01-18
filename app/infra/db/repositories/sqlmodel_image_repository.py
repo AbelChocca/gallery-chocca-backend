@@ -6,7 +6,7 @@ from app.infra.db.exceptions import DatabaseException, ModelNotFound
 from sqlmodel import select, col
 from sqlalchemy.exc import SQLAlchemyError
 
-from typing import List, Optional
+from typing import List
 
 class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
     async def delete_by_id(self, model_id: str):
@@ -23,29 +23,46 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
             await self._db_session.rollback()
             raise DatabaseException(f"Database error while deleting {MediaImageTable.__name__}.") from s
     
-    async def get_images(
-            self, 
-            owner_type: str, 
-            multiply: bool = False,
-            owner_id: Optional[List[int] | int] = None
-        ) -> List[ImageEntity] | ImageEntity:
-        statement = (
+    async def get_by_owner(
+        self,
+        *,
+        owner_type: str,
+        owner_id: int
+    ) -> List[ImageEntity]:
+        stmt = (
             select(MediaImageTable)
             .where(MediaImageTable.owner_type == owner_type)
+            .where(MediaImageTable.owner_id == owner_id)
         )
-        if multiply:
-            statement = statement.where(col(MediaImageTable.owner_id).in_(owner_id or []))
 
-            res: List[MediaImageTable] = (await self._db_session.exec(statement)).all()
+        res = (await self._db_session.exec(stmt)).all()
 
-            return [
-                self._base_mapper.to_entity(image_table)
-                for image_table in res
-            ]
-        statement = statement.where(col(MediaImageTable.owner_id == owner_id))
+        return [
+            self._base_mapper.to_entity(image)
+            for image in res
+        ]
+    
+    async def get_by_owners(
+        self,
+        *,
+        owner_type: str,
+        owner_ids: List[int]
+    ) -> List[ImageEntity]:
+        if not owner_ids:
+            return []
 
-        res: MediaImageTable = (await self._db_session.exec(statement)).first()
-        return self._base_mapper.to_entity(res)
+        stmt = (
+            select(MediaImageTable)
+            .where(MediaImageTable.owner_type == owner_type)
+            .where(col(MediaImageTable.owner_id).in_(owner_ids))
+        )
+
+        res = (await self._db_session.exec(stmt)).all()
+
+        return [
+            self._base_mapper.to_entity(image)
+            for image in res
+        ]
 
     async def save_many(self, entities: List[ImageEntity]) -> List[ImageEntity]:
         try:
@@ -53,7 +70,9 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
 
             self._db_session.add_all(models)
             await self._db_session.flush()
+            persisted_entities = [self._base_mapper.to_entity(image_model) for image_model in models]
+
             await self._db_session.commit()
-            return [self._base_mapper.to_entity(image_model) for image_model in models]
+            return persisted_entities
         except SQLAlchemyError as s:
             raise DatabaseException(f"Internal exception to save all the Image models: {str(s)}")
