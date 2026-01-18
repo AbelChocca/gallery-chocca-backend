@@ -1,26 +1,41 @@
-# Usa imagen ligera y moderna
-FROM python:3.12-slim
+# -------------------------
+# Builder stage
+# -------------------------
+FROM python:3.12-slim AS builder
 
-# Setea el directorio de trabajo
 WORKDIR /app
 
-# Instala dependencias del sistema necesarias (si tienes)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copia primero solo requirements.txt para aprovechar la cache de Docker
-COPY requirements.txt .
+# Instala uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Instala las dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt
+ENV PATH="/root/.local/bin:/root/.cargo/bin:${PATH}"
 
-# Copia solo el código de la app después
+# Solo archivos de deps
+COPY pyproject.toml uv.lock ./
+
+# Instala deps sin dev
+RUN uv sync --no-dev
+
+# -------------------------
+# Runtime stage
+# -------------------------
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV PATH="/app/.venv/bin:${PATH}"
+
+# Copia solo el venv ya listo
+COPY --from=builder /app/.venv /app/.venv
+
+# Copia solo la app
 COPY app ./app
 
-# Expone puerto de FastAPI
 EXPOSE 8000
 
-# Comando de ejecución
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

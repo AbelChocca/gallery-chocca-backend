@@ -1,7 +1,16 @@
+.git
+.gitignore
+.vscode
+node_modules
+tests
+docs
+coverage
+
 # Entornos virtuales
 venv/
 .env
 *.env
+.venv
 
 # Dependencias locales
 __pycache__/
@@ -12,9 +21,6 @@ __pycache__/
 # Archivos de configuración locales
 *.log
 *.db
-
-# Carpeta de tests
-tests/
 
 # Archivos del editor
 .vscode/

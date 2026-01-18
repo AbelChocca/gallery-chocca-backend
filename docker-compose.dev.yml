@@ -31,7 +31,7 @@ services:
       - db
       - redis
     volumes:
-      - .:/app
+      - ./app:/app/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
