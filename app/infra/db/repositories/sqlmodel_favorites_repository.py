@@ -74,19 +74,12 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
         user_id: Optional[int] = None,
         session_id: Optional[str] = None
     ) -> bool:
-        statement = (
-            select(FavoritesTable)
-            .where(FavoritesTable.product_id == product_id)
-        )
         if user_id:
-            statement = statement.where(FavoritesTable.user_id == user_id)
+            favorite_model = await self._get_favorite_by_user_id(product_id, user_id)
         else:
-            statement = statement.where(FavoritesTable.session_id == session_id)
+            favorite_model = await self._get_favorite_by_session_id(product_id, session_id)
 
-        result = (await self._db_session.exec(statement)).first()
-        if not result:
-            return False
-        return True
+        return favorite_model is not None
 
     async def get_favorites_by_user_id(self, user_id: int) -> List[int]:
         try:
