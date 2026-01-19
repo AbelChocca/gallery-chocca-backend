@@ -1,4 +1,4 @@
-from app.shared.exceptions.infraestructure_exception import InfraestructureException
+from app.infra.exceptions import InfraestructureException
 
 class CloudinaryException(InfraestructureException):
     def __init__(self, message, status_code = 500):

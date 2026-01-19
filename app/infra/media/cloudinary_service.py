@@ -1,7 +1,7 @@
-from app.modules.media.domain.media_protocol import MediaProtocol
-from app.modules.media.domain.dto import MediaImageDTO
+from app.domain.media.protocol import MediaProtocol
+from app.domain.media.media_dto import MediaImageDTO
 from app.infra.media.exceptions import CloudinaryException
-from app.core.log.logger_repository import LoggerProtocol
+from app.core.log.protocole import LoggerProtocol
 
 from cloudinary.uploader import upload, destroy, Error as CloudinaryError
 from typing import BinaryIO
