@@ -18,5 +18,7 @@ class ImageEntity:
         self.alt_text: Optional[str] = alt_text or None
 
 
-    def set_id(self, id: int) -> None:
-        self.id = id
+    def set_owner_id(self, id: int) -> None:
+        self.owner_id = id
+    def set_id(self, new_id: int) -> None:
+        self.id = new_id
