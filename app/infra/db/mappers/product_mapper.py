@@ -2,14 +2,12 @@ from typing import Optional
 
 from app.domain.product.entities.product import Product
 from app.domain.product.entities.product_variant import ProductVariant
-from app.domain.product.entities.variant_image import VariantImage
 
 from app.infra.db.mappers.base_mapper import BaseMapper
 
-from app.infra.db.models.product_model import (
+from app.infra.db.models.model_product import (
     ProductTable,
     VariantColorTable,
-    VariantImageTable
 )
 
 class ProductMapper(BaseMapper[Product, ProductTable]):
@@ -21,24 +19,13 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
         variants = []
 
         for variant in (model.variants or []):
-            # Mapear imagenes
-            images = [
-                VariantImage(
-                    id=img.id,
-                    url=img.url,
-                    cloudinary_id=img.cloudinary_id,
-                    variant_id=img.variant_id
-                )
-                for img in (variant.imagenes or [])
-            ]
 
             variants.append(
                 ProductVariant(
                     id=variant.id,
                     product_id=variant.product_id,
                     color=variant.color,
-                    tallas=variant.tallas,
-                    imagenes=images
+                    tallas=variant.tallas
                 )
             )
 
@@ -85,16 +72,6 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
                     product_id=existing_model.id
                 )
 
-                variant_db.imagenes = [
-                    VariantImageTable(
-                        id=img.id,           # actualiza si existe
-                        variant_id=variant.id,
-                        url=img.url,
-                        cloudinary_id=img.cloudinary_id,
-                    )
-                    for img in (variant.imagenes or [])
-                ]
-
                 new_variants.append(variant_db)
 
             existing_model.variants = new_variants
@@ -103,18 +80,10 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
         product_variants = []
 
         for variant in (entity.variants or []):
-            images_db = [
-                VariantImageTable(
-                    url=img.url,
-                    cloudinary_id=img.cloudinary_id
-                )
-                for img in (variant.imagenes or [])
-            ]
 
             variant_db = VariantColorTable(
                 color=variant.color,
-                tallas=variant.tallas,
-                imagenes=images_db
+                tallas=variant.tallas
             )
 
             product_variants.append(variant_db)
