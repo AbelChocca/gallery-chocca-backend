@@ -7,15 +7,16 @@ from prometheus_fastapi_instrumentator import Instrumentator
 # App depends
 from app.core.log.config import logger_service
 from app.api.middlewares.manager import init_middlewares
-from app.core.clients.db import init_db
-from app.core.clients.cloudinary import init_cloudinary_client
-from app.core.clients.redis_client import get_redis_client
+from app.infra.db.config import init_db
+from app.infra.media.config import init_cloudinary_client
+from app.infra.cache.config import get_redis_client
 from app.core.settings.pydantic_settings import settings
 
 from app.api.v1.user import user_route
 from app.api.v1.slides import slide_route
-from app.api.v1.cloudinary import cloudinary_router
+from app.api.v1.media import media_router
 from app.api.v1.products import product_route
+from app.api.v1.favorites import favorites_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,4 +55,5 @@ app.add_middleware(
 app.include_router(user_route.router)
 app.include_router(product_route.router)
 app.include_router(slide_route.router)
-app.include_router(cloudinary_router.router)
+app.include_router(media_router.router)
+app.include_router(favorites_router.router)
