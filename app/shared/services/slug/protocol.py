@@ -1,7 +1,6 @@
-from abc import ABC, abstractmethod
+from typing import Protocol
 
-class SlugRepository(ABC):
-    @abstractmethod
+class SlugProtocol(Protocol):
     def generate(self, value: str) -> str:
         """
         Generate the slug's value of the value prop
@@ -12,4 +11,4 @@ class SlugRepository(ABC):
         :return: The slug's value of the string prop
         :rtype: str
         """
-        pass
+        ...
