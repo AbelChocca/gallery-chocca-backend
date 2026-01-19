@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, UniqueConstraint, CheckConstraint
+from sqlmodel import SQLModel, Field, UniqueConstraint, CheckConstraint, Column, DateTime
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -8,16 +8,16 @@ class FavoritesTable(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     
-    session_id: Optional[int] = Field(default=None, index=True)
+    session_id: Optional[str] = Field(default=None, index=True)
     user_id: Optional[int] = Field(default=None, index=True)
 
     product_id: int = Field(nullable=False, index=True)
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True), nullable=False))
 
-    __table__args__ = (
+    __table_args__ = (
         CheckConstraint(
-            "(user_id IS NOT NULL AND session_id IS NULL "
+            "(user_id IS NOT NULL AND session_id IS NULL)"
             "OR (user_id IS NULL AND session_id IS NOT NULL)",
             name="ck_favorites_user_or_session"
             ),
