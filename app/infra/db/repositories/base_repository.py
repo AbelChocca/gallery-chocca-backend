@@ -51,7 +51,7 @@ class BaseRepository(Generic[E, M]):
             return self._base_mapper.to_entity(model)
         except SQLAlchemyError as s:
             await self._db_session.rollback()
-            self.logger.error(f"Error while saving slide: {str(s)}")
+            self._logger.error(f"Error while saving {self._base_model.__name__}: {str(s)}")
             raise DatabaseException(f"Database error while saving {self._base_model.__name__}.") from s
         
     async def delete_by_id(self, model_id: int) -> None:
@@ -67,10 +67,13 @@ class BaseRepository(Generic[E, M]):
             await self._db_session.rollback()
             raise DatabaseException(f"Database error while deleting {self._base_model.__name__}.") from s
         
-    async def get_by_id(self, model_id: int) -> E:
+    async def get_by_id(self, model_id: int, raises: bool = True) -> Optional[E]:
         try:
             model_db = await self._get_model_by_id_non_raise(model_id)
             if not model_db:
+                if not raises:
+                    return None
+
                 raise ModelNotFound(f"Model {self._base_model.__name__} with id: {model_id} not found")
 
             return self._base_mapper.to_entity(model_db)
