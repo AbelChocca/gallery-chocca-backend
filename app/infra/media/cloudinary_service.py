@@ -19,11 +19,24 @@ class CloudinaryService(MediaProtocol):
                 public_id=result["public_id"]
             )
         except CloudinaryError as e:
-            raise CloudinaryException(f"Cloudinary upload failed: {e}") from e
+            raise CloudinaryException(
+                "Cloudinary upload failed.",
+                {
+                    "service": "cloudinary/infra",
+                    "event": "upload_image",
+                    "folder": folder
+                }
+                ) from e
 
     def delete_image(self, public_id: str) -> None:
         try:
-            return destroy(public_id, resource_type="image")
+            destroy(public_id, resource_type="image")
         except CloudinaryError as e:
-            self.logger.error(f"Image with id: {public_id} wasn't deleted")
-            raise CloudinaryException(f"Cloudinary delete failed: {e}") from e
+            raise CloudinaryException(
+                "Cloudinary delete failed",
+                {
+                    "service": "cloudinary/infra",
+                    "event": "delete_image",
+                    "public_id": public_id,
+                }
+            ) from e
