@@ -1,32 +1,50 @@
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.infra.db.models.model_media import MediaImageTable
 from app.domain.media.entities.image import ImageEntity
-from app.infra.db.exceptions import DatabaseException, ModelNotFound
+from app.domain.media.media_dto import ImageType
+from app.infra.db.exceptions import DatabaseException
+from app.core.exceptions import ValueNotFound
 
-from sqlmodel import select, col
+from sqlmodel import select, col, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from typing import List
 
 class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
-    async def delete_by_id(self, model_id: str):
+    async def delete_by_id(self, public_id: str) -> None:
         try:
-            statement = select(MediaImageTable).where(MediaImageTable.service_id == model_id)
+            statement = select(MediaImageTable).where(MediaImageTable.public_id == public_id)
             model_db = await self._db_session.exec(statement)
 
             if not model_db:
-                raise ModelNotFound(f"Model {MediaImageTable.__name__} with id: {model_id} wasn't found, cannot deleted.")
+                raise ValueNotFound(
+                    "Model wasn't found, cannot deleted.",
+                    {
+                        "repository": "postgres_image",
+                        "event": "delete_by_id",
+                        "model_db": MediaImageTable.__name__,
+                        "public_id": public_id
+                    }
+                )
 
             await self._db_session.delete(model_db)
             await self._db_session.commit()
         except SQLAlchemyError as s:
             await self._db_session.rollback()
-            raise DatabaseException(f"Database error while deleting {MediaImageTable.__name__}.") from s
+            raise DatabaseException(
+                "Postgres error while deleting.",
+                {
+                    "repository": "postgres_image",
+                    "event": "delete_by_id",
+                    "model_db": MediaImageTable.__name__,
+                    "public_id": public_id,
+                }
+                ) from s
     
     async def get_by_owner(
         self,
         *,
-        owner_type: str,
+        owner_type: ImageType,
         owner_id: int
     ) -> List[ImageEntity]:
         stmt = (
@@ -45,7 +63,7 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
     async def get_by_owners(
         self,
         *,
-        owner_type: str,
+        owner_type: ImageType,
         owner_ids: List[int]
     ) -> List[ImageEntity]:
         if not owner_ids:
@@ -74,5 +92,40 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
 
             await self._db_session.commit()
             return persisted_entities
+        except SQLAlchemyError as e:
+            await self._db_session.rollback()
+            raise DatabaseException(
+                "Internal exception to save all the Image models",
+                {
+                    "images_count": len(entities),
+                    "event": "save_many",
+                    "repository": "postgres_image"
+                }
+                ) from e
+        
+    async def delete_many_images(
+            self, 
+            owner_type: str,
+            owner_ids: List[int]
+    ) -> None:
+        try:
+            stmt = (
+                delete(MediaImageTable)
+                .where(MediaImageTable.owner_type == owner_type)
+                .where(col(MediaImageTable.owner_id).in_(owner_ids))
+            )
+
+            await self._db_session.exec(stmt)
+            await self._db_session.commit()
         except SQLAlchemyError as s:
-            raise DatabaseException(f"Internal exception to save all the Image models: {str(s)}")
+            await self._db_session.rollback()
+            raise DatabaseException(
+                "Postgres delete failed",
+                {
+                    "service": "postgres/infra",
+                    "repository": "postgres_image",
+                    "event": "delete_many_images",
+                    "owner_type": owner_type,
+                    "owners_ids_sample": owner_ids[:5]
+                }
+            ) from s
