@@ -18,24 +18,19 @@ from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavo
 from app.infra.db.mappers.favorite_mapper import FavoritesMapper
 from app.infra.db.models.model_favorites import FavoritesTable
 
-from app.core.log.protocole import LoggerProtocol
-
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 class FactoryRespository:
     def __init__(
             self,
-            db_session: AsyncSession,
-            logger: LoggerProtocol
+            db_session: AsyncSession
             ):
         self._db_session: AsyncSession = db_session
-        self._logger: LoggerProtocol = logger
 
     def get_product_repository(self) -> PostgresProductRepository:
         return PostgresProductRepository(
             db_session=self._db_session,
             base_mapper=ProductMapper,
-            logger=self._logger,
             base_model=ProductTable
         )
     
@@ -43,7 +38,6 @@ class FactoryRespository:
         return PostgresSlideRepository(
             db_session=self._db_session,
             base_mapper=SlideMapper,
-            logger=self._logger,
             base_model=SlideTable
         )
     
@@ -51,7 +45,6 @@ class FactoryRespository:
         return PostgresImageRepository(
             db_session=self._db_session,
             base_mapper=ImageMapper,
-            logger=self._logger,
             base_model=MediaImageTable
         )
     
@@ -59,7 +52,6 @@ class FactoryRespository:
         return PostgresUserRepository(
             db_session=self._db_session,
             base_mapper=UserMapper,
-            logger=self._logger,
             base_model=UserTable
         )
     
@@ -67,6 +59,5 @@ class FactoryRespository:
         return PostgresFavoritesRepository(
             db_session=self._db_session,
             base_mapper=FavoritesMapper,
-            logger=self._logger,
             base_model=FavoritesTable
         )
