@@ -1,5 +1,5 @@
 from app.domain.slide.slide_entity import SlideEntity
-from app.domain.slide.slide_dto import SlideFilterDTO
+from app.domain.slide.slide_dto import SlideFiltersCommand
 from app.infra.db.models.model_slide import SlideTable
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.infra.db.exceptions import DatabaseException
@@ -16,7 +16,7 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
             self,
             *,
             statement: Select[SlideTable] | SelectOfScalar[SlideTable],
-            slide_filters: SlideFilterDTO
+            slide_filters: SlideFiltersCommand
     ) -> Select[SlideTable] | SelectOfScalar[SlideTable]:
         
         if slide_filters.activo is not None:
@@ -32,7 +32,7 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
 
     async def count_all(
             self,
-            slide_filters: SlideFilterDTO
+            slide_filters: SlideFiltersCommand
     ) -> int:
         stmt = select(func.count(SlideTable.id))
         stmt = self._apply_filter(
@@ -65,9 +65,7 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
             """)
 
             await self._db_session.exec(stmt, params=updates)
-            await self._db_session.commit()
         except SQLAlchemyError as e:
-            await self._db_session.rollback()
             raise DatabaseException(
                 f"{e._message()}",
                 {
@@ -80,7 +78,7 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
         
     async def get_slides_with_filter(
         self,
-        slide_filters: SlideFilterDTO,
+        slide_filters: SlideFiltersCommand,
         offset: int = 0,
         limit: int = 20
     ) -> List[SlideEntity]:

@@ -2,7 +2,7 @@ from app.infra.db.repositories.base_repository import BaseRepository
 from app.domain.product.entities.product import Product
 from app.infra.db.models.model_product import ProductTable, VariantTable, VariantSizeTable
 
-from app.domain.product.dto.product_dto import FilterSchemaDTO
+from app.domain.product.dto.product_dto import FilterProductCommand
 
 from app.infra.db.exceptions import DatabaseException
 from app.core.exceptions import ValueNotFound
@@ -10,7 +10,7 @@ from app.core.exceptions import ValueNotFound
 from typing import List
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.sql.expression import SelectOfScalar, Select
-from sqlmodel import select, col, exists
+from sqlmodel import select, col, exists, delete
 from sqlalchemy.orm import selectinload, noload
 from sqlalchemy import func
 
@@ -18,36 +18,36 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
     def _apply_filters(
         self,
         stmt: Select[ProductTable] | SelectOfScalar[ProductTable],
-        filter_dto: FilterSchemaDTO,
+        filter_command: FilterProductCommand,
     ) -> Select[ProductTable] | SelectOfScalar[ProductTable]:
 
-        if filter_dto.name:
-            stmt = stmt.where(ProductTable.nombre.ilike(f"%{filter_dto.name}%"))
+        if filter_command.name:
+            stmt = stmt.where(col(ProductTable.nombre).ilike(f"%{filter_command.name}%"))
 
-        if filter_dto.marca:
-            stmt = stmt.where(ProductTable.marca == filter_dto.marca)
+        if filter_command.marca:
+            stmt = stmt.where(ProductTable.marca == filter_command.marca)
 
-        if filter_dto.categoria:
-            stmt = stmt.where(ProductTable.categoria == filter_dto.categoria)
+        if filter_command.categoria:
+            stmt = stmt.where(ProductTable.categoria == filter_command.categoria)
 
-        if filter_dto.model_family:
-            stmt = stmt.where(ProductTable.model_family == filter_dto.model_family)
+        if filter_command.model_family:
+            stmt = stmt.where(ProductTable.model_family == filter_command.model_family)
 
-        if filter_dto.colors or filter_dto.sizes:
+        if filter_command.colors or filter_command.sizes:
             subqr = (
                 select(1)
                 .select_from(VariantTable)
                 .where(VariantTable.product_id == ProductTable.id)
             )
 
-            if filter_dto.colors:
-                subqr = subqr.where(col(VariantTable.color).in_(filter_dto.colors))
+            if filter_command.colors:
+                subqr = subqr.where(col(VariantTable.color).in_(filter_command.colors))
 
-            if filter_dto.sizes:
+            if filter_command.sizes:
                 subqr = (
                     subqr
                     .join(VariantSizeTable, VariantSizeTable.variant_id == VariantTable.id)
-                    .where(col(VariantSizeTable.size).in_(filter_dto.sizes))
+                    .where(col(VariantSizeTable.size).in_(filter_command.sizes))
                 )
 
             stmt = stmt.where(exists(subqr.correlate(ProductTable)))
@@ -77,7 +77,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
 
     async def count_filtered_products(
         self,
-        filter_dto: FilterSchemaDTO
+        filter_dto: FilterProductCommand
     ) -> int:
         stmt = select(func.count(ProductTable.id))
         stmt = self._apply_filters(stmt, filter_dto)
@@ -87,7 +87,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
 
     async def get_all(
         self,
-        filter_dto: FilterSchemaDTO,
+        filter_command: FilterProductCommand,
         offset: int = 0,
         limit: int = 100,
     ) -> List[Product]:
@@ -96,7 +96,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                     noload(VariantTable.sizes)
                 )
             )
-        stmt = self._apply_filters(stmt, filter_dto)
+        stmt = self._apply_filters(stmt, filter_command)
             
         
         stmt = (
@@ -129,45 +129,35 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
             for product in products
         ]
         
-    async def delete_variant_by_id(self, variant_id: int | None = None) -> None:
-        if not variant_id: return None
+    async def delete_sizes_batch(self, size_ids: list[int]) -> None:
         try:
             statement = (
-                select(VariantTable)
-                .where(VariantTable.id == variant_id)
+                delete(VariantSizeTable)
+                .where(col(VariantSizeTable.id).in_(size_ids))
             )
-            variant = (await self._db_session.exec(statement)).first()
-            if not variant:
-                return None
-            await self._db_session.delete(variant)
-            await self._db_session.commit()
+            await self._db_session.exec(statement)
         except SQLAlchemyError as e:
-            await self._db_session.rollback()
             raise DatabaseException(
-                "Cannot delete the variant in database",
+                "Cannot delete sizes in database",
                 {
-                    "variant_id": variant_id,
-                    "event": "delete_variant_by_id"
+                    "size_ids": size_ids,
+                    "event": "delete_size_by_id"
                 }
                 ) from e
         
-    async def delete_size_by_id(self, size_id: int) -> None:
+    async def delete_variants_batch(self, variants_ids: list[int]) -> None:
+        if not variants_ids: return None
         try:
             statement = (
-                select(VariantSizeTable)
-                .where(VariantSizeTable.id == size_id)
+                delete(VariantTable)
+                .where(col(VariantTable.id).in_(variants_ids))
             )
-            variant_size = (await self._db_session.exec(statement)).first()
-            if not variant_size:
-                return None
-            await self._db_session.delete(variant_size)
-            await self._db_session.commit()
+            await self._db_session.exec(statement)
         except SQLAlchemyError as e:
-            await self._db_session.rollback()
             raise DatabaseException(
-                "Cannot delete the in database",
+                "Cannot delete variants in database",
                 {
-                    "size_id": size_id,
-                    "event": "delete_size_by_id"
+                    "variant_ids": variants_ids,
+                    "event": "delete_variants_batch"
                 }
                 ) from e

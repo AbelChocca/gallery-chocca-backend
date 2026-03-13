@@ -13,24 +13,9 @@ from typing import List
 class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
     async def delete_by_id(self, public_id: str) -> None:
         try:
-            statement = select(MediaImageTable).where(MediaImageTable.public_id == public_id)
-            model_db = await self._db_session.exec(statement)
-
-            if not model_db:
-                raise ValueNotFound(
-                    "Model wasn't found, cannot deleted.",
-                    {
-                        "repository": "postgres_image",
-                        "event": "delete_by_id",
-                        "model_db": MediaImageTable.__name__,
-                        "public_id": public_id
-                    }
-                )
-
-            await self._db_session.delete(model_db)
-            await self._db_session.commit()
+            statement = delete(MediaImageTable).where(MediaImageTable.public_id == public_id)
+            await self._db_session.exec(statement)
         except SQLAlchemyError as s:
-            await self._db_session.rollback()
             raise DatabaseException(
                 "Postgres error while deleting.",
                 {
@@ -90,10 +75,8 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
             await self._db_session.flush()
             persisted_entities = [self._base_mapper.to_entity(image_model) for image_model in models]
 
-            await self._db_session.commit()
             return persisted_entities
         except SQLAlchemyError as e:
-            await self._db_session.rollback()
             raise DatabaseException(
                 "Internal exception to save all the Image models",
                 {
@@ -116,9 +99,7 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
             )
 
             await self._db_session.exec(stmt)
-            await self._db_session.commit()
         except SQLAlchemyError as s:
-            await self._db_session.rollback()
             raise DatabaseException(
                 "Postgres delete failed",
                 {

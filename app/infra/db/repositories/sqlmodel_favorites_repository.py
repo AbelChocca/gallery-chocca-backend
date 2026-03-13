@@ -48,12 +48,14 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             user_id: int
             ) -> None:
         try:
-            favorite_model = await self._get_favorite_by_user_id(product_id, user_id)
+            stmt = (
+                delete(FavoritesTable)
+                .where(FavoritesTable.product_id == product_id)
+                .where(FavoritesTable.user_id == user_id)
+            )
 
-            await self._db_session.delete(favorite_model)
-            await self._db_session.commit()
+            await self._db_session.exec(stmt)
         except SQLAlchemyError as s:
-            await self._db_session.rollback()
             raise DatabaseException(
                 f"Failed to delete the favorite by user id",
                 {
@@ -69,12 +71,14 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             session_id: int
             ) -> None:
         try:
-            favorite_model = await self._get_favorite_by_session_id(product_id, session_id)
+            stmt = (
+                delete(FavoritesTable)
+                .where(FavoritesTable.product_id == product_id)
+                .where(FavoritesTable.session_id == session_id)
+            )
 
-            await self._db_session.delete(favorite_model)
-            await self._db_session.commit()
+            await self._db_session.exec(stmt)
         except SQLAlchemyError as s:
-            await self._db_session.rollback()
             raise DatabaseException(
                 "Failed to delete the favorite by session id",
                 {
@@ -201,9 +205,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             stmt = delete(FavoritesTable).where(FavoritesTable.product_id == product_id)
 
             await self._db_session.exec(stmt)
-            await self._db_session.commit()
         except SQLAlchemyError as s:
-            await self._db_session.rollback()
             raise DatabaseException(
                 "Postgres delete failed",
                 {
@@ -232,9 +234,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             )
 
             await self._db_session.exec(stmt)
-            await self._db_session.commit()
         except SQLAlchemyError as s:
-            await self._db_session.rollback()
             raise DatabaseException(    
                 "Postgres setting failed",
                 {
