@@ -1,15 +1,11 @@
-from app.domain.media.protocol import MediaProtocol
+from app.infra.media.protocol import CloudinaryProtocol
 from app.domain.media.media_dto import MediaImageDTO
 from app.infra.media.exceptions import CloudinaryException
-from app.core.log.protocole import LoggerProtocol
 
-from cloudinary.uploader import upload, destroy, Error as CloudinaryError
+from cloudinary.uploader import rename, upload, destroy, Error as CloudinaryError
 from typing import BinaryIO
 
-class CloudinaryService(MediaProtocol):
-    def __init__(self, logger: LoggerProtocol):
-        self.logger = logger
-
+class CloudinaryService(CloudinaryProtocol):
     def upload_image(self, file: BinaryIO, folder: str) -> MediaImageDTO:
         try:
             result = upload(file, folder=folder, resource_type="image", format="webp")
@@ -40,3 +36,24 @@ class CloudinaryService(MediaProtocol):
                     "public_id": public_id,
                 }
             ) from e
+        
+    def rename_resource(self, origin_public_id: str, destinatary_public_id: str) -> None:
+        try:
+            rename(
+                origin_public_id,
+                destinatary_public_id,
+                overwrite=True
+            )
+        except CloudinaryError as e:
+            raise CloudinaryException(
+                "Cloudinary renamed failed",
+                {
+                    "service": "cloudinary/infra",
+                    "event": "rename_resource",
+                    "original_public_id": origin_public_id,
+                    "destinaraty_public_id": destinatary_public_id
+                }
+            ) from e
+        
+def get_cloudinary_service() -> CloudinaryService:
+    return CloudinaryService()
