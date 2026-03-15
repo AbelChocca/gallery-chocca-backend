@@ -9,7 +9,7 @@ from typing import List
 class PostgresUserRepository(BaseRepository[User, UserTable]):
     async def get_by_email(self, email: str) -> User:
         statement = select(UserTable).where(UserTable.email == email)
-        user_db = (await self._db_session.exec(statement)).first()
+        user_db = (await self._db_session.execute(statement)).first()
         if not user_db:
             raise ValueNotFound(
                 "User not found", 

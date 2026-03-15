@@ -1,4 +1,4 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import AbstractAsyncContextManager
 from typing import Callable, Type
 

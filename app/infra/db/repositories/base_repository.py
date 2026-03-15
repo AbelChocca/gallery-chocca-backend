@@ -1,8 +1,8 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import Generic, Type
 from app.infra.db.types import E, M
 from sqlalchemy.exc import SQLAlchemyError
-from sqlmodel import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete
 
 from app.infra.db.mappers.base_mapper import BaseMapper
 
@@ -26,7 +26,8 @@ class BaseRepository(Generic[E, M]):
             .where(self._base_model.id == model_id)
         )
         
-        model: M | None = (await self._db_session.exec(statement)).first()
+        result = await self._db_session.execute(statement)
+        model: M | None = result.scalar()
         if not model:
             return None
         
@@ -57,7 +58,7 @@ class BaseRepository(Generic[E, M]):
         try:
             stmt = delete(self._base_model).where(self._base_model.id == model_id)
 
-            await self._db_session.exec(stmt)
+            await self._db_session.execute(stmt)
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres error while deleting.",

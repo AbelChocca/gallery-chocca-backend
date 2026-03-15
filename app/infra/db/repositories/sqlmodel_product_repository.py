@@ -63,7 +63,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                 )
             .where(ProductTable.id == model_id)
         )
-        res = (await self._db_session.exec(statement)).first()
+        res = (await self._db_session.execute(statement)).scalar()
         if not res:
             raise ValueNotFound(
                 "Product wasn't found",
@@ -82,8 +82,8 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         stmt = select(func.count(ProductTable.id))
         stmt = self._apply_filters(stmt, filter_dto)
 
-        result = await self._db_session.exec(stmt)
-        return result.one() or 0
+        result = await self._db_session.execute(stmt)
+        return result.scalar() or 0
 
     async def get_all(
         self,
@@ -106,7 +106,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
             .limit(limit)
         )
 
-        res = (await self._db_session.exec(stmt)).all()
+        res = (await self._db_session.execute(stmt)).scalars().all()
 
         products = [
             self._base_mapper.to_entity(product_table)
@@ -123,7 +123,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
             .limit(limit)
         )
 
-        products = (await self._db_session.exec(statement)).all()
+        products = (await self._db_session.execute(statement)).scalars().all()
         return [
             self._base_mapper.to_entity(product)
             for product in products
@@ -135,7 +135,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                 delete(VariantSizeTable)
                 .where(col(VariantSizeTable.id).in_(size_ids))
             )
-            await self._db_session.exec(statement)
+            await self._db_session.execute(statement)
         except SQLAlchemyError as e:
             raise DatabaseException(
                 "Cannot delete sizes in database",
@@ -152,7 +152,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                 delete(VariantTable)
                 .where(col(VariantTable.id).in_(variants_ids))
             )
-            await self._db_session.exec(statement)
+            await self._db_session.execute(statement)
         except SQLAlchemyError as e:
             raise DatabaseException(
                 "Cannot delete variants in database",

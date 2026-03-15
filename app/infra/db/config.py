@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, AsyncSession
 from app.core.settings.pydantic_settings import settings
 
 DATABASE_URL = settings.DATABASE_URL
@@ -8,6 +8,7 @@ engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False)
 
 async_session_factory = async_sessionmaker(
     engine,
+    class_=AsyncSession,
     expire_on_commit=False,
     autoflush=False
 )

@@ -3,9 +3,9 @@ from app.infra.db.models.model_media import MediaImageTable
 from app.domain.media.entities.image import ImageEntity
 from app.domain.media.media_dto import ImageType
 from app.infra.db.exceptions import DatabaseException
-from app.core.exceptions import ValueNotFound
 
-from sqlmodel import select, col, delete
+from sqlmodel import col
+from sqlalchemy import select, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from typing import List
@@ -14,7 +14,7 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
     async def delete_by_id(self, public_id: str) -> None:
         try:
             statement = delete(MediaImageTable).where(MediaImageTable.public_id == public_id)
-            await self._db_session.exec(statement)
+            await self._db_session.execute(statement)
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres error while deleting.",
@@ -38,7 +38,7 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
             .where(MediaImageTable.owner_id == owner_id)
         )
 
-        res = (await self._db_session.exec(stmt)).all()
+        res = (await self._db_session.execute(stmt)).scalars().all()
 
         return [
             self._base_mapper.to_entity(image)
@@ -60,7 +60,7 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
             .where(col(MediaImageTable.owner_id).in_(owner_ids))
         )
 
-        res = (await self._db_session.exec(stmt)).all()
+        res = (await self._db_session.execute(stmt)).scalars().all()
 
         return [
             self._base_mapper.to_entity(image)
@@ -98,7 +98,7 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
                 .where(col(MediaImageTable.owner_id).in_(owner_ids))
             )
 
-            await self._db_session.exec(stmt)
+            await self._db_session.execute(stmt)
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres delete failed",

@@ -40,8 +40,8 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
             slide_filters=slide_filters
         )
 
-        res = await self._db_session.exec(stmt)
-        return res.one() or 0
+        res = await self._db_session.execute(stmt)
+        return res.scalar() or 0
     
     async def update_many_orders(
         self,
@@ -64,7 +64,7 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
                 WHERE id = :b_id AND activo = true
             """)
 
-            await self._db_session.exec(stmt, params=updates)
+            await self._db_session.execute(stmt, params=updates)
         except SQLAlchemyError as e:
             raise DatabaseException(
                 f"{e._message()}",
@@ -95,7 +95,7 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
             .limit(limit)
         )
         
-        result = await self._db_session.exec(stmt)
-        slides = result.all()
+        result = await self._db_session.execute(stmt)
+        slides = result.scalars().all()
 
         return [self._base_mapper.to_entity(slide_db) for slide_db in slides]

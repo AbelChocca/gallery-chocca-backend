@@ -9,10 +9,10 @@ from app.infra.db.mappers.product_mapper import ProductMapper
 from app.shared.dtos import OrderByEnum
 
 from typing import List
-from sqlmodel import select, col, delete, update
+from sqlmodel import col
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload, noload
-from sqlalchemy import func
+from sqlalchemy import func, select, delete, update
 
 class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]):
     async def _get_favorite_by_session_id(
@@ -25,7 +25,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             .where(FavoritesTable.product_id == product_id)
             .where(FavoritesTable.session_id == session_id)
         )
-        result = (await self._db_session.exec(statement)).first()
+        result = (await self._db_session.execute(statement)).scalar()
         return result
 
     async def _get_favorite_by_user_id(
@@ -39,7 +39,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             .where(FavoritesTable.user_id == user_id)
         )
 
-        result = (await self._db_session.exec(statement)).first()
+        result = (await self._db_session.execute(statement)).scalar()
         return result
 
     async def delete_favorite_by_user_id(
@@ -54,7 +54,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
                 .where(FavoritesTable.user_id == user_id)
             )
 
-            await self._db_session.exec(stmt)
+            await self._db_session.execute(stmt)
         except SQLAlchemyError as s:
             raise DatabaseException(
                 f"Failed to delete the favorite by user id",
@@ -77,7 +77,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
                 .where(FavoritesTable.session_id == session_id)
             )
 
-            await self._db_session.exec(stmt)
+            await self._db_session.execute(stmt)
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Failed to delete the favorite by session id",
@@ -137,7 +137,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             .offset(offset)
             .limit(limit)
         )
-        response: List[ProductTable] = (await self._db_session.exec(statement)).all()
+        response: List[ProductTable] = (await self._db_session.execute(statement)).scalars().all()
 
         return [
             ProductMapper.to_entity(product_table)
@@ -179,7 +179,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             .offset(offset)
             .limit(limit)
         )
-        response: List[ProductTable] = (await self._db_session.exec(statement)).all()
+        response: List[ProductTable] = (await self._db_session.execute(statement)).scalars().all()
 
         return [
             ProductMapper.to_entity(product_table)
@@ -196,7 +196,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
         else:
             statement = statement.where(FavoritesTable.session_id == session_id)
 
-        result = (await self._db_session.exec(statement)).one()
+        result = (await self._db_session.execute(statement)).scalar()
 
         return result or 0
     
@@ -204,7 +204,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
         try:
             stmt = delete(FavoritesTable).where(FavoritesTable.product_id == product_id)
 
-            await self._db_session.exec(stmt)
+            await self._db_session.execute(stmt)
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres delete failed",
@@ -233,7 +233,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
                 .values({"user_id": new_user_id, "session_id": None})
             )
 
-            await self._db_session.exec(stmt)
+            await self._db_session.execute(stmt)
         except SQLAlchemyError as s:
             raise DatabaseException(    
                 "Postgres setting failed",
