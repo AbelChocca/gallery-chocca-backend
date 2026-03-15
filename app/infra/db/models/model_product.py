@@ -1,5 +1,4 @@
 from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Index
-from typing import Optional, List
 from sqlalchemy.orm import Mapped
 
 class ProductTable(SQLModel, table=True):
@@ -18,16 +17,16 @@ class ProductTable(SQLModel, table=True):
         )
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     nombre: str = Field(nullable=False, unique=True)
     descripcion: str
     marca: str = Field(nullable=False, index=True)
     categoria: str = Field(max_length=30) 
     model_family: str = Field(max_length=50) 
-    fit: Optional[str] = Field(default=None, max_length=20)
-    slug: Optional[str] = Field(default=None)
+    fit: str | None = Field(default=None, max_length=20)
+    slug: str | None = Field(default=None)
 
-    variants: Mapped[List['VariantTable']] = Relationship(
+    variants: Mapped[list['VariantTable']] = Relationship(
         back_populates='product',
         sa_relationship_kwargs={
             'cascade': 'all, delete-orphan',
@@ -41,13 +40,13 @@ class VariantTable(SQLModel, table=True):
         UniqueConstraint("product_id", "color", name="uq_variant_product_color"),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    product_id: Optional[int] = Field(foreign_key='product.id')
+    id: int | None = Field(default=None, primary_key=True)
+    product_id: int | None = Field(foreign_key='product.id')
     color: str
 
-    product: Mapped[Optional[ProductTable]] = Relationship(back_populates='variants')
+    product: Mapped[ProductTable | None] = Relationship(back_populates='variants')
 
-    sizes: Mapped[List['VariantSizeTable']] = Relationship(
+    sizes: Mapped[list['VariantSizeTable']] = Relationship(
         back_populates="variant",
         sa_relationship_kwargs={
             'cascade': 'all, delete-orphan',
@@ -62,8 +61,8 @@ class VariantSizeTable(SQLModel, table=True):
         UniqueConstraint("variant_id", "size", name="uq_variant_size")
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     variant_id: int = Field(foreign_key="variant.id")
     size: str
 
-    variant: Mapped[Optional[VariantTable]] = Relationship(back_populates="sizes")
+    variant: Mapped[VariantTable | None] = Relationship(back_populates="sizes")
