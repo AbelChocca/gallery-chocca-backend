@@ -1,11 +1,12 @@
 from redis.asyncio import Redis
-from redis import RedisError, ConnectionError
-from typing import Optional, Dict, Any, List, Union
-from json import dumps, loads
-from asyncio import sleep
+from redis import RedisError
+from typing import Dict, Any, List, Callable, Awaitable
+import orjson
+import asyncio
+import random
 
 from app.core.log.protocole import LoggerProtocol
-from app.domain.cache.protocole import CacheProtocol
+from app.infra.cache.protocole import CacheProtocol
 from app.infra.cache.exceptions import InternalCacheException
 
 class RedisService(CacheProtocol):
@@ -17,81 +18,154 @@ class RedisService(CacheProtocol):
         self.client = cache_client
         self.logger = logger
 
-    async def cache_verify_connection(self) -> bool:
-        try:          
-            pong = await self.client.ping()
-            self.logger.info('✅ Conexión activa del cliente Redis verificada.')
-            return pong is True
-        except ConnectionError as e:
-            self.logger.error(f'Error al hacer PING al cliente REDIS: {str(e)}')
-            return False
-
-
     async def cache_set(
-            self, key: str, 
-            data: Union[Dict[str, Any], List[Dict[str, Any]]], 
-            seconds: Optional[int] = None
-        ) -> Optional[bool]:
+            self, 
+            key: str, 
+            data: Dict[str, Any] | List[Dict[str, Any]], 
+            seconds: int | None = None
+        ) -> bool | None:
         if not key:
-            self.logger.warning(f"The input key: {key} is empty.")
             return False
         if not data:
-           self.logger.warning('⚠️ The object data is empty.')
            return False
         try:
-            json_data = dumps(data)
+            json_data = orjson.dumps(data)
             await self.client.set(name=key, ex=seconds, value=json_data, nx=True)
-
-            self.logger.info(f"Key: {key} was setted on cache successfully")
             return True
-        except RedisError as e:
-            self.logger.error(f'❌ Error al guardar la clave al cache: {str(e)}')
-            raise InternalCacheException()
+        except RedisError as r:
+            raise InternalCacheException(
+                "Cache set failed",
+                {
+                    "service": "redis/infra",
+                    "key_name": key,
+                    "event": "cache_set",
+                }
+            ) from r
     
-    async def cache_get(self, key: str) -> Optional[Any]:
-        self.logger.info('⚙️ Verificando datos antes de obtener...')
-    
+    async def cache_get(self, key: str) -> Any | None:
         try:
             json_data = await self.client.get(key)
             if not json_data:
-                self.logger.error('❌ La clave que intenta buscar no existe en el cache o ya venció.')
                 return None
-            result = loads(json_data)
-
-            self.logger.info(f"Key: {key} value was getting successfully from redis service")
+            result = orjson.loads(json_data)
             return result
-        except RedisError as e:
-            self.logger.error(f'❌ Error del servidor al obtener el valor del cache: {str(e)}')
-            raise InternalCacheException()
+        except RedisError as r:
+            raise InternalCacheException(
+                "Cache get failed",
+                {
+                    "service": "redis/infra",
+                    "key_name": key,
+                    "event": "cache_get",
+                }
+            ) from r
 
-    async def cache_delete(self, key: str) -> None:
+    async def cache_delete(self, key: str) -> bool:
         try:
             delete = await self.client.delete(key)
-            if delete:
-                self.logger.info(f'✅ Cache key: {key} was deleted seccessfully.')
-            else:
-                self.logger.warning(f'⚠️ The key: {key} not exist in cache.')
+            if not delete:
+                return False
 
             return True
-        except RedisError as e:
-            self.logger.error(f'❌ Error del servidor al eliminar clave del cache: {str(e)}')
-            raise InternalCacheException()
+        except RedisError as r:
+            raise InternalCacheException(
+                "Cache delete failed",
+                {
+                    "service": "redis/infra",
+                    "key_name": key,
+                    "event": "cache_delete"
+                }
+            ) from r
         
     async def cache_set_lock(self, key: str, seconds: int = 5) -> bool:
         lock_key: str = f"lock:{key}"
         try:
             return await self.client.set(name=lock_key, value="1", ex=seconds, nx=True)
         except RedisError as e:
-            self.logger.error(f"Redis service error to set the lock of key: {str(e)}")
-            raise InternalCacheException()
+            self.logger.exception("Redis set lock failed", key_name=lock_key, event="cache_set_lock")
+            raise InternalCacheException(
+                "Redis set lock failed",
+                {
+                    "service": "redis/infra",
+                    "key_name": key,
+                    "event": "cache_set_lock"
+                }
+            ) from e
         
-    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Optional[Any]:
+    async def get_or_set_with_lock(
+            self,
+            key: str,
+            ttl: int,
+            callback: Callable[..., Awaitable[Any] | Any],
+            kwargs: dict,
+            lock_ttl: int = 5,
+    ) -> Any:
+        try:
+            cached = await self.cache_get(key)
+            if cached is not None:
+                return cached
+        
+            if (await self.client.set(name=f"lock:{key}", value="1", ex=lock_ttl, nx=True)):
+                data = await callback(**kwargs)
+
+                await self.cache_set(
+                    key=key,
+                    data=data,
+                    seconds=ttl
+                )
+                return data
+        
+            cached = await self.cache_retry_get(5, key, seconds_delay=0.1)
+            if cached is not None: return cached
+
+            data = await callback(**kwargs)
+
+            await self.cache_set(
+                key=key,
+                data=data,
+                seconds=ttl
+            )
+
+            return data
+        except RedisError as e:
+            raise InternalCacheException(
+                "Redis set lock failed",
+                {
+                    "service": "redis/infra",
+                    "key_name": key,
+                    "event": "cache_get_or_set_with_lock",
+                    "lock_ttl": lock_ttl,
+                    "ttl": ttl,
+                    "kwargs": kwargs,
+                    "action_name": callback.__name__
+                }
+            ) from e
+        
+    async def cache_retry_get(
+            self,  
+            key: str, 
+            retries: int = 5,
+            delay: float = 0.1
+        ) -> Any | None:
         for attempt in range(retries):
             data = await self.client.get(key)
 
             if data is not None:
-                return loads(data)
+                return orjson.loads(data)
 
             if attempt < retries - 1:
-                await sleep(seconds_delay)
+                jitter = random.uniform(delay * 0.5, delay * 1.5)
+                await asyncio.sleep(jitter)
         return None
+
+    async def invalidate_family(self, key: str) -> None:
+        cursor = 0
+
+        while True:
+            cursor, keys = await self.client.scan(cursor=cursor, match=key, count=100)
+            if keys:
+                async with self.client.pipeline() as pipe:
+                    for k in keys:
+                        pipe.delete(k)
+                    await pipe.execute()
+            if cursor == 0:
+                break

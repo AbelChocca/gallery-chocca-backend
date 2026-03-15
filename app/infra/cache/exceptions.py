@@ -1,5 +1,9 @@
-from app.infra.exceptions import InfraestructureException
+from app.core.app_exception import AppException
 
-class InternalCacheException(InfraestructureException):
-    def __init__(self, message: str = "Cache Internal's error", status_code = 503):
-        super().__init__(message, status_code)
+class InternalCacheException(AppException):
+    status_code: int = 503
+    log_level: str = "ERROR"
+    error_code: str = "cache_internal_error"
+
+    def __init__(self, message: str = "Cache Internal's error", context: dict | None = None):
+        super().__init__(message, context)
