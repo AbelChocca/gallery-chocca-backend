@@ -5,8 +5,8 @@ class SagaStep:
     """Representa un paso de la saga con su acción y compensación"""
     def __init__(
             self, 
-            action: Callable[..., Coroutine[Any]], 
-            compensation: Callable[..., Coroutine[Any]] | None, 
+            action: Callable[..., Coroutine[Any, Any, Any]], 
+            compensation: Callable[..., Coroutine[Any, Any, Any]] | None, 
             action_name: str, 
             compensation_name: str | None = None,
             action_kwargs: dict | None = None, 
@@ -77,7 +77,7 @@ class SagaService:
         
     def set_last_step_compensation(
             self, 
-            compesation: Callable[..., Coroutine[Any] | Any], 
+            compesation: Callable[..., Coroutine[Any, Any, Any] | Any], 
             compensation_name: str,
             compensation_kwargs: dict
             ) -> None:
@@ -118,3 +118,6 @@ class SagaService:
     def reset(self) -> None:
         self.steps.clear()
         self.compensation_errors.clear()
+
+def get_saga_service() -> SagaService:
+    return SagaService()
