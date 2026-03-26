@@ -4,9 +4,11 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from sqlmodel import SQLModel
 
-from app.modules.product.infra.models.product_model import ProductTable, VariantColorTable, VariantImageTable
-from app.modules.slide.infra.slide_model import SlideTable
-from app.modules.user.infra.models.model_user import UserTable
+from app.infra.db.models.model_product import ProductTable, VariantTable, VariantSizeTable
+from app.infra.db.models.model_media import MediaImageTable
+from app.infra.db.models.model_slide import SlideTable
+from app.infra.db.models.model_user import UserTable
+from app.infra.db.models.model_favorites import FavoritesTable
 from app.core.settings.pydantic_settings import settings
 
 from alembic import context
