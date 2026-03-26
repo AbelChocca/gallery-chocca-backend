@@ -1,38 +1,18 @@
-from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
-from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRepository
-from app.domain.product.dto.product_dto import ReadProductDTO
-from app.application.products.helper_mapper import ProductEntityToDTOMapper
+from app.application.products.service import ProductService
 
-from typing import List
+from typing import List, Dict, Any
 
 class SearchProductCase:
     def __init__(
             self,
-            product_repo: PostgresProductRepository,
-            image_repo: PostgresImageRepository
+            product_service: ProductService
             ):
-        self.product_repo = product_repo
-        self.image_repo = image_repo
+        self.product_service = product_service
 
-    async def execute(self, query: str, offset: int = 0, limit: int = 3) -> List[ReadProductDTO]:
-        products = await self.product_repo.search_related(query=query, offset=offset, limit=limit)
-
-        variants_id: List[int] = []
-        for product in products:
-            variants_id.extend(product.get_variants_id())
-
-        images = await self.image_repo.get_images(
-            owner_type="product_variant",
-            owners_id=variants_id
-        )
-
-        for product in products:
-            product.sync_images_to_variants(images)
-
+    async def execute(self, query: str, limit: int = 3) -> List[Dict[str, Any]]:
+        products = await self.product_service.get_products_related(query, limit)
 
         return [
-            ProductEntityToDTOMapper.to_read_dto(
-                product
-            )
+            product.to_dict
             for product in products
         ]

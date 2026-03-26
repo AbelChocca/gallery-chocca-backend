@@ -1,44 +1,36 @@
-from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
-from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRepository
-from app.domain.media.protocol import MediaProtocol
-from app.core.log.protocole import LoggerProtocol
-from app.domain.cache.protocole import CacheProtocol
-
-from app.domain.product.entities.product import Product
-
-from typing import List
+from app.application.products.service import ProductService
+from app.application.media.service import MediaService
+from app.infra.saga_service import SagaService
+from app.core.app_exception import AppException
 
 class DeleteProductCase:
     def __init__(
             self,
-            repo: PostgresProductRepository,
-            image_repo: PostgresImageRepository,
-            media_service: MediaProtocol,
-            cache_service: CacheProtocol,
-            logger: LoggerProtocol
+            product_service: ProductService,
+            media_service: MediaService,
+            saga_service: SagaService
             ):
-        self.repo: PostgresProductRepository = repo
-        self.image_repo: PostgresImageRepository = image_repo
-        self.media_service: MediaProtocol = media_service
-        self.cache_service: CacheProtocol = cache_service
-        self.logger: LoggerProtocol = logger
+        self.product_service: ProductService = product_service
+        self.media_service: MediaService = media_service
+        self._saga_service: SagaService = saga_service
 
     async def execute(
             self,
             product_id: int
     ) -> None:
-        product_to_delete: Product = await self.repo.get_by_id(product_id)
+        try:
+            await self.product_service.delete_product(
+                product_id,
+                self._saga_service,
+                action_func=self.media_service.move_images_to_trash,
+                compesantion_func=self.media_service.recover_images_from_trash
+            )
 
-        # Cache invalidation
-        await self.cache_service.cache_delete(Product.get_filter_key(id=product_to_delete.id))
-        await self.cache_service.cache_delete(Product.get_filter_key(category=product_to_delete.categoria))
-        await self.cache_service.cache_delete(Product.get_filter_key(brand=product_to_delete.marca, category=product_to_delete.categoria))
+            await self._saga_service.execute_all()
+        except AppException as ae:
+            await self._saga_service.compensate_all()
 
-        # Del images from cloud service
-        images_to_delete: List[str] = product_to_delete.get_all_variants_images_id()
-        for image_id in images_to_delete:
-            self.media_service.delete_image(image_id)
-            await self.image_repo.delete_by_id(image_id)
+            if self._saga_service.compensation_errors:
+                ae.context["compensation_errors"] = self._saga_service.compensation_errors
 
-        await self.repo.delete_by_id(product_id)
-        self.logger.info(f"Product with id:{product_id} was deleted successfully")
+            return ae
