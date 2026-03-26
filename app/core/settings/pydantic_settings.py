@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     REDIS_LARGE_TTL: int
     REDIS_MEDIUM_TTL: int
     REDIS_SHORT_TTL: int
+    REDIS_MIN_TTL: int
     REDIS_LOCK_TTL: int
     REDIS_SECONDS_DELAY: float
     REDIS_MAX_RETRIES: int
