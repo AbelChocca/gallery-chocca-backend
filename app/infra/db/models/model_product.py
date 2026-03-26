@@ -14,13 +14,13 @@ class ProductTable(SQLModel, table=True):
             "ix_product_category_model_family",
             "categoria",
             "model_family"
-        )
+        ),
     )
 
     id: int | None = Field(default=None, primary_key=True)
     nombre: str = Field(nullable=False, unique=True)
     descripcion: str
-    marca: str = Field(nullable=False, index=True)
+    marca: str = Field(nullable=False)
     categoria: str = Field(max_length=30) 
     model_family: str = Field(max_length=50) 
     fit: str | None = Field(default=None, max_length=20)
@@ -57,8 +57,7 @@ class VariantTable(SQLModel, table=True):
 class VariantSizeTable(SQLModel, table=True):
     __tablename__ = "variant_size"
     __table_args__ = (
-        Index("ix_variant_size_size_variant_id", "size", "variant_id"),
-        UniqueConstraint("variant_id", "size", name="uq_variant_size")
+        UniqueConstraint("variant_id", "size", name="uq_variant_size"),
     )
 
     id: int | None = Field(default=None, primary_key=True)

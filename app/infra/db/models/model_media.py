@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Column, UniqueConstraint, Index
+from sqlmodel import SQLModel, Field, Column, UniqueConstraint
 from typing import Optional
 from sqlalchemy.dialects.postgresql import ENUM
 from app.domain.media.media_dto import ImageType
@@ -12,15 +12,10 @@ class MediaImageTable(SQLModel, table=True):
             "public_id",
             name="uq_image_owner_type_owner_id_public_id"
         ),
-        Index(
-            "ix_image_owner",
-            "owner_type",
-            "owner_id"
-        )
     )
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    public_id: str = Field(nullable=False, index=True)
+    public_id: str = Field(nullable=False)
 
     image_url: str = Field(nullable=False)
     alt_text: Optional[str] = Field(default=None)
@@ -28,7 +23,6 @@ class MediaImageTable(SQLModel, table=True):
     owner_type: ImageType = Field(
         sa_column=Column(
             ENUM(ImageType, name="image_owner_type", create_type=False),
-            index=True,
             nullable=False
             )
         )
