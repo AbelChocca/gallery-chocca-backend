@@ -1,8 +1,7 @@
 from fastapi import FastAPI, Request
+import traceback
 from fastapi.responses import JSONResponse
-from app.domain.exception import DomainException
-from app.infra.exceptions import InfraestructureException
-from app.application.exception import ApplicationException
+from app.core.app_exception import AppException
 
 from app.core.log.config import logger_service
 
@@ -12,26 +11,35 @@ class MiddlewareException:
         async def exception_middleware(request: Request, call_next):
             try:
                 return await call_next(request)
-            except DomainException as d:
-                logger_service.error(f"Domain exception from: {str(d.message)}")
-                return JSONResponse(
-                    status_code=d.status_code,
-                    content={"detail": d.message}
+            except AppException as a:
+                logger_service.log(
+                    a.log_level,
+                    a.message,
+                    error=str(a),
+                    error_code=a.error_code,
+                    **a.context,
+                    method=request.method,
+                    path=request.url.path,
                 )
-            except InfraestructureException as i:
-                logger_service.error(f"Internal server error from: {str(i.message)}")
-                return JSONResponse(
-                    status_code=i.status_code,
-                    content={'detail': i.message}
-                )
-            except ApplicationException as a:
-                logger_service.error(f"Application error from {str(a.message)}")
                 return JSONResponse(
                     status_code=a.status_code,
-                    content={'defailt': a.message}
+                    content={"detail": a.message}
                 )
             except Exception as e:
-                logger_service.error(f"Unknow internal server error: {str(e)}")
+                tb = e.__traceback__
+                last = traceback.extract_tb(tb)[-1] if tb else None
+
+                logger_service.opt(exception=e).error(
+                    "Unknow internal server error",
+                    method=request.method,
+                    path=request.url.path,
+                    status_code=500,
+                    exception_type=type(e).__name__,
+                    exception_message=str(e),
+                    origin_file=getattr(last, "filename", None),
+                    origin_line=getattr(last, "lineno", None),
+                    origin_function=getattr(last, "name", None),
+                )
                 return JSONResponse(
                     status_code=500,
                     content={"detail": "Internal server error"}

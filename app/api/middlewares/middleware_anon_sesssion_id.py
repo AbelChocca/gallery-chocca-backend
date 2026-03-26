@@ -10,9 +10,10 @@ class AnonSessionIdMiddleware:
             response: Response = await call_next(request)
 
             if not session_id:
+                session_id = str(uuid4())
                 response.set_cookie(
                     key="anon_session_id",
-                    value=str(uuid4()),
+                    value=session_id,
                     httponly=True,
                     secure=False,   # True en prod
                     samesite="lax",

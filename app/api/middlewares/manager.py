@@ -1,5 +1,6 @@
 from app.api.middlewares.middleware_exceptions import MiddlewareException
 from app.api.middlewares.middleware_correlation_id import CorrelationIdMiddleware
+from app.api.middlewares.middleware_anon_sesssion_id import AnonSessionIdMiddleware
 
 from fastapi import FastAPI
 
@@ -7,6 +8,7 @@ class MiddlewareManager:
     def __init__(self, app: FastAPI):
         self.app = app
         self.middlewares = [
+            AnonSessionIdMiddleware(),
             MiddlewareException(),
             CorrelationIdMiddleware()
         ]
