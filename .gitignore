@@ -1,4 +1,5 @@
 .env
+.venv
 .env.test
 *.env
 
@@ -6,8 +7,6 @@ __pycache__/
 *.pyc
 venv/
 amd/
-
-docker-compose.test.yml
 
 .pytest_cache/
 
