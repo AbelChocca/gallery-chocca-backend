@@ -1,25 +1,11 @@
-from app.domain.exception import DomainException
+from app.core.app_exception import AppException
 
-class JWTException(DomainException):
-    def __init__(self, message, status_code = 400):
-        super().__init__(message, status_code)
+class JWTException(AppException):
+    status_code: int = 401
+    log_level: str = "ERROR"
+    error_code: str = "jwt_error"
 
-class TokenNotFound(DomainException):
-    def __init__(self, message = "Token from cookies wasn't found.", status_code = 404):
-        super().__init__(message, status_code)
-
-class TokenExpired(DomainException):
-    def __init__(self, message = "Token was expired.", status_code = 401):
-        super().__init__(message, status_code)
-    
-class ForceLoginError(DomainException):
-    def __init__(self, message: str = "Session expired.", status_code = 401):
-        super().__init__(message, status_code)
-
-class ForbiddenException(DomainException):
-    def __init__(self, message: str = "Oops...", status_code = 403):
-        super().__init__(message, status_code)
-
-class Unauthorized(DomainException):
-    def __init__(self, message: str = "Please login.", status_code = 403):
-        super().__init__(message, status_code)
+    def __init__(self, message: str, context: dict | None = None):
+        super().__init__(message)
+        self.message = message
+        self.context = context or {}

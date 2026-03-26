@@ -25,6 +25,9 @@ class JWTProtocole(Protocol):
 
     def renew_tokens_and_get_access_payload(self, refresh_token: str) -> Dict[str, Any]:
         ...
+
+    def get_session_token_from_cookies_with_no_raises(self) -> str | None:
+        ...
     
     def get_token_from_cookies(self) -> Dict[str, Any]:
         ...
