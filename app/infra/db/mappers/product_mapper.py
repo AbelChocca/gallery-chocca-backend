@@ -65,24 +65,41 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
             existing_model.slug = entity.slug
 
             new_variants = []
+            existing_variants_map = {
+                v.id: v for v in existing_model.variants if v.id is not None
+            }
 
             for variant in (entity.variants or []):
+                if variant.id is not None and variant.id in existing_variants_map:
+                    variant_db = existing_variants_map[variant.id]
 
-                variant_db = VariantTable(
-                    id=variant.id,
-                    color=variant.color,
-                    sizes=[
-                        VariantSizeTable(
-                            id=variant_size.id,
-                            variant_id=variant_size.variant_id,
-                            size=variant_size.size
-                        )
-                        for variant_size in (variant.sizes or [])
-                    ],
-                    product_id=existing_model.id
-                )
+                    variant_db.color = variant.color
 
-                new_variants.append(variant_db)
+                    existing_sizes_map = {s.id: s for s in variant_db.sizes}
+                    new_sizes = []
+
+                    for size_entity in variant.sizes:
+                        if size_entity.id in existing_sizes_map:
+                            new_sizes.append(existing_sizes_map[size_entity.id])
+                        else:
+                            new_sizes.append(
+                                VariantSizeTable(size=size_entity.size)
+                            )
+                    variant_db.sizes = new_sizes
+                    
+                    new_variants.append(variant_db)
+                else:
+                    variant_db = VariantTable(
+                        color=variant.color,
+                        sizes=[
+                            VariantSizeTable(
+                                size=variant_size.size
+                            )
+                            for variant_size in (variant.sizes or [])
+                        ],
+                    )
+
+                    new_variants.append(variant_db)
 
             existing_model.variants = new_variants
             return existing_model
