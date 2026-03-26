@@ -2,7 +2,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from prometheus_fastapi_instrumentator import Instrumentator
 
 # App depends
 from app.core.log.config import logger_service
@@ -27,10 +26,13 @@ async def lifespan(app: FastAPI):
 
         logger_service.info("✅ Base de datos inicializada correctamente.")
 
-        redis_connected = await get_redis_client().ping()
-        if not redis_connected:
-            logger_service.warning('⚠️ No se pudo verificar la conexión con el cliente Redis')
-            raise RuntimeError('❌ Error de conexion con Redis.')
+        try:
+            redis_connected = await get_redis_client().ping()
+            if not redis_connected:
+                logger_service.warning('⚠️ No se pudo verificar la conexión con el cliente Redis')
+                raise RuntimeError('❌ Error de conexion con Redis.')
+        finally:
+            logger_service.info(f"✅ Redis service was inicializated correctly")
 
     except Exception as e:
         logger_service.error(f'Error al inicializar los servicios: {e}')
@@ -42,7 +44,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title='Galeria Chocca', lifespan=lifespan)
 init_middlewares(app)
-Instrumentator().instrument(app).expose(app=app)
 
 app.add_middleware(
     CORSMiddleware,
