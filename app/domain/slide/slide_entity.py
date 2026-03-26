@@ -1,69 +1,147 @@
-from typing import Optional
+from typing import Dict, Any
 from datetime import datetime, timezone
-from dataclasses import asdict
 
-from app.modules.slide.domain.dto import UpdateSlideDTO
+from app.domain.media.entities.image import ImageEntity
+from app.core.exceptions import ValidationError, ValueNotFound
 
 class SlideEntity:
+    _UPDATE_ATTRIBUTES = {"activo", "enlace_boton"}
     def __init__(
         self,
-        imagen_url: str,
-        cloudinary_id: str,
-        id: Optional[int] = None,
-        enlace_boton: Optional[str] = None,
+        id: int | None = None,
         activo: bool = True,
-        orden: int = 0,
-        fecha_creada: Optional[datetime] = None,
-        fecha_actualizada: Optional[datetime] = None
+        orden: int | None = None,
+        enlace_boton: str | None = None,
+        fecha_creada: datetime | None = None,
+        fecha_actualizada: datetime | None = None
     ):
         self.id = id
-        self.cloudinary_id = cloudinary_id
-        self.imagen_url = imagen_url
+        self._image: ImageEntity | None = None
         self.enlace_boton = enlace_boton
         self.activo = activo
-        self.orden = orden
+        self._orden = orden or 0
 
         # Manejo de timestamps
         ahora = datetime.now(timezone.utc)
         self.fecha_creada = fecha_creada or ahora
         self.fecha_actualizada = fecha_actualizada or ahora
 
-    def _actualizar_timestamp(self):
+    @property
+    def has_image(self) -> bool:
+        return self.image is not None
+    
+    @property
+    def image(self) -> ImageEntity:
+        return self._image
+    
+    @property
+    def orden(self) -> int:
+        return self._orden
+    
+    @orden.setter
+    def orden(self, new_order: int) -> None:
+        if not isinstance(new_order, int):
+            raise ValidationError(
+                "'new_order' must be an integer",
+                {
+                    "entity": "SlideEntity",
+                    "event": "orden.setter",
+                    "new_order_type": type(new_order).__name__
+                }
+                )
+        if new_order <= 0:
+            raise ValidationError(
+                "'new_order' must be greater than 0",
+                {
+                    "entity": "SlideEntity",
+                    "event": "orden.setter",
+                    "new_order": new_order
+                }
+                )
+        self._orden = new_order
+    
+    @image.setter
+    def image(self, new_image: ImageEntity | None) -> None:
+        if new_image is None:
+            self._image = new_image
+            return
+        
+        if not isinstance(new_image, ImageEntity):
+            raise ValidationError(
+                "'new_image' must be an ImageEntity",
+                {
+                    "entity": "SlideEntity",
+                    "event": "image.setter",
+                    "new_image_type": type(new_image).__name__
+                }
+            )
+        self._image = new_image
+    
+    @property
+    def image_public_id(self) -> str:
+        return self.image.public_id
+    
+    @property
+    def to_dict(self) -> dict:
+        image = self.image
+        data = {
+            "id": self.id,
+            "activo": self.activo,
+            "orden": self.orden,
+            "enlace_boton": self.enlace_boton
+        }
+
+        if image is not None:
+            # Mapear solo los atributos esenciales de la image
+            data["image"] = self.image.to_dict
+
+        return data
+    
+    @property
+    def is_inactive(self) -> dict:
+        return self.activo is False
+
+    def _update_timestamp(self):
         """Update the date to current date"""
         self.fecha_actualizada = datetime.now(timezone.utc)
 
-    def desactivar_slide(self):
-        self.activo = False
+    def toggle_activation(self, value: bool):
+        self.activo = value
 
-    def slide_on(self):
-        """
-        Activate the slide 
+    def sync_image(self, key_values: Dict[int, ImageEntity]) -> None:
+        image = key_values.get(self.id)
+        if not image:
+            raise ValueNotFound(
+                "Owner id of image wasn't found for slide",
+                {
+                    "entity": "Slide",
+                    "event": "sync_image",
+                    "slide_id": self.id,
+                }
+            )
+        self.image = image
+
+    def update_slide(self, obj: Dict[str, Any]):
+        if not isinstance(obj, dict):
+            raise ValidationError(
+                "'obj' must be a dict",
+                {
+                    "entity": "Slide",
+                    "event": "update_slide",
+                    "invalid_obj_type": type(obj).__name__
+                }
+                )
+        if not obj:
+            raise ValidationError(
+                "'obj' mustn't be empty",
+                {
+                    "entity": "Slide",
+                    "event": "update_slide"
+                }
+                )
         
-        :param self: Default
-        """
-        self.activo = True
-
-    def actualizar_image(
-            self,
-            new_public_id: str,
-            new_url: str,
-    ) -> None:
-        self.imagen_url = new_url
-        self.cloudinary_id = new_public_id
-
-    def update_slide(self, dto: UpdateSlideDTO):
-        """
-        Updates the entity using a dataclass DTO.
-        Only updates fields that are not None.
-        """
-        update_data = {
-            k: v 
-            for k, v in asdict(dto).items() 
-            if v is not None and k not in {"image_url", "cloudinary_id"}
-        }
-
-        for key, value in update_data.items():
-            if hasattr(self, key):
+        for key, value in obj.items():
+            if hasattr(self, key) and value is not None:
                 setattr(self, key, value)
 
-        self._actualizar_timestamp()
+        self._update_timestamp()
