@@ -1,5 +1,9 @@
 from dataclasses import dataclass
-from typing import Optional
+from enum import Enum
+
+class ImageType(str, Enum):
+    variant = "variant"
+    slide = "slide"
 
 @dataclass
 class MediaImageDTO:
@@ -9,18 +13,15 @@ class MediaImageDTO:
 @dataclass
 class ReadMediaImageDTO:
     image_url: str
-    owner_type: str
-    service_id: str
-    owner_id: Optional[int] = None
-    id: Optional[int] = None
-    alt_text: Optional[str] = None
+    id: int | None = None
+    alt_text: int | None = None
 
 @dataclass
-class UpdateImageDTO:
-    id: Optional[int] = None
-    owner_id: Optional[int] = None
-    image_url: Optional[str] = None
-    service_id: Optional[str] = None
+class UpdateImageCommand:
+    id: int | None = None
+    owner_id: int | None = None
+    image_url: str | None = None
+    public_id: str | None = None
 
     # flags
     to_delete: bool = False
