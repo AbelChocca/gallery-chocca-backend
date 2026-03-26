@@ -1,15 +1,21 @@
-from app.api.schemas.slides.slide_schema import PublishSlideSchema, ReadSlideSchema, SlideFilterSchema, UpdateSlideSchema
-from app.application.slides.commands import PublishSlideCommand, SlideFiltersCommand, UpdateSlideCommand
-from app.domain.slide.slide_dto import ReadSlideDTO
-
-from app.api.schemas.media.media_schema import ReadImage
+from app.api.schemas.slides.slide_schema import PublishSlideSchema, SlideFilterSchema, UpdateSlideSchema, UpdateSlidesOrderSchema
+from app.domain.slide.slide_dto import PublishSlideCommand, SlideFiltersCommand, UpdateSlideCommand
+from app.domain.slide.slide_dto import UpdateSlidesOrder, UpdateOrder
 
 class InputSchemaMapper:
+    @staticmethod
+    def to_update_order(update_order: UpdateSlidesOrderSchema) -> UpdateSlidesOrder:
+        return UpdateSlidesOrder(
+            slides=[
+                UpdateOrder(slide.id, slide.new_order)
+                for slide in update_order.slides
+            ]
+        )
+    
     @staticmethod
     def publish_command(publish_schema: PublishSlideSchema) -> PublishSlideCommand:
         return PublishSlideCommand(
             activo=publish_schema.activo,
-            orden=publish_schema.orden,
             enlace_boton=publish_schema.enlace_boton
         )
     
@@ -28,25 +34,4 @@ class InputSchemaMapper:
             activo=schema.activo,
             orden=schema.orden,
             delete_image=schema.delete_image
-        )
-    
-class OutputSchemaMapper:
-    @staticmethod
-    def to_schema(dto: ReadSlideDTO) -> ReadSlideSchema:
-        image = dto.image
-        return ReadSlideSchema(
-            id=dto.id,
-            image=ReadImage(
-                image_url=image.image_url,
-                owner_type=image.owner_type,
-                service_id=image.service_id,
-                owner_id=image.owner_id,
-                id=image.id,
-                alt_text=image.alt_text
-            ),
-            enlace_boton=dto.enlace_boton,
-            activo=dto.activo,
-            orden=dto.orden,
-            fecha_creada=dto.fecha_creada,
-            fecha_actualizada=dto.fecha_actualizada
         )

@@ -1,6 +1,5 @@
-from app.api.schemas.user.schema_model import ReadUserSchema, LoginUserSchema, RegisterUserSchema
-from app.application.user.commands import LoginUserCommand, RegisterUserCommand
-from app.domain.user.dto import ReadUserDTO
+from app.api.schemas.user.user_schema import LoginUserSchema, RegisterUserSchema
+from app.domain.user.dto import LoginUserCommand, RegisterUserCommand
 
 
 class InputSchemaMapper:
@@ -17,15 +16,4 @@ class InputSchemaMapper:
             email=schema.email,
             password=schema.password,
             role=schema.role
-        )
-
-
-class OutputSchemaMapper:
-    @staticmethod
-    def to_read_schema(dto: ReadUserDTO) -> ReadUserSchema:
-        return ReadUserSchema(
-            id=dto.id,
-            nombre=dto.nombre,
-            email=dto.email,
-            role=dto.role
         )

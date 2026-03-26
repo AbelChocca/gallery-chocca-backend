@@ -1,22 +1,33 @@
 from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from app.api.schemas.media.media_schema import ReadImage
+from app.api.schemas.pagination import PaginationResponseSchema
 
 class PublishSlideSchema(BaseModel):
-    orden: int = Field(ge=0)
-    enlace_boton: Optional[str] = None
+    enlace_boton: str | None = None
     activo: bool = True
 
 class ReadSlideSchema(BaseModel):
     id: int
     image: ReadImage
-    enlace_boton: Optional[str] = None
+    enlace_boton: str | None = None
     activo: bool
     orden: int
-    fecha_creada: datetime
-    fecha_actualizada: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UpdateOrder(BaseModel):
+    id: int
+    new_order: int
+
+class UpdateSlidesOrderSchema(BaseModel):
+    slides: List[UpdateOrder]
+
+class GetSlidesResponseSchema(BaseModel):
+    slides: List[ReadSlideSchema]
+    pagination: PaginationResponseSchema
 
     model_config = ConfigDict(from_attributes=True)
 

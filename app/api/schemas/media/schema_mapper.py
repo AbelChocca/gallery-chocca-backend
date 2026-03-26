@@ -7,7 +7,7 @@ class OutputSchemaMapper:
         return ReadImage(
             image_url=dto.image_url,
             owner_id=dto.owner_id,
-            service_id=dto.service_id,
+            public_id=dto.public_id,
             owner_type=dto.owner_type,
             id=dto.id,
             alt_text=dto.alt_text

@@ -1,9 +1,8 @@
-from app.domain.product.dto.product_dto import ReadProductDTO
-from app.api.schemas.products.schema import CreateProductSchema, ProductRead, FilterSchema, UpdateProductSchema, ProductVariantRead
-from app.api.schemas.media.media_schema import ReadImage
-from app.application.products.commands import PublishProductCommand, PublishProductVariantCommand, UpdateProductCommand, UpdateProductVariantCommand, FilterProductCommand
-from app.application.media.commands import UpdateImageCommand
-
+from app.api.schemas.products.schema import CreateProductSchema, FilterSchema, UpdateProductSchema
+from app.domain.product.dto.product_dto import PublishProductCommand, PublishProductVariantCommand, UpdateProductCommand, UpdateProductVariantCommand, FilterProductCommand
+from app.domain.product.dto.variant_size_dto import UpdateVariantSizeCommand, PublishVariantSizeCommand
+from app.domain.media.media_dto import UpdateImageCommand
+from app.core.constants.color_families import COLOR_FAMILY_MAP
 
 class InputSchemaMapper:
     @staticmethod
@@ -11,7 +10,13 @@ class InputSchemaMapper:
         product_variants = [
             PublishProductVariantCommand(
                 color=v.color,
-                tallas=v.tallas,
+                sizes=[
+                    PublishVariantSizeCommand(
+                        size=variant_size.size
+                    )
+                    for variant_size in v.sizes
+                ],
+                temp_key=v.temp_key
             )
             for v in schema.variants
         ]
@@ -21,12 +26,11 @@ class InputSchemaMapper:
             descripcion=schema.descripcion,
             marca=schema.marca,
             categoria=schema.categoria,
-            modelo=schema.modelo, # O modelo → tipo si así quieres
-            precio=schema.precio,
-            descuento=schema.descuento or 0.0,
-            promocion=schema.promocion or False,
+            model_family=schema.model_family,
+            fit=schema.fit,
             variants=product_variants,
-            temp_variants_id=schema.temp_variants_id
+            temp_keys=schema.temp_keys
+            
         )
     @staticmethod
     def to_update_command(schema: UpdateProductSchema) -> UpdateProductCommand:
@@ -38,21 +42,33 @@ class InputSchemaMapper:
                     id=v.id,
                     product_id=v.product_id,
                     color=v.color,
-                    tallas=v.tallas,
+                    sizes=(
+                        [
+                            UpdateVariantSizeCommand(
+                                size=variant_size.size,
+                                id=variant_size.id,
+                                variant_id=variant_size.variant_id,
+                                to_delete=variant_size.to_delete
+                            )
+                            for variant_size in v.sizes
+                        ]
+                        if v.sizes else None
+                    ),
                     imagenes=(
                         [
                             UpdateImageCommand(
                                 id=img.id,
                                 owner_id=img.owner_id,
                                 image_url=img.image_url,
-                                service_id=img.service_id,
+                                public_id=img.public_id,
                                 to_delete=img.to_delete
                             )
                             for img in v.imagenes
                         ]
                         if v.imagenes else None
                     ),
-                    to_delete=v.to_delete
+                    to_delete=v.to_delete,
+                    temp_key=v.temp_key
                 )
                 for v in schema.variants
             ]
@@ -63,62 +79,21 @@ class InputSchemaMapper:
             descripcion=schema.descripcion,
             marca=schema.marca,
             categoria=schema.categoria,
-            modelo=schema.modelo,
-            precio=schema.precio,
-            descuento=schema.descuento,
-            promocion=schema.promocion,
+            model_family=schema.model_family,
+            fit=schema.fit,
             variants=product_variants,
-            name_changed=schema.name_changed
+            name_changed=schema.name_changed,
+            temp_keys=schema.temp_keys
         )
     
     @staticmethod
     def to_filter_command(schema: FilterSchema) -> FilterProductCommand:
+        colors = COLOR_FAMILY_MAP.get(schema.color)
         return FilterProductCommand(
             name=schema.name,
             marca=schema.marca,
             categoria=schema.categoria,
-            modelo=schema.modelo,
-            color=schema.color,
-            minPrice=schema.minPrice,
-            maxPrice=schema.maxPrice,
-            promocion=schema.promocion
-        )
-
-
-class OutputSchemaMapper:
-    @staticmethod
-    def to_read_schema(dto: ReadProductDTO) -> ProductRead:
-        product_variants = [
-            ProductVariantRead(
-                id=v.id,
-                product_id=v.product_id,
-                color=v.color,
-                tallas=v.tallas,
-                imagenes=[
-                    ReadImage(
-                        image_url=img.image_url,
-                        owner_type=img.owner_type,
-                        service_id=img.service_id,
-                        owner_id=img.owner_id,
-                        id=img.id,
-                        alt_text=img.alt_text
-                    )
-                    for img in v.imagenes
-                ]
-            )
-            for v in dto.variants
-        ]
-
-        return ProductRead(
-            id=dto.id,
-            nombre=dto.nombre,
-            descripcion=dto.descripcion,
-            marca=dto.marca,
-            categoria=dto.categoria,
-            modelo=dto.modelo,
-            precio=dto.precio,
-            slug=dto.slug,
-            descuento=dto.descuento,
-            promocion=dto.promocion,
-            variants=product_variants
+            model_family=schema.model_family,
+            colors=colors,
+            sizes=schema.sizes
         )
