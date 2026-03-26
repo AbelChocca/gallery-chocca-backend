@@ -5,8 +5,9 @@ from app.infra.db.repositories.base_repository import BaseRepository
 from app.infra.db.exceptions import DatabaseException
 
 from typing import List, Dict
+from sqlalchemy import text, update, func, select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlmodel import select, col, func, update, text
+from sqlmodel import col
 from sqlmodel.sql.expression import SelectOfScalar, Select
 
 OFFSET = 1_000_000
@@ -49,7 +50,7 @@ class PostgresSlideRepository(BaseRepository[SlideEntity, SlideTable]):
         updates: List[Dict[str, int]]
     ) -> None:
         try: 
-            await self._db_session.exec(
+            await self._db_session.execute(
                 update(SlideTable)
                 .where(
                     col(SlideTable.id).in_(ids),

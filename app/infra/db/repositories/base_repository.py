@@ -1,8 +1,8 @@
 from typing import Generic, Type
 from app.infra.db.types import E, M
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select
 
 from app.infra.db.mappers.base_mapper import BaseMapper
 
@@ -27,7 +27,7 @@ class BaseRepository(Generic[E, M]):
         )
         
         result = await self._db_session.execute(statement)
-        model: M | None = result.scalar()
+        model: M | None = result.scalar_one_or_none()
         if not model:
             return None
         
@@ -42,23 +42,46 @@ class BaseRepository(Generic[E, M]):
 
             self._db_session.add(model)
             await self._db_session.flush()
+            await self._db_session.refresh(model)
 
             return self._base_mapper.to_entity(model)
+        except IntegrityError as i:
+            raise DatabaseException(
+                "Integrity constraint violation",
+                {
+                    "repository": f"postgres_{E.__name__.lower()}",
+                    "base_model": self._base_model.__name__,
+                    "db_error_code": "integrity_error",
+                    "event": "save",
+                    "original_error": str(i.orig)
+                }
+            )
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres error while saving",
                 {
                     "repository": f"postgres_{E.__name__.lower()}",
                     "base_model": self._base_model.__name__,
-                    "event": "save"
+                    "event": "save",
+                    "original_error": str(getattr(s, "orig", s))
                 }
                 ) from s
         
     async def delete_by_id(self, model_id: int) -> None:
         try:
-            stmt = delete(self._base_model).where(self._base_model.id == model_id)
+            model = await self._get_model_by_id_non_raise(model_id)
+            if not model:
+                raise ValueNotFound(
+                    "Model to delete wasn't found.",
+                    {
+                        "repository": f"postres_{E.__name__.lower()}",
+                        "base_model": self._base_model.__name__,
+                        "event": "delete_by_id",
+                        "model_id": model_id
+                    }
+                    )
 
-            await self._db_session.execute(stmt)
+            await self._db_session.delete(model)
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres error while deleting.",

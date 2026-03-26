@@ -63,8 +63,8 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                 )
             .where(ProductTable.id == model_id)
         )
-        res = (await self._db_session.execute(statement)).scalar()
-        if not res:
+        res = (await self._db_session.execute(statement)).scalar_one_or_none()
+        if res is None:
             raise ValueNotFound(
                 "Product wasn't found",
                 { 
@@ -128,36 +128,25 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
             self._base_mapper.to_entity(product)
             for product in products
         ]
-        
-    async def delete_sizes_batch(self, size_ids: list[int]) -> None:
+    
+    async def save(self, entity: Product) -> Product:
         try:
-            statement = (
-                delete(VariantSizeTable)
-                .where(col(VariantSizeTable.id).in_(size_ids))
-            )
-            await self._db_session.execute(statement)
-        except SQLAlchemyError as e:
+            if entity.id is None:
+                model: ProductTable = self._base_mapper.to_db_model(entity)
+            else:
+                model: ProductTable = self._base_mapper.to_db_model(entity=entity, existing_model=(await self._get_model_by_id_non_raise(entity.id)))
+
+            self._db_session.add(model)
+            await self._db_session.flush()
+
+            return await self.get_by_id(model.id)
+        except SQLAlchemyError as s:
             raise DatabaseException(
-                "Cannot delete sizes in database",
+                "Postgres error while saving",
                 {
-                    "size_ids": size_ids,
-                    "event": "delete_size_by_id"
+                    "repository": f"postgres_{Product.__name__.lower()}",
+                    "base_model": self._base_model.__name__,
+                    "event": "save",
+                    "original_error": s.orig if hasattr(s, "orig") else str(s)
                 }
-                ) from e
-        
-    async def delete_variants_batch(self, variants_ids: list[int]) -> None:
-        if not variants_ids: return None
-        try:
-            statement = (
-                delete(VariantTable)
-                .where(col(VariantTable.id).in_(variants_ids))
-            )
-            await self._db_session.execute(statement)
-        except SQLAlchemyError as e:
-            raise DatabaseException(
-                "Cannot delete variants in database",
-                {
-                    "variant_ids": variants_ids,
-                    "event": "delete_variants_batch"
-                }
-                ) from e
+                ) from s

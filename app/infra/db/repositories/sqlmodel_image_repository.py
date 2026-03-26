@@ -86,11 +86,12 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
                 }
                 ) from e
         
-    async def delete_many_images(
+    async def delete_many_images_by_owners_id(
             self, 
             owner_type: str,
             owner_ids: List[int]
     ) -> None:
+        if not owner_ids: return
         try:
             stmt = (
                 delete(MediaImageTable)
@@ -105,8 +106,34 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
                 {
                     "service": "postgres/infra",
                     "repository": "postgres_image",
-                    "event": "delete_many_images",
+                    "event": "delete_many_images_by_owners_id",
                     "owner_type": owner_type,
                     "owners_ids_sample": owner_ids[:5]
+                }
+            ) from s
+        
+    async def delete_many_images_by_publics_id(
+            self, 
+            owner_type: str,
+            publics_id: List[int]
+    ) -> None:
+        if not publics_id: return
+        try:
+            stmt = (
+                delete(MediaImageTable)
+                .where(MediaImageTable.owner_type == owner_type)
+                .where(col(MediaImageTable.public_id).in_(publics_id))
+            )
+
+            await self._db_session.execute(stmt)
+        except SQLAlchemyError as s:
+            raise DatabaseException(
+                "Postgres delete failed",
+                {
+                    "service": "postgres/infra",
+                    "repository": "postgres_image",
+                    "event": "delete_many_images_by_publics_id",
+                    "owner_type": owner_type,
+                    "publics_id_sample": publics_id[:5]
                 }
             ) from s

@@ -9,7 +9,7 @@ from typing import List
 class PostgresUserRepository(BaseRepository[User, UserTable]):
     async def get_by_email(self, email: str) -> User:
         statement = select(UserTable).where(UserTable.email == email)
-        user_db = (await self._db_session.execute(statement)).first()
+        user_db = (await self._db_session.execute(statement)).scalar()
         if not user_db:
             raise ValueNotFound(
                 "User not found", 
@@ -29,7 +29,7 @@ class PostgresUserRepository(BaseRepository[User, UserTable]):
             .where(col(UserTable.nombre).ilike(f"%{related_name}%"))
         )
 
-        count = (await self._db_session.exec(stmt)).one()
+        count = (await self._db_session.execute(stmt)).scalar()
         return count
     
     async def get_all(
@@ -52,7 +52,7 @@ class PostgresUserRepository(BaseRepository[User, UserTable]):
             .limit(limit)
         )
 
-        users = (await self._db_session.exec(statement)).all()
+        users = (await self._db_session.execute(statement)).scalars().all()
 
         return [
             self._base_mapper.to_entity(user)
