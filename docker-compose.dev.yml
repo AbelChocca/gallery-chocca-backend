@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    restart: always # Esto le dice a Docker que si el contenedor falla por alguna razón (por ejemplo, después de un reinicio del sistema), debe intentar reiniciarlo automáticamente.
+    restart: always 
     env_file:
       - .env
     volumes:
@@ -32,9 +32,11 @@ services:
       - redis
     volumes:
       - ./app:/app/app
+      - ./alembic.ini:/app/alembic.ini
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
+    image: backend_jean
 
 volumes:
   postgres_data:

@@ -1,0 +1,48 @@
+# -------------------------
+# Builder stage
+# -------------------------
+FROM python:3.12.2-slim AS builder
+
+WORKDIR /app
+
+# Dependencias del sistema
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:/root/.cargo/bin:${PATH}"
+
+# Copiar solo archivos de dependencias (cache 🔥)
+COPY pyproject.toml uv.lock ./
+
+# Instalar deps SIN dev (clave para prod)
+RUN uv sync --frozen --no-dev
+
+# -------------------------
+# Runtime stage (imagen final)
+# -------------------------
+FROM python:3.12.2-slim
+
+WORKDIR /app
+
+# Crear usuario no-root (pro seguridad)
+RUN useradd -m appuser
+
+# Copiar entorno desde builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Activar venv
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Copiar código
+COPY app ./app
+
+# Cambiar usuario
+USER appuser
+
+EXPOSE 8000
+
+# Ejecutar sin reload (prod)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
