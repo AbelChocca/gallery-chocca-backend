@@ -1,36 +1,49 @@
 from app.api.v1.products.product_route import router
-from app.api.schemas.products.schema import FilterSchema, GetProductsResponse
+from app.api.schemas.products.schema import FilterSchema, GetGridProductsResponse
 from app.api.dependencies.products.case_depends import get_all_products_case
-from app.api.schemas.products.schema_mapper import InputSchemaMapper, OutputSchemaMapper
+from app.api.schemas.products.schema_mapper import InputSchemaMapper
+from app.api.schemas.pagination import PaginationSchema
 from app.application.products.cases.get_products import GetProductsCase
+from app.domain.product.dto.product_dto import ColorFilter, BrandType, CategoryType
 
-from fastapi import status, Query, Depends, Body
-from typing import Annotated
+from fastapi import status, Depends, Query
+from typing import Annotated, List
 
-@router.post(
+def filter_dep(
+    name: str | None = Query(None),
+    marca: BrandType | None = Query(None),
+    categoria: CategoryType | None = Query(None),
+    model_family: str | None = Query(None),
+    color: ColorFilter | None = Query(None),
+    sizes: List[str] | None = Query(None),
+) -> FilterSchema:
+    return FilterSchema(
+        name=name,
+        marca=marca,
+        categoria=categoria,
+        model_family=model_family,
+        color=color,
+        sizes=sizes,
+    )
+
+
+@router.get(
     "/all",
-    response_model=GetProductsResponse,
+    response_model=GetGridProductsResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all products"
 )
 async def get_products(
-    filter_schema: Annotated[FilterSchema, Body()],
+    filter_schema: Annotated[FilterSchema, Depends(filter_dep)],
     case: Annotated[GetProductsCase, Depends(get_all_products_case)],
-    offset: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=50)] = 20
-) -> GetProductsResponse:
+    pagination: Annotated[PaginationSchema, Depends()]
+) -> GetGridProductsResponse:
     filter_command = InputSchemaMapper.to_filter_command(filter_schema)
     res = await case.execute(
         filter_command, 
-        offset, 
-        limit
+        pagination.page, 
+        pagination.limit
         )
-    return GetProductsResponse(
-        total=res.total,
-        productos=[
-        OutputSchemaMapper.to_read_schema(product)
-        for product in res.products
-    ]
-    )
+    return GetGridProductsResponse(**res)
     
     

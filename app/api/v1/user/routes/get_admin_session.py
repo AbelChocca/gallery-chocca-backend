@@ -1,20 +1,17 @@
 from app.api.v1.user.user_route import router
-from app.api.schemas.user.schema_model import ReadUserSchema
-from app.api.schemas.user.mapper import OutputSchemaMapper
-from app.api.dependencies.user.case_depends import get_check_admin_session_case
-
-from app.application.user.cases.check_admin_session import CheckAdminSessionCase
+from app.api.schemas.user.user_schema import ReadUserSchema
+from app.api.security.resolvers.sessions import get_admin_session
 
 from fastapi import status, Depends
+from typing import Annotated
 
 @router.get(
-    path='/admin',
+    '/admin',
     status_code=status.HTTP_200_OK,
     response_model=ReadUserSchema,
     summary="Endpoint for check admin session"
 )
 async def get_info(
-    user_case: CheckAdminSessionCase = Depends(get_check_admin_session_case)
+    admin_dto: Annotated[dict, Depends(get_admin_session)]
 ) -> ReadUserSchema:
-    admin_dto = await user_case.execute()
-    return OutputSchemaMapper.to_read_schema(admin_dto)
+    return ReadUserSchema(**admin_dto)

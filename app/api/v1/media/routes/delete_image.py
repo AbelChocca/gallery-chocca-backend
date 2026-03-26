@@ -1,7 +1,7 @@
 from app.api.v1.media.media_router import router
 from app.api.dependencies.media.case_depends import get_delete_image_case
 from app.application.media.cases.delete_image import DeleteImageCase
-from app.api.security.dependencies.sessions import get_admin_session
+from app.api.security.resolvers.sessions import get_admin_session
 
 from fastapi import status, Depends, Path
 from fastapi.concurrency import run_in_threadpool

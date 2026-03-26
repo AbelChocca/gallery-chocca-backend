@@ -5,9 +5,8 @@ from app.application.user.cases.logout_user import LogoutUserCase
 
 from fastapi import status, Depends
 
-
 @router.post(
-    path='/logout',
+    '/logout',
     status_code=status.HTTP_200_OK,
     summary='Logout endpoint for users'
 )

@@ -1,32 +1,32 @@
 from app.api.v1.products.product_route import router
-from app.api.schemas.products.schema import ProductRead, CreateProductSchema
+from app.api.schemas.products.schema import CreateProductSchema, CreateProductResponse
 from app.api.dependencies.products.case_depends import get_create_product_case
-from app.api.schemas.products.schema_mapper import InputSchemaMapper, OutputSchemaMapper
-from app.api.security.dependencies.sessions import get_admin_session
+from app.api.schemas.products.schema_mapper import InputSchemaMapper
+from app.api.security.resolvers.sessions import get_admin_session
+from app.api.schemas.products.types import ProductImageType
 
 from app.application.products.cases.create_product import CreateProductUseCase
 
-from fastapi import status, Depends, UploadFile, File, Form
-from fastapi.concurrency import run_in_threadpool
-from json import loads
-from typing import List, Annotated
+from fastapi import status, Depends, File, Form 
+from typing import Annotated
+import orjson
 
 @router.post(
     "/publish/",
-    response_model=ProductRead,
+    response_model=CreateProductResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create an product"
 )
 async def create_product(
     product_schema_json: Annotated[str, Form(...)],
-    files: Annotated[List[UploadFile], File(...)],
+    files: Annotated[ProductImageType, File(...)],
     case: Annotated[CreateProductUseCase, Depends(get_create_product_case)],
     _: Annotated[None, Depends(get_admin_session)]
-) -> ProductRead:
-    data = loads(product_schema_json)   
+) -> CreateProductResponse:
+    data = orjson.loads(product_schema_json)   
     schema: CreateProductSchema = CreateProductSchema(**data)
-    res = await run_in_threadpool(case.execute,
+    res = await case.execute(
         [file.file for file in files],
         InputSchemaMapper.to_publish_command(schema)
         )
-    return OutputSchemaMapper.to_read_schema(dto=res)
+    return CreateProductResponse(id=res.id,slug=res.slug)

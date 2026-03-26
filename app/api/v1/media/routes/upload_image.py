@@ -3,7 +3,7 @@ from app.api.schemas.media.media_schema import ReadImage
 from app.api.schemas.media.schema_mapper import OutputSchemaMapper
 from app.api.dependencies.media.case_depends import get_upload_image_case
 from app.application.media.cases.upload_image import UploadImageCase
-from app.api.security.dependencies.sessions import get_admin_session
+from app.api.security.resolvers.sessions import get_admin_session
 
 from fastapi import status, Depends, UploadFile, Path, File
 from fastapi.concurrency import run_in_threadpool
