@@ -1,9 +1,9 @@
 from loguru import logger
 import sys
-from pathlib import Path
 from contextvars import ContextVar
 
 from app.core.settings.pydantic_settings import settings
+from app.core.log.json_sink import json_sink
 
 request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 
@@ -19,32 +19,22 @@ class LoggerSingleton:
     def _configure(self):
         logger.remove()  # limpiamos handlers por defecto
 
-        # Sinks: consola + archivo rotativo
-        logger.add(
-            sys.stderr,
-            level=settings.LOG_LEVEL,
-            format=settings.LOG_FORMAT,
-            backtrace=True,
-            diagnose=False,
+        def add_request_id(record):
+            record["extra"]["request_id"] = request_id_var.get("-")
+
+        logger.configure(
+            patcher=add_request_id
         )
-
-        logs_dir = Path(settings.LOG_PATH)
-        logs_dir.mkdir(exist_ok=True)
-
         logger.add(
-            logs_dir / "app.log",
-            rotation="10 MB",
-            compression="zip",
+            lambda m: json_sink(m, sys.stdout),
             level=settings.LOG_LEVEL,
-            format=settings.LOG_FORMAT,
-            backtrace=True,
-            diagnose=False,
+            filter=lambda r: r["level"].no < 40,
+        )
+        logger.add(
+            lambda m: json_sink(m, sys.stderr),
+            level="ERROR",
         )
 
         self._logger = logger
-
-    def get_logger(self):
-        request_id = request_id_var.get("-")
-        return self._logger.bind(request_id=request_id)
     
-logger_service = LoggerSingleton().get_logger()
+logger_service = LoggerSingleton()._logger
