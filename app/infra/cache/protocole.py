@@ -79,7 +79,7 @@ class CacheProtocol(Protocol):
         """
         ...
 
-    async def cache_retry_get(self, retries: int, key: str, seconds_delay: float) -> Any | None:
+    async def cache_retry_get(self, key: str, retries: int, delay: float) -> Any | None:
         """
         Method to execute a loop in a range of retries count for obtain the key value
         

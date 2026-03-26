@@ -114,7 +114,7 @@ class RedisService(CacheProtocol):
                 )
                 return data
         
-            cached = await self.cache_retry_get(5, key, seconds_delay=0.1)
+            cached = await self.cache_retry_get(key, 5, delay=0.1)
             if cached is not None: return cached
 
             data = await callback(**kwargs)
