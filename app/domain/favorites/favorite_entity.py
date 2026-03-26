@@ -1,17 +1,16 @@
 from datetime import datetime, timezone
-from typing import Optional
 
 class FavoriteEntity:
     def __init__(
             self,
             product_id: int,
-            created_at: Optional[datetime] = None,
-            user_id: Optional[int] = None,
-            session_id: Optional[str] = None,
-            id: Optional[int] = None
+            created_at: datetime | None = None,
+            user_id: int | None = None,
+            session_id: str | None = None,
+            id: int | None = None
             ):
-        self.user_id: Optional[int] = user_id
-        self.session_id: Optional[str] = session_id
+        self.user_id: int | None = user_id
+        self.session_id: str | None = session_id
         self.product_id: int = product_id
         self.created_at: datetime = created_at or datetime.now(timezone.utc)
-        self.id: Optional[int] = id
+        self.id: int | None = id
