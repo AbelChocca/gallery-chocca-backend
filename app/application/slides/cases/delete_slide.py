@@ -1,33 +1,37 @@
-from app.modules.slide.domain.slide_repository import SlideRepository
-from app.modules.slide.domain.slide_entity import SlideEntity
-from app.modules.cloudinary.domain.cloudinary_repository import CloudinaryRepository
+from app.application.media.service import MediaService
+from app.infra.saga_service import SagaService
+from app.application.slides.service import SlideService
+from app.core.app_exception import AppException
 
 from typing import Dict, Any
 
 class DeleteSlideCase:
     def __init__(
             self,
-            repo: SlideRepository,
-            image_repo: CloudinaryRepository
+            saga_service: SagaService,
+            slide_service: SlideService,
+            media_service: MediaService
             ):
-        self.repo = repo
-        self.image_repo = image_repo
+        self._saga_service = saga_service
+        self.media_service = media_service
+        self._slide_service = slide_service
 
 
-    async def execute(self, slide_id: int) -> Dict[str, Any]:
-        """
-        Delete slide from database and his image from cloud service, by his id
-        
-        :param self: Default
-        :param slide_id: Slide ID
-        :type slide_id: int
-        :return: Dictionary with a message of successful
-        :rtype: Dict[str, Any]
-        """
-        slide_to_delete: SlideEntity = self.repo.get_by_id(slide_id) 
+    async def execute(self, slide_id: int) -> Dict[str, Any] | None:
+        try:
+            await self._slide_service.delete_slide(
+                slide_id,
+                self._saga_service,
+                action_func=self.media_service.move_image_to_trash,
+                compensation_func=self.media_service.recover_image_from_trash
+            )
+            await self._saga_service.execute_all()
 
-        self.image_repo.delete_image(slide_to_delete.imagen_url)
+            return {"message": f"Slide with id: {slide_id} was deleted."}
+        except AppException as ae:
+            await self._saga_service.compensate_all()
+            if self._saga_service.compensation_errors:
+                ae.context["compensation_errors"] = self._saga_service.compensation_errors
 
-        await self.repo.delete_by_id(slide_id=slide_id)
-        return {"message": f"Slide with id: {slide_id} was deleted."}
+            raise ae
             
