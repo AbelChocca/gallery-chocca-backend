@@ -40,3 +40,13 @@ class User:
     def change_password(self, new_hashed_password: str)-> None:
         self.hashed_password = new_hashed_password
         
+    @property
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "is_active": self.is_active,
+            "created_at": self.created_at,
+            "role": self.role
+        }
