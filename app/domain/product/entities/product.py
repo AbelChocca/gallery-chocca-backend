@@ -1,163 +1,140 @@
 from app.domain.product.entities.product_variant import ProductVariant
-from app.domain.product.dto.variant_dto import UpdateProductVariantDTO
+from app.domain.product.dto.product_dto import CategoryType, BrandType
+from app.domain.product.dto.variant_dto import UpdateProductVariantCommand
 from app.domain.media.entities.image import ImageEntity
-from app.domain.product.exceptions.product_exception import MissingVariantsException, InvalidProductNameException, InvalidVariantImageException, CannotDeleteVariantProduct
 
-from typing import List, Optional, Tuple, Dict, Union
+from typing import List, Dict, Any
+from app.core.exceptions import ValidationError
 
 class Product:
+    _UPDATABLE_FIELDS = {"nombre", "descripcion", "categoria", "model_family", "fit", "marca"}
+
     def __init__(
             self,
             nombre: str,
             descripcion: str,
-            precio: float,
-            categoria: str,
+            categoria: CategoryType,
             slug: str,
             variants: List[ProductVariant],
-            modelo: Optional[str] = None,
-            id: Optional[int] = None,
-            descuento: Optional[float] = 0.0,
-            marca: Optional[str] = None,
-            promocion: bool = False
-    ):
-        self._verify_created_product(
-            nombre=nombre,
-            variants=variants
-        )
+            model_family: str,
+            marca: BrandType,
+            fit: str | None = None,
+            id: int | None = None,
+    ):        
+        # validation
+        for v in [nombre, marca, categoria]:
+            self._not_number(v)    
+
+        for v in [nombre, descripcion, model_family]:
+            v = self._not_empty(v)
 
         self.id = id
         self.nombre = nombre
         self.descripcion = descripcion
-        self.precio = precio
         self.categoria = categoria
         self.marca = marca
-        self.descuento = descuento
-        self.promocion = promocion
-        self.variants = variants
-        self.modelo = modelo
-        self.slug = slug
+        self._variants = variants
+        self.model_family = model_family
+        self.fit = fit
+        self._slug = slug
 
-    def add_variant(self, variant: ProductVariant) -> None:
-        self.variants.append(variant)
+    @property
+    def variants(self) -> List[ProductVariant]:
+        return self._variants
+    
+    @variants.setter
+    def variants(self, new_variants: List[ProductVariant]) -> None:
+        self._variants = new_variants
 
-    def update_slug(self, new_slug: str) -> None:
-        self.slug = new_slug
+    @property
+    def slug(self) -> str:
+        return self._slug
 
-    def get_all_variants_images_id(self) -> List[str]:
-        res = []
-        for variant in self.variants:
-            res.extend(variant.get_all_images_public_id())
-        return res
-    
-    def get_variants_id(self) -> List[int]:
-        return [variant.id for variant in self.variants]
-    
-    def plan_images_and_variants_deletions(self, variants_dto: List[UpdateProductVariantDTO]) -> Tuple[List[str | None], List[int | None]]:
-        res = ([], [])
-        for variant in variants_dto:
-            for image in variant.imagenes:
-                if image.to_delete:
-                    res[0].append(image.cloudinary_id)
-            if variant.to_delete:
-                res[1].append(variant.id)
-        return res
-    
-    def sync_images_id(self, images: List[ImageEntity]) -> None:
-        images_service_id: Dict[str, int] = {image.service_id: image.id for image in images}
-        for variant in self.variants:
-            variant.sync_images_id(images_service_id)
-    
-    def sync_variants(self, variants_dto: List[UpdateProductVariantDTO]):
-        existing_variants: Dict[int, ProductVariant] = {
-            variant.id: variant 
+    @slug.setter
+    def slug(self, new_slug: str) -> None:
+        if not isinstance(new_slug, str):
+            raise ValidationError(
+                "'new_slug' must be a string",
+                {
+                    "entity": "Product",
+                    "event": "slug.setter",
+                    "new_slug_type": type(new_slug).__name__
+                }
+                )
+        self._slug = new_slug
+
+    @property
+    def all_image_public_ids(self) -> List[str]:
+        return [
+            public_id
             for variant in self.variants
-            if variant.id is not None
-            }
-        new_variants: List[ProductVariant] = []
-        for variant in variants_dto:
-            if variant.to_delete:
-                continue
+            for public_id in variant.all_images_public_ids
+        ]
 
-            if variant.id not in existing_variants:
-                new_variants.append(
-                    ProductVariant(
-                        color=variant.color,
-                        tallas=variant.tallas
-                    )
-                )
-            else:
-                prev_variant = existing_variants[variant.id]
-                prev_variant.update_variant(
-                    color=variant.color,
-                    tallas=variant.tallas
-                )
-                new_variants.append(prev_variant)
-        self.variants = new_variants
-
-    def sync_images_to_variants(self, images: List[ImageEntity]) -> None:
-        images_owners_id: Dict[str, ImageEntity] = {image.owner_id: image for image in images}
+    @property
+    def variant_ids(self) -> List[int]:
+        return [variant.id for variant in self.variants if variant.id]
+    
+    @property
+    def has_new_images(self) -> bool:
         for variant in self.variants:
-            variant.agregar_image(images_owners_id.get(variant.id, []))
-
-    def add_image_on_specify_variant(
-            self, 
-            variant_index: int,
-            image_url: str,
-            service_id: str
-            ) -> None:
-        new_image: ImageEntity = ImageEntity(
-            image_url=image_url,
-            owner_type="product_variant",
-            service_id=service_id
-        )
-        self.variants[variant_index].agregar_image(new_image)
-
-    def get_all_images_from_variants(self) -> List[ImageEntity]:
-        res: List[ImageEntity] = []
-        for variant in self.variants:
-            res.extend(variant.get_images())
-        return res
-
-    def update_product(
-            self,
-            nombre: Optional[str] = None,
-            descripcion: Optional[str] = None,
-            precio: Optional[float] = None,
-            categoria: Optional[str] = None,
-            modelo: Optional[str] = None,
-            descuento: Optional[float] = None,
-            marca: Optional[str] = None,
-            promocion: Optional[bool] = None
-            ) -> None:
-        self.nombre = nombre if nombre is not None else self.nombre
-        self.descripcion = descripcion if descripcion is not None else self.descripcion
-        self.precio = precio if precio is not None else self.precio
-        self.categoria = categoria if categoria is not None else self.categoria
-        self.modelo = modelo if modelo is not None else self.modelo
-        self.descuento = descuento if descuento is not None else self.descuento
-        self.marca = marca if marca is not None else self.marca
-        self.promocion = promocion if promocion is not None else self.promocion
-
-    def raise_invalid_variants_index(self, new_variants_index: Optional[List[int]]  = None) -> None:
-        if not new_variants_index:
-            return None
-
-        for variant_idx in new_variants_index:
-            if variant_idx < 0 or variant_idx >= len(self.variants):
-                raise InvalidVariantImageException(f"The image with temp's variant id: {variant_idx} cannot upload cause the id didn't match the variants product length")
-            
-    def raise_cannot_delete_variants(self, variants_id_to_delete: List[Union[int, None]]) -> None:
-       diff: int = len(self.variants) - len(variants_id_to_delete)
-       if diff < 1:
-           raise CannotDeleteVariantProduct(f"Product must be at least one variant, current variants count: {len(self.variants)}, variants to delete count: {len(variants_id_to_delete)}")
-
-    def cannot_delete_image(self, images_id_to_delete: List[Union[str, None]]) -> None:
-        for variant in self.variants:
-            variant.raise_cannot_delete_image(images_id_to_delete)
-
-    def get_variant_images(self, variant_id: Optional[int] = None) -> List[str]:
+            if any(
+                image.owner_id is None
+                or image.id is None
+                for image in variant.imagenes
+            ):
+                return True
+        return False
+    
+    @property
+    def has_variants(self) -> bool:
+        return len(self.variants) > 0
+    
+    @property
+    def all_variant_images(self) -> List[ImageEntity]:
+        return [
+            image 
+            for variant in self.variants
+            for image in variant.imagenes
+        ]
+    
+    @property
+    def images_without_id(self) -> List[ImageEntity]:
+        return [
+            image
+            for variant in self.variants
+            for image in variant.images_without_id
+        ]
+    
+    @property
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "descripcion": self.descripcion,
+            "categoria": self.categoria,
+            "slug": self.slug,
+            "model_family": self.model_family,
+            "marca": self.marca,
+            "fit": self.fit,
+            "variants": [
+                variant.to_dict
+                for variant in self.variants
+            ]
+        }
+    
+    def get_variant_images(self, variant_id: int) -> List[str]:
         if not variant_id:
             return []
+        if variant_id <= 0:
+            raise ValidationError(
+                "'variant_id' must be greater than 0",
+                {
+                    "entity": "Product",
+                    "event": "get_variant_images",
+                    "variant_id": variant_id
+                }
+            )
         
         variant_filtered: ProductVariant = None
         for variant in self.variants:
@@ -165,44 +142,150 @@ class Product:
                 variant_filtered = variant
                 break
         if not variant_filtered:
-            return None
+            return []
         
-        return variant_filtered.get_all_images_public_id()
+        return variant_filtered.all_images_public_ids
+    
+    def sync_existing_variants(self, variants_dto: List[UpdateProductVariantCommand]):
+        existing_variants: Dict[int, ProductVariant] = {
+            variant.id: variant 
+            for variant in self.variants
+            if variant.id is not None
+            }
+        new_variants = []
+        for variant in variants_dto:
+            if variant.to_delete:
+                continue
 
-    @staticmethod
-    def get_filter_key(
-            category: Optional[str] = None,
-            brand: Optional[str] = None,
-            model: Optional[str] = None,
-            id: Optional[int] = None,
-            promotion: Optional[bool] = None,
-            color: Optional[str] = None,
-            name: Optional[str] = None
-    ) -> str:
-        key: str = "products"
+            if variant.id is not None and variant.id in existing_variants:
+                prev_variant = existing_variants[variant.id]
+                prev_variant.update_variant(
+                    color=variant.color,
+                    sizes=variant.sizes
+                )
+                new_variants.append(prev_variant)
+        self.variants = new_variants
 
-        if name:
-            key += f"/related:{name}"
-        if brand:
-            key += f"/brand:{brand}"
-        if category:
-            key += f"/category:{category}"
-        if model:
-            key += f"/model:{model}"
-        if id:
-            key += f"/{id}"
-        if promotion:
-            key += f"/promotion:true" if promotion is True else f":promotion:false"
-        if color:
-            key += f"/color:{color}"
-        return key
-
-    @staticmethod
-    def _verify_created_product(
-        nombre: str,
-        variants: List['ProductVariant']
+    def add_variant(
+            self,
+            *,
+            color: str,
+            sizes: List[str],
+            images: List[ImageEntity]
     ) -> None:
-        if len(nombre) < 6:
-            raise InvalidProductNameException()
-        if not variants:
-            raise MissingVariantsException()
+        if not images:
+            raise ValidationError(
+                "New variant need at least one image",
+                {
+                    "event": "product/add_variant",
+                    "color": color,
+                    "variant_sizes_sample": sizes[:5]
+                }
+            )
+        variant = ProductVariant(
+                color=color,
+                product_id=self.id or None
+            )
+        for size in sizes:
+            variant.add_new_size(size)
+        variant.imagenes = images
+        self.variants.append(variant)
+
+    def sync_images_to_variants(
+            self, 
+            images_by_owner_id: Dict[int, List[ImageEntity]]
+        ) -> None:
+        for variant in self.variants:
+            variant.imagenes = images_by_owner_id.get(variant.id, [])
+
+    def add_image_on_existing_variant(
+            self, 
+            *,
+            variant_id: int,
+            image_url: str,
+            service_id: str
+            ) -> None:
+        if variant_id <= 0:
+            raise ValidationError(
+                "'variant_id' must be greater than 0",
+                {
+                    "entity": "Product",
+                    "event": "add_image_on_existing_variant",
+                    "variant_id": variant_id
+                }
+            )
+        
+        new_image: ImageEntity = ImageEntity(
+            image_url=image_url,
+            owner_type="variant",
+            public_id=service_id,
+        )
+        for variant in self.variants:
+            if variant.id == variant_id:
+                variant.agregar_image(new_image)
+
+    def update_product(self, new_product_obj: Dict[str, Any]) -> None:
+        if not isinstance(new_product_obj, dict):
+            raise ValidationError(
+                "'new_product_obj' must be a dict",
+                {
+                    "entity": "Product",
+                    "event": "add_image_on_existing_variant",
+                    "invalid_prop_type": type(new_product_obj).__name__
+                }
+            )
+        if not new_product_obj:
+            return None
+
+        for key, value in new_product_obj.items():
+            if key == "variants":
+                continue
+
+            if key not in self._UPDATABLE_FIELDS:
+                continue
+
+            if value is None:
+                continue
+
+            setattr(self, key, value)
+
+    def _not_number(self, v: str) -> None:
+        if any(c.isdigit() for c in v):
+            raise ValidationError(
+                "Value can't have any digit",
+                {
+                    "event": '_not_number/validator',
+                    "module": "product"
+                }
+            )
+        
+    def _not_empty(self, v: str | None) -> str:
+        if v is None: return None
+        
+        if not v.strip():
+            raise ValidationError(
+                "Value cannot be empty",
+                {
+                    "event": '_not_empty/validator',
+                    "module": "product"
+                }
+            )
+    
+        return v.strip()
+                
+    def __str__(self):
+        res = "=== PRODUCT ===\n"
+        res += (
+            f"Name: {self.nombre}\n"
+            f"Description: {self.descripcion[:55]}\n"
+            f"Category: {self.categoria}\n"
+            f"Model_family: {self.model_family}\n"
+            f"Brand: {self.marca}\n"
+            f"Fit: {self.fit}\n"
+        )
+        if self.has_variants:
+            res += "\t=== Variants ===\n"
+            for variant in self.variants:
+                res += str(variant)
+
+        return res
