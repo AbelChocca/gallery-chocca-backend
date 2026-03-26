@@ -1,23 +1,64 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
-from app.modules.product.domain.dto.variant_image_dto import ReadVariantImageDTO, UpdateVariantImageDTO
-
-@dataclass
-class ReadProductVariantDTO:
-    id: int
-    product_id: int
-    color: str
-    tallas: List[str]
-    imagenes: List[ReadVariantImageDTO]
+from app.domain.media.media_dto import UpdateImageCommand
+from app.domain.product.dto.variant_size_dto import UpdateVariantSizeCommand, PublishVariantSizeCommand
 
 @dataclass
-class UpdateProductVariantDTO:
-    id: Optional[int] = None
-    product_id: Optional[int] = None
-    color: Optional[str] = None
-    tallas: Optional[List[str]] = None
-    imagenes: Optional[List[UpdateVariantImageDTO]] = None
+class UpdateProductVariantCommand:
+    id: int | None = None
+    product_id: int | None = None
+    color: str | None = None
+    sizes: List[UpdateVariantSizeCommand] | None = None
+    imagenes: List[UpdateImageCommand] | None = None
+    temp_key: str | None = None
 
     # flags
     to_delete: bool = False
+    
+    @property
+    def new_sizes_count(self) -> int:
+        return sum(
+            1
+            for size in (self.sizes or [])
+            if size.id is None
+        )
+    
+    @property
+    def existing_images_count(self) -> int:
+        return sum(
+            1
+            for image in (self.imagenes or [])
+            if image.id is not None
+        )
+    
+    @property
+    def existing_sizes_count(self) -> int:
+        return sum(
+            1
+            for size in (self.sizes or [])
+            if size.id is not None
+        )
+    
+    @property
+    def images_to_delete_count(self) -> int:
+        return sum(
+            1
+            for image in (self.imagenes or [])
+            if image.id is not None and image.to_delete
+        )
+    
+    @property
+    def sizes_to_delete_count(self) -> int:
+        return sum(
+            1
+            for size in (self.sizes or [])
+            if size.id is not None and size.to_delete
+        )
+
+@dataclass
+class PublishProductVariantCommand:
+    color: str
+    sizes: List[PublishVariantSizeCommand]
+
+    temp_key: str
