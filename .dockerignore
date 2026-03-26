@@ -3,6 +3,7 @@
 .vscode
 node_modules
 tests
+tests/
 docs
 coverage
 
@@ -11,9 +12,11 @@ venv/
 .env
 *.env
 .venv
+.env.test
 
 # Dependencias locales
 __pycache__/
+.pytest_cache
 *.pyc
 *.pyo
 *.pyd
