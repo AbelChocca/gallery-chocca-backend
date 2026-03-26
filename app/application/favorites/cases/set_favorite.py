@@ -1,7 +1,6 @@
 from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavoritesRepository
 
 from app.domain.favorites.favorite_entity import FavoriteEntity
-from app.domain.favorites.dto import FavoriteStatus
 from typing import Optional
 
 class SetFavoriteProductCase:
@@ -17,7 +16,7 @@ class SetFavoriteProductCase:
             product_id: int,
             user_id: Optional[int] = None,
             session_id: Optional[str] = None
-        ) -> FavoriteStatus:
+        ) -> dict:
         favorite = FavoriteEntity(
             product_id=product_id,
             user_id=user_id,
@@ -26,4 +25,4 @@ class SetFavoriteProductCase:
 
         await self.favorites_repo.save(favorite)
 
-        return FavoriteStatus(is_favorite=True)
+        return {"is_favorite": True}

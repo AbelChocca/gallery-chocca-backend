@@ -1,7 +1,4 @@
 from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavoritesRepository
-from app.domain.favorites.dto import FavoriteStatus
-
-from typing import Optional
 
 class GetFavoriteStatusCase:
     def __init__(
@@ -14,13 +11,13 @@ class GetFavoriteStatusCase:
         self,
         *,
         product_id: int,
-        user_id: Optional[int] = None,
-        session_id: Optional[str] = None
-    ) -> FavoriteStatus:
+        user_id: int | None = None,
+        session_id: str | None = None
+    ) -> dict:
         is_favorite: bool = await self.favorites_repo.get_favorite_status(
             product_id=product_id,
             user_id=user_id,
             session_id=session_id
         )
 
-        return FavoriteStatus(is_favorite=is_favorite)
+        return {"is_favorite": is_favorite}

@@ -1,50 +1,39 @@
-from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
-from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavoritesRepository
-from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRepository
+from app.application.products.service import ProductService
+from app.application.favorites.service import FavoriteService
 
-from app.application.products.helper_mapper import ProductEntityToDTOMapper
-from app.domain.product.dto.product_dto import ReadProductDTO
+from app.domain.favorites.dto import FavoritesFilter
 
-from typing import List, Optional
+from typing import Any, Dict
 
 class GetFavoriteProductsCase:
     def __init__(
             self,
             *,
-            product_repo: PostgresProductRepository,
-            favorites_repo: PostgresFavoritesRepository,
-            image_repo: PostgresImageRepository
+            favorite_service: FavoriteService,
+            product_service: ProductService
             ):
-        self.product_repo: PostgresProductRepository =  product_repo
-        self.favorites_repo: PostgresFavoritesRepository = favorites_repo
-        self.image_repo: PostgresImageRepository = image_repo
+        self._favorite_service = favorite_service
+        self._product_service = product_service
 
     async def execute(
             self, 
             *,
-            session_id: Optional[int] = None,
-            user_id: Optional[int] = None
-        ) -> List[ReadProductDTO]:
-        if user_id is not None:
-            favorites_product_ids: List[int] = await self.favorites_repo.get_favorites_by_user_id(user_id)
-        else:
-            favorites_product_ids: List[int] = await self.favorites_repo.get_favorites_by_session_id(session_id)
-
-        products = await self.product_repo.get_products_with_similar_ids(favorites_product_ids)
-        variant_ids: List[int] = []
-        for product in products:
-            variant_ids.extend(product.get_variants_id())
-
-        images = await self.image_repo.get_by_owners(
-            owner_type="product_variant",
-            owner_ids=variant_ids
+            filter: FavoritesFilter,
+            page: int = 1,
+            limit: int = 20,
+            session_id: int | None = None,
+            user_id: int | None = None
+        ) -> Dict[str, Any]:
+        favorite_products = await self._favorite_service.get_favorite_products(
+            filter=filter,
+            page=page,
+            limit=limit,
+            session_id=session_id,
+            user_id=user_id
         )
-        images_by_owner_id = {image.owner_id: image for image in images}
-        for product in products:
-            product.sync_images_to_variants(images_by_owner_id)
 
-        return [
-            ProductEntityToDTOMapper.to_read_dto(product)
-            for product in products
-        ]
+        favorite_products["products"] = await self._product_service.enrich_products(favorite_products["products"])
+        favorite_products["products"] = [product.to_dict for product in favorite_products["products"]]
+
+        return favorite_products
 
