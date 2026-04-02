@@ -77,10 +77,11 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
 
     async def count_filtered_products(
         self,
-        filter_dto: FilterProductCommand
+        filter_dto: FilterProductCommand | None = None
     ) -> int:
         stmt = select(func.count(ProductTable.id))
-        stmt = self._apply_filters(stmt, filter_dto)
+        if filter_dto is not None:
+            stmt = self._apply_filters(stmt, filter_dto)
 
         result = await self._db_session.execute(stmt)
         return result.scalar() or 0
@@ -129,6 +130,25 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
             for product in products
         ]
     
+    async def get_count_by_category(self) -> list[tuple[str, int]]:
+        stmt = select(ProductTable.categoria, func.count()).group_by(ProductTable.categoria)
+
+        res = await self._db_session.execute(stmt)
+
+        category_counts = res.all()
+        return category_counts
+    
+    async def get_last_n_products(self, n: int) -> list[Product]:
+        stmt = select(ProductTable).order_by(col(ProductTable.id).desc()).limit(n)
+
+        res = await self._db_session.execute(stmt)
+
+        products = res.scalars().all()
+        return [
+            self._base_mapper.to_entity(product)
+            for product in products
+        ]
+
     async def save(self, entity: Product) -> Product:
         try:
             if entity.id is None:

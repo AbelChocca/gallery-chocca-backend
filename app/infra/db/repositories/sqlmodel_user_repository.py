@@ -24,13 +24,42 @@ class PostgresUserRepository(BaseRepository[User, UserTable]):
             self, 
             related_name: str | None = None,
     ) -> int:
-        stmt = (
-            select(func.count(UserTable.id))
-            .where(col(UserTable.nombre).ilike(f"%{related_name}%"))
-        )
+        stmt = select(func.count(UserTable.id))
+        if related_name is not None:
+            stmt = stmt.where(col(UserTable.nombre).ilike(f"%{related_name}%"))
 
         count = (await self._db_session.execute(stmt)).scalar()
         return count
+    
+    async def count_users_by_active_session(self) -> list[tuple[bool, int]]:
+        stmt = select(UserTable.is_active, func.count()).group_by(UserTable.is_active)
+
+        res = await self._db_session.execute(stmt)
+
+        users_by_active = res.all()
+
+        return users_by_active
+    
+    async def count_user_per_role(self) -> list[tuple[str, int]]:
+        stmt = select(UserTable.role, func.count()).group_by(UserTable.role)
+
+        res = await self._db_session.execute(stmt)
+
+        users_by_role = res.all()
+
+        return users_by_role
+    
+    async def get_last_n_users(self, n: int) -> list[User]: 
+        stmt = select(UserTable).order_by(col(UserTable.id).desc()).limit(n)
+
+        res = await self._db_session.execute(stmt)
+
+        users = res.scalars().all()
+
+        return [
+            self._base_mapper.to_entity(user)
+            for user in users
+        ]
     
     async def get_all(
             self, 
