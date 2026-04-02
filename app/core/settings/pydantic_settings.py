@@ -15,8 +15,6 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: str
     CLOUDINARY_API_KEY: str
 
-    CLOUDINARY_FOLDER_SLIDES: str
-
     # Cors
     ALLOW_ORIGINS: list[str]
 
@@ -28,14 +26,6 @@ class Settings(BaseSettings):
     REDIS_MEDIUM_TTL: int
     REDIS_SHORT_TTL: int
     REDIS_MIN_TTL: int
-    REDIS_LOCK_TTL: int
-    REDIS_SECONDS_DELAY: float
-    REDIS_MAX_RETRIES: int
-
-    # LOGGER
-    LOG_FORMAT: str
-    LOG_LEVEL: str
-    LOG_PATH: str
 
     # base de datos que usaremos en producción
     POSTGRES_USER: str
@@ -44,6 +34,8 @@ class Settings(BaseSettings):
 
     # google captcha
     RECAPTCHA_SECRET_KEY: str
+
+    ENV: str
 
     # Configuración del settings
     model_config = SettingsConfigDict(env_file='.env')

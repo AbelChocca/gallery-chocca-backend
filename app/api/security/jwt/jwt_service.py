@@ -76,15 +76,16 @@ class JWTRepositoryInfra(JWTProtocole):
             token: str,
             expires: int
             ) -> None:
+        is_prod = self.settings.ENV == "production"
         self.response.set_cookie(
             key=key,
             value=token,
             max_age=expires,
             expires=timedelta(seconds=expires),
             path='/',
-            secure=False, # Aun no estamos en produccion
+            secure=is_prod,
             httponly=True,
-            samesite='lax'
+            samesite='strict' if is_prod else 'lax'
         )
 
     def verify_token(self, token: str) -> Dict[str, Any]:
