@@ -43,7 +43,15 @@ async def lifespan(app: FastAPI):
 
     logger_service.info("🛑 Cerrando aplicación y liberando recursos...")
 
-app = FastAPI(title='Galeria Chocca', lifespan=lifespan)
+is_prod = settings.ENV == "production"
+
+app = FastAPI(
+    title='Galeria Chocca', 
+    lifespan=lifespan, 
+    docs_url=None if is_prod else '/docs',
+    redoc_url=None if is_prod else '/redoc',
+    openapi_url=None if is_prod else 'openapi.json'
+)
 init_middlewares(app)
 
 app.add_middleware(
