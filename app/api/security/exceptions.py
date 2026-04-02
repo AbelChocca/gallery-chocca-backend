@@ -23,3 +23,11 @@ class AuthException(AppException):
 
     def __init__(self, message, context: dict|None = None):
         super().__init__(message, context)
+
+class InvalidCaptcha(AppException):
+    status_code: int = 400
+    log_level: str = "WARNING"
+    error_code: str = "captcha_warning"
+
+    def __init__(self, message, context: dict|None = None):
+        super().__init__(message, context)

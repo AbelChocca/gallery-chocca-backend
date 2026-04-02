@@ -4,7 +4,7 @@ from app.core.settings.pydantic_settings import settings
 
 DATABASE_URL = settings.DATABASE_URL
 
-engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False)
+engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False, pool_size=10, max_overflow=5)
 
 async_session_factory = async_sessionmaker(
     engine,

@@ -10,6 +10,7 @@ from app.domain.media.entities.image import ImageEntity
 
 from app.domain.slide.slide_entity import SlideEntity
 from app.core.exceptions import ValueNotFound
+import random
 
 from typing import Callable, Awaitable, Any, BinaryIO
 
@@ -28,6 +29,30 @@ class SlideService:
         self._slide_repo = slide_repo
         self._image_repo = image_repo
 
+    async def toggle_slide_session(self, slide_id: int, is_active: bool) -> None:
+        await self._slide_repo.toggle_slide_session(slide_id, is_active)
+
+        await self._invalidate_slides()
+
+    async def count_slides(self) -> int:
+        return await self._slide_repo.count_all()
+    
+    async def count_slides_by_active_session(self) -> dict:
+        slides_by_active_session = await self._slide_repo.count_slides_by_active_session()
+
+        return {
+            "active" if session else "inactive": count
+            for session, count in slides_by_active_session
+        }
+    
+    async def get_last_n_slides(self, n: int) -> list[dict]:
+        slides = await self._enrich_slides(
+            await self._slide_repo.get_last_n_slides(n)
+        )
+        return [
+            slide.to_dict
+            for slide in slides
+        ] 
     
     async def get_by_id(self, slide_id: int) -> SlideEntity:
         slide = await self._slide_repo.get_by_id(slide_id)
@@ -82,6 +107,8 @@ class SlideService:
     ) -> None:
         if slide.is_inactive and command.activo:
             slide.orden = await self._get_last_order()
+        elif slide.activo and not command.activo:
+            slide.orden = random.randint(999, 9999)
 
         slide.update_slide(command.to_dict)
 
@@ -233,7 +260,7 @@ class SlideService:
 
 
     async def _get_last_order(self) -> int:
-        return (await self._slide_repo.count_all(SlideFiltersCommand(activo=True)))+1
+        return await self._slide_repo._get_last_order()
     
     async def _get_slides_data(
             self,
@@ -243,17 +270,9 @@ class SlideService:
             total_pages: int,
             current_page: int
     ) -> dict:
-        slides = await self._slide_repo.get_slides_with_filter(command_filters, offset, limit)
-
-        images: list[ImageEntity] = await self._image_repo.get_by_owners(
-            owner_type="slide",
-            owner_ids=[slide.id for slide in slides if slide.id is not None]
+        slides = await self._enrich_slides(
+            await self._slide_repo.get_slides_with_filter(command_filters, offset, limit)
         )
-
-        images_key_value: dict[int, ImageEntity] = {image.owner_id: image for image in images if image.owner_id}
-
-        for slide in slides:
-            slide.sync_image(images_key_value)
         
         return {
             "slides": [
@@ -265,6 +284,22 @@ class SlideService:
                 "current_page": current_page
             }
         }
+    
+    async def _enrich_slides(
+            self,
+            slides: list[SlideEntity]
+    ) -> list[SlideEntity]:
+        images: list[ImageEntity] = await self._image_repo.get_by_owners(
+            owner_type="slide",
+            owner_ids=[slide.id for slide in slides if slide.id is not None]
+        )
+
+        images_key_value: dict[int, ImageEntity] = {image.owner_id: image for image in images if image.owner_id}
+
+        for slide in slides:
+            slide.sync_image(images_key_value)
+        
+        return slides
 
     async def _invalidate_slides(self) -> None:
         args = self._cache_strategy.operation_list("slides", {})

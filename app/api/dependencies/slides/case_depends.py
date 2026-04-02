@@ -3,6 +3,7 @@ from app.application.slides.cases.publish_slide import PublishSlideCase
 from app.application.slides.cases.update_slide import UpdateSlideCase
 from app.application.slides.cases.get_slides import GetSlidesCase
 from app.application.slides.cases.update_orders import UpdateOrdersCase
+from app.application.slides.cases.toggle_session import ToggleSlideSessionCase
 from app.application.slides.service import SlideService
 from app.application.media.service import MediaService
 
@@ -11,6 +12,9 @@ from app.api.dependencies.slides.service import get_slide_service
 from app.infra.saga_service import SagaService, get_saga_service
 
 from fastapi import Depends
+
+def get_toggle_slide_session_case(slide_service: SlideService = Depends(get_slide_service)) -> ToggleSlideSessionCase:
+    return ToggleSlideSessionCase(slide_service)
 
 def get_slides_case(
         slide_service: SlideService = Depends(get_slide_service)

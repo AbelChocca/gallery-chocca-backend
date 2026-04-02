@@ -43,6 +43,11 @@ class UserService:
         self._jwt_service.delete_cookie("refresh_token")
 
         return {"message": "Logout was successful!"}
+    
+    async def count_users(self, related_name: str | None = None) -> int:
+        total_count: int = await self._user_repo.count_all(related_name)
+
+        return total_count
 
     async def get_users(
         self, 
@@ -57,7 +62,7 @@ class UserService:
             offset=offset,
             limit=limit
         )
-        total_count: int = await self._user_repo.count_all(related_name)
+        total_count: int = await self.count_users(related_name)
 
         total_pages = self._pagination_service.get_total_pages(total_count, limit)
         current_page = self._pagination_service.get_current_page(offset, limit)
@@ -116,7 +121,7 @@ class UserService:
             hashed_password = self._hasher_service.hash(command.password)
 
             user = User(
-                name=command.nombre,
+                name=command.name,
                 email=command.email,
                 hashed_password=hashed_password,
                 role=command.role
@@ -148,3 +153,28 @@ class UserService:
                             }
                         )
             raise db
+        
+    async def count_users_by_active_session(self) -> dict:
+        results = await self._user_repo.count_users_by_active_session()
+        user_counts = { "active" if is_active else "inactive": count for is_active, count in results }
+
+        return user_counts
+    
+    async def count_users_per_role(self) -> list[dict]:
+        total_users_per_role = await self._user_repo.count_user_per_role()
+
+        return [
+            {
+                "total": total,
+                "role": role
+            }
+            for (role, total) in total_users_per_role
+        ]
+
+    async def get_last_n_users(self, n: int) -> list[dict]:
+        users = await self._user_repo.get_last_n_users(n)
+
+        return [
+            user.to_dict
+            for user in users
+        ]

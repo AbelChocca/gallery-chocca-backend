@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
 
+    # google captcha
+    RECAPTCHA_SECRET_KEY: str
+
     # Configuración del settings
     model_config = SettingsConfigDict(env_file='.env')
 

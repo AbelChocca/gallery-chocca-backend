@@ -12,7 +12,7 @@ class InputSchemaMapper:
     @staticmethod
     def to_register_command(schema: RegisterUserSchema) -> RegisterUserCommand:
         return RegisterUserCommand(
-            nombre=schema.nombre,
+            name=schema.name,
             email=schema.email,
             password=schema.password,
             role=schema.role

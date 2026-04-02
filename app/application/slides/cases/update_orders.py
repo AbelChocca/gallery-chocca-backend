@@ -45,7 +45,9 @@ class UpdateOrdersCase:
         self,
         command: UpdateSlidesOrder
     ) -> None:
-
+        if not command.slides:
+            return None 
+        
         self._validate_orders(command.orders, command.ids)
 
         await self._slide_service.update_orders(command)

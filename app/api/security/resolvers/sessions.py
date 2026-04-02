@@ -66,7 +66,7 @@ class SecuritySessions:
         
         return {
             "id": user.id,
-            "nombre": user.name,
+            "name": user.name,
             "email": user.email,
             "role": user.role,
             "is_active": user.is_active
@@ -104,7 +104,7 @@ class SecuritySessions:
         
         return {
             "id": admin.id,
-            "nombre": admin.name,
+            "name": admin.name,
             "email": admin.email,
             "role": admin.role,
             "is_active": admin.is_active

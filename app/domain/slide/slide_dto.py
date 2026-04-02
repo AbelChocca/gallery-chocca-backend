@@ -13,7 +13,7 @@ class UpdateOrder:
 
 @dataclass
 class UpdateSlidesOrder:
-    slides: List[UpdateOrder]
+    slides: List[UpdateOrder] | None = None
 
     @property
     def ids(self) -> list[int]:

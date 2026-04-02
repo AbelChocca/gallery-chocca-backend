@@ -23,7 +23,7 @@ class UpdateOrder(BaseModel):
     new_order: int
 
 class UpdateSlidesOrderSchema(BaseModel):
-    slides: List[UpdateOrder]
+    slides: List[UpdateOrder] | None = None
 
 class GetSlidesResponseSchema(BaseModel):
     slides: List[ReadSlideSchema]

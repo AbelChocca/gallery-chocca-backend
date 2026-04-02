@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, DateTime, Column, Index, text
+from sqlmodel import SQLModel, DateTime, Column, Index, text, Field, Boolean
 from datetime import datetime
 
 # Modelo SQL para Admin
@@ -20,7 +20,6 @@ class UserTable(SQLModel, table=True):
         sa_column=Column(DateTime(timezone=True), server_default=text('now()'), nullable=False)
         )
     is_active: bool = Field(
-        default=True,
-        nullable=False,
+        sa_column=Column(Boolean, default=True, nullable=False)
     )
     hashed_password: str

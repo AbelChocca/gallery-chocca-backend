@@ -342,6 +342,34 @@ class ProductService:
                         "event": "create_product_case/_validate"
                     }
                 )
+            
+    async def count_products(
+        self,
+        command: FilterProductCommand | None = None
+    ) -> int:
+        res = await self._product_repo.count_filtered_products(command)
+        return res
+    
+    async def count_by_category(self) -> list[dict[str, Any]]:
+        res = await self._product_repo.get_count_by_category()
+
+        return [
+            {
+                "category": category,
+                "total": total
+            }
+            for category, total in res
+        ]
+    
+    async def get_last_n(self, n: int) -> list[Product]:
+        last_n_products = await self._product_repo.get_last_n_products(n)
+
+        enriched_products = await self.enrich_products(last_n_products)
+
+        return [
+            product.to_dict
+            for product in enriched_products
+        ]
     
     def _validate_the_deleting(
             self,
@@ -414,7 +442,7 @@ class ProductService:
         offset: int = 0,
         limit: int = 20,
     ) -> dict[str, Any]:
-        num_products = await self._product_repo.count_filtered_products(command)
+        num_products = await self.count_products(command)
 
         total_pages = self._pagination_service.get_total_pages(num_products, limit)
         current_page = self._pagination_service.get_current_page(offset, limit)
@@ -453,13 +481,6 @@ class ProductService:
         args = self._cache_strategy_service.operation_by_id("product", product_id)
         key: str = self._cache_strategy_service.generate_key(args)
         await self._cache_service.cache_delete(key)
-
-    async def _count_products(
-            self,
-            command: FilterProductCommand
-    ) -> int:
-        res = await self._product_repo.count_filtered_products(command)
-        return res
 
     def _sync_variant_images(self, source_product: Product, target_product: Product) -> None:
         """

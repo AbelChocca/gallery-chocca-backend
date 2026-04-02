@@ -98,7 +98,7 @@ class SlideEntity:
         return data
     
     @property
-    def is_inactive(self) -> dict:
+    def is_inactive(self) -> bool:
         return self.activo is False
 
     def _update_timestamp(self):
