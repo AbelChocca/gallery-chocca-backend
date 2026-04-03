@@ -85,7 +85,7 @@ class JWTRepositoryInfra(JWTProtocole):
             path='/',
             secure=is_prod,
             httponly=True,
-            samesite='strict' if is_prod else 'lax'
+            samesite='none' if is_prod else 'lax'
         )
 
     def verify_token(self, token: str) -> Dict[str, Any]:

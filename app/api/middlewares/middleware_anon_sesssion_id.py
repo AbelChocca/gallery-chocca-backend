@@ -19,7 +19,7 @@ class AnonSessionIdMiddleware:
                     value=session_id,
                     httponly=True,
                     secure=is_prod,   # True en prod
-                    samesite="strict" if is_prod else "lax",
+                    samesite="none" if is_prod else "lax",
                     path="/"
                 )
 
