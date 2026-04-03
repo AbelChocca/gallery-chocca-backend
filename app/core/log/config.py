@@ -2,7 +2,6 @@ from loguru import logger
 import sys
 from contextvars import ContextVar
 
-from app.core.settings.pydantic_settings import settings
 from app.core.log.json_sink import json_sink
 
 request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
@@ -27,7 +26,7 @@ class LoggerSingleton:
         )
         logger.add(
             lambda m: json_sink(m, sys.stdout),
-            level=settings.LOG_LEVEL,
+            level="DEBUG",
             filter=lambda r: r["level"].no < 40,
         )
         logger.add(
