@@ -28,6 +28,9 @@ async def verify_captcha(payload: RegisterUserSchema) -> RegisterUserSchema:
                 "score": data.get("score"),
                 "action": data.get("action"),
                 "hostname": data.get("hostname"),
+                "error_codes": data.get("error-codes"),
+                "captcha_token_exists": bool(payload.captchaToken),
+                "captcha_token_length": len(payload.captchaToken or ""),
             }
         )
     
