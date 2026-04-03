@@ -1,5 +1,6 @@
 from uuid import uuid4
 from fastapi import FastAPI, Request, Response
+from app.core.settings.pydantic_settings import settings
 
 class AnonSessionIdMiddleware:
     def register(self, app: FastAPI):
@@ -10,13 +11,15 @@ class AnonSessionIdMiddleware:
             response: Response = await call_next(request)
 
             if not session_id:
+                is_prod = settings.ENV == "production"
+
                 session_id = str(uuid4())
                 response.set_cookie(
                     key="anon_session_id",
                     value=session_id,
                     httponly=True,
-                    secure=False,   # True en prod
-                    samesite="lax",
+                    secure=is_prod,   # True en prod
+                    samesite="strict" if is_prod else "lax",
                     path="/"
                 )
 
