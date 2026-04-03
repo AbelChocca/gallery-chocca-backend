@@ -10,13 +10,12 @@ class User:
             hashed_password: str,
             is_active: bool = True,
             created_at: datetime = datetime.now(timezone.utc),
-            role: str = 'user',
             id: int|None = None
             ):
         self.id = id
         self.name = name
         self.email = email
-        self.role = role
+        self.role = "user" 
         self.is_active = is_active
         self.created_at = created_at
         self.hashed_password = hashed_password

@@ -14,6 +14,5 @@ class InputSchemaMapper:
         return RegisterUserCommand(
             name=schema.name,
             email=schema.email,
-            password=schema.password,
-            role=schema.role
+            password=schema.password
         )

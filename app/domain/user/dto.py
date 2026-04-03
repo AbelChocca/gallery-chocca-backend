@@ -5,7 +5,6 @@ class RegisterUserCommand:
     name: str
     email: str
     password: str
-    role: str
 
 @dataclass
 class LoginUserCommand:

@@ -123,8 +123,7 @@ class UserService:
             user = User(
                 name=command.name,
                 email=command.email,
-                hashed_password=hashed_password,
-                role=command.role
+                hashed_password=hashed_password
             )
 
             res = await self._user_repo.save(user)
