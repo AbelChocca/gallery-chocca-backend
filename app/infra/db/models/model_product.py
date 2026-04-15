@@ -43,7 +43,6 @@ class VariantTable(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     product_id: int | None = Field(foreign_key='product.id')
     color: str
-    stock: int = Field(default=0, ge=0)
 
     product: Mapped[ProductTable | None] = Relationship(back_populates='variants')
 
@@ -64,5 +63,8 @@ class VariantSizeTable(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     variant_id: int = Field(foreign_key="variant.id")
     size: str
+
+    stock: int = Field(default=0, ge=0)
+    sku: str | None = Field(default=None, nullable=True)
 
     variant: Mapped[VariantTable | None] = Relationship(back_populates="sizes")
