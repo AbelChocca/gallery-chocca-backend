@@ -31,8 +31,7 @@ services:
       - db
       - redis
     volumes:
-      - ./app:/app/app
-      - ./alembic.ini:/app/alembic.ini
+      - .:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
