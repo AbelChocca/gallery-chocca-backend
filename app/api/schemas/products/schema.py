@@ -107,12 +107,13 @@ class UpdateProductSchema(BaseModel):
     name_changed: bool = False
 
 class FilterSchema(BaseModel):
-    name: str | None = Field(default=None, examples=[None])
-    marca: BrandType | None = Field(default=None, examples=[None])
-    categoria: CategoryType | None = Field(default=None, examples=[None])
-    model_family: str | None = Field(default=None, examples=[None])
-    color: ColorFilter | None = Field(default=None, examples=[None])
-    sizes: List[SizeType] | None = Field(default=None)
+    name: str | None = None
+    marca: BrandType | None = None
+    categoria: CategoryType | None = None
+    model_family: str | None = None
+    color: ColorFilter | None = None
+    sizes: List[SizeType] | None = None
+    sku: str | None = None
     
 class GetGridProductsResponse(BaseModel):
     pagination: PaginationResponseSchema
