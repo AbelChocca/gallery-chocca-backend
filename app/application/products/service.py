@@ -135,8 +135,7 @@ class ProductService:
 
         for variant in product.variants:
             new_product.add_variant(
-                color=variant.color,
-                sizes=[variant_size.size for variant_size in variant.sizes],
+                variant_command=variant,
                 images=images_by_temp_key[variant.temp_key]
             )
 

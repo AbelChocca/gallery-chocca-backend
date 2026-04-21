@@ -81,6 +81,18 @@ class ProductVariant:
                 for image in self.imagenes
             ]
         }
+    
+    @property
+    def to_inventory_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "color": self.color,
+            "sizes": [
+                size.to_inventory_dict
+                for size in self.sizes
+            ],
+            "imagen": self.imagenes[0].to_dict
+        }
 
     def agregar_image(
             self, 
@@ -139,14 +151,19 @@ class ProductVariant:
 
     def add_new_size(
             self,
-            size: str
+            size: str,
+            product_name: str,
+            variant_color: str,
+            initial_stock: int | None = None
     ) -> None:
-        self.sizes.append(
-            VariantSize(
-                size=size,
-                variant_id=self.id or None
-            )
+        new_variant_size = VariantSize(
+            size=size,
+            variant_id=self.id or None,
+            stock=initial_stock,
         )
+        new_variant_size.assign_sku(product_name, variant_color)
+
+        self.sizes.append(new_variant_size)
         
     def _validate_color(self, v: str) -> None:
         if v is None: return None
