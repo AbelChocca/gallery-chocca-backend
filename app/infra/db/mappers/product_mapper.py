@@ -29,7 +29,9 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
                         VariantSize(
                             size=variant_size.size,
                             id=variant_size.id,
-                            variant_id=variant_size.variant_id
+                            variant_id=variant_size.variant_id,
+                            stock=variant_size.stock,
+                            sku=variant_size.sku
                         )
                         for variant_size in (variant.sizes or [])
                     ]
@@ -83,7 +85,11 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
                             new_sizes.append(existing_sizes_map[size_entity.id])
                         else:
                             new_sizes.append(
-                                VariantSizeTable(size=size_entity.size)
+                                VariantSizeTable(
+                                    size=size_entity.size,
+                                    stock=size_entity.stock,
+                                    sku=size_entity.sku
+                                )
                             )
                     variant_db.sizes = new_sizes
                     
@@ -93,7 +99,9 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
                         color=variant.color,
                         sizes=[
                             VariantSizeTable(
-                                size=variant_size.size
+                                size=variant_size.size,
+                                stock=variant_size.stock,
+                                sku=variant_size.sku
                             )
                             for variant_size in (variant.sizes or [])
                         ],
