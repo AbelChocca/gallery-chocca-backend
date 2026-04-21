@@ -60,10 +60,10 @@ class CacheProtocol(Protocol):
 
     async def get_or_set_with_lock(
             self,
-            key: str,
-            ttl: int,
+            tag: str,
             callback: Callable[..., Awaitable[Any] | Any],
             kwargs: dict,
+            key_args: dict,
             lock_ttl: int = 5,
     ) -> Any:
         """
@@ -95,5 +95,11 @@ class CacheProtocol(Protocol):
         """
         ...
 
-    async def invalidate_family(self, key: str) -> None:
+    async def scan_and_invalidate_related(self, key: str) -> None:
+        ...
+
+    async def invalidate_entity(self, tag: str, entity_id: int) -> None:
+        ...
+
+    async def invalidate_entities(self, tag: str) -> None:
         ...
