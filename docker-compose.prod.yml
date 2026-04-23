@@ -10,14 +10,23 @@ services:
     command: postgres -c shared_buffers=64MB -c work_mem=4MB
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   redis:
     image: redis:7
     restart: always
     container_name: redis_cache
     command: redis-server --maxmemory 50mb --maxmemory-policy allkeys-lru
-
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   amd-app:
+    container_name: backend_app
     build: 
       context: .
       dockerfile: Dockerfile.prod
@@ -29,6 +38,11 @@ services:
       - .env
     ports:
       - "8000:8000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   postgres_data:
