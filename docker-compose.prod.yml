@@ -36,8 +36,9 @@ services:
       - redis
     env_file:
       - .env
-    ports:
-      - "8000:8000"
+    # Ports disabled in production. Nginx handles external traffic
+    # ports:
+    #   - "8000:8000"
     logging:
       driver: "json-file"
       options:
