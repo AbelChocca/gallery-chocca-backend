@@ -43,7 +43,7 @@ This application solves a daily problem for the store: many customers cannot eas
 The application follows a decoupled fullstack architecture where the frontend and backend are deployed independently. The frontend is hosted on Vercel and communicates with a FastAPI backend deployed on Render. Product images are stored in Cloudinary, while Redis is used for caching and rate limiting through Upstash.
 
 ### System Flow
-<img width="4855" height="4865" alt="diagram_242" src="https://github.com/user-attachments/assets/e8438f99-a829-42de-ae0c-56a548830cb1" />
+<img width="4855" height="4865" alt="diagram_242" src="https://github.com/user-attachments/assets/86b8a423-e759-4163-9e08-98458b6532f3" />
 
 ## 📸 Screenshots
 The following screenshots showcase the main features of the platform and its user experience.
