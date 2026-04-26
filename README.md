@@ -49,15 +49,16 @@ The application follows a decoupled fullstack architecture where the frontend an
 The following screenshots showcase the main features of the platform and its user experience.
 
 ### 🧑‍💼 Admin Dashboard
-<img width="1569" height="800" alt="Captura de pantalla 2026-04-24 a la(s) 7 53 52 p  m" src="https://github.com/user-attachments/assets/0bbb3a48-019b-4433-81de-00d6e308620a" />
+<img width="1569" height="800" alt="Captura de pantalla 2026-04-24 a la(s) 7 53 52 p  m" src="https://github.com/user-attachments/assets/3024c7ae-de39-414d-afbb-0802214afd41" />
 Admin panel where products, slides, and system data are managed.
 
 ### 🛍️ Product Catalog
-<img width="1558" height="806" alt="Captura de pantalla 2026-04-24 a la(s) 7 54 24 p  m" src="https://github.com/user-attachments/assets/aa30083a-0089-40d7-a092-97b310fcaa43" />
+<img width="1558" height="806" alt="Captura de pantalla 2026-04-24 a la(s) 7 54 24 p  m" src="https://github.com/user-attachments/assets/1081ed83-c707-417a-99ee-2e99fcf96ec6" />
+
 Public view where users can browse and filter products by category, color, size, and title.
 
 ### 🏠 Home Page
-<img width="1579" height="803" alt="Captura de pantalla 2026-04-24 a la(s) 7 53 40 p  m" src="https://github.com/user-attachments/assets/ea1c5dac-76c9-4e74-991b-d0e5e3830ec7" />
+<img width="1579" height="803" alt="Captura de pantalla 2026-04-24 a la(s) 7 53 40 p  m" src="https://github.com/user-attachments/assets/c234d87a-16ac-4b2d-abbb-c25f5efcbd83" />
 
 ## Coming updates
 
