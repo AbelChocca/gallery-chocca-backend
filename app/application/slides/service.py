@@ -1,6 +1,5 @@
 from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRepository
 from app.infra.db.repositories.sqlmodel_slide_repository import PostgresSlideRepository
-from app.shared.services.cache_strategy.cache_strategy_service import CacheStrategyService
 from app.shared.services.pagination.pagination_service import PaginationService
 from app.infra.saga_service import SagaService
 from app.infra.cache.protocole import CacheProtocol
@@ -21,10 +20,8 @@ class SlideService:
             image_repo: PostgresImageRepository,
             pagination_service: PaginationService,
             cache_service: CacheProtocol,
-            cache_strategy: CacheStrategyService,
         ):
         self._cache_service = cache_service
-        self._cache_strategy = cache_strategy
         self._pagination_service = pagination_service
         self._slide_repo = slide_repo
         self._image_repo = image_repo
@@ -32,7 +29,7 @@ class SlideService:
     async def toggle_slide_session(self, slide_id: int, is_active: bool) -> None:
         await self._slide_repo.toggle_slide_session(slide_id, is_active)
 
-        await self._invalidate_slides()
+        await self._cache_service.invalidate_entities("slides")
 
     async def count_slides(self) -> int:
         return await self._slide_repo.count_all()
@@ -140,7 +137,7 @@ class SlideService:
 
         await self._slide_repo.save(slide)
 
-        await self._invalidate_slides()
+        await self._cache_service.invalidate_entities("slides")
 
     async def update_orders(
             self,
@@ -150,7 +147,7 @@ class SlideService:
 
         await self._slide_repo.update_many_orders(command.ids, updates)
 
-        await self._invalidate_slides()
+        await self._cache_service.invalidate_entities("slides")
 
     async def get_slides(
         self,
@@ -165,13 +162,8 @@ class SlideService:
         total_pages: int = self._pagination_service.get_total_pages(total_slides, limit)
         current_page: int = self._pagination_service.get_current_page(offset, limit)
 
-        cache_args = self._cache_strategy.operation_list("slides", { "filters": filters_command.to_dict, "page": page, "limit": limit})
-        ttl = self._cache_strategy.determinate_ttl(cache_args)
-        key = self._cache_strategy.generate_key(cache_args)
-
         return await self._cache_service.get_or_set_with_lock(
-            key,
-            ttl,
+            "slides",
             callback=self._get_slides_data,
             kwargs={
                 "command_filters": filters_command,
@@ -179,6 +171,11 @@ class SlideService:
                 "limit": limit,
                 "total_pages": total_pages,
                 "current_page": current_page
+            },
+            key_args={
+                "filters": filters_command.to_dict, 
+                "page": page, 
+                "limit": limit
             }
         )
     
@@ -224,7 +221,7 @@ class SlideService:
             )
         )
 
-        await self._invalidate_slides()
+        await self._cache_service.invalidate_entities("slides")
 
     async def delete_slide(
             self,
@@ -256,7 +253,7 @@ class SlideService:
             compensation_func=compensation_func
         )
 
-        await self._invalidate_slides()
+        await self._cache_service.invalidate_entities("slides")
 
 
     async def _get_last_order(self) -> int:
@@ -300,8 +297,3 @@ class SlideService:
             slide.sync_image(images_key_value)
         
         return slides
-
-    async def _invalidate_slides(self) -> None:
-        args = self._cache_strategy.operation_list("slides", {})
-        family_key = self._cache_strategy.generate_family_key(args)
-        await self._cache_service.invalidate_family(family_key)
