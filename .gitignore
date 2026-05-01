@@ -8,6 +8,7 @@ __pycache__/
 venv/
 amd/
 .vscode
+*.sql
 
 .pytest_cache/
 
