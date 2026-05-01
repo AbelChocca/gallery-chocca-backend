@@ -3,7 +3,8 @@ from app.domain.inventory.data_models import InventoryMovementType
 from datetime import datetime, timezone
 
 class InventoryMovementTable(SQLModel, table=True):
-    __name__ = "inventory_movement"
+    __tablename__ = "inventory_movement"
+    
     id: int | None = Field(default=None, primary_key=True)
     variant_size_id: int = Field(ge=1)
     type: InventoryMovementType = Field(
