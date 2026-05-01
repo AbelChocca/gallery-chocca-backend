@@ -31,6 +31,7 @@ class InventoryMovementMapper(BaseMapper[InventoryMovement, InventoryMovementTab
             previous_stock=model.previous_stock,
             new_stock=model.new_stock,
             reason=model.reason,
-            id=model.id
+            id=model.id,
+            created_at=model.created_at
         )
 
