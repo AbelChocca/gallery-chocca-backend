@@ -11,6 +11,7 @@ class InventoryMovement:
             new_stock: int,
             reason: str | None = None,
             id: int | None = None,
+            created_at: datetime | None = None
         ):
         self._id = id
         self.variant_size_id = variant_size_id
@@ -19,7 +20,7 @@ class InventoryMovement:
         self.previous_stock = previous_stock
         self.new_stock = new_stock
         self.reason = reason
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(timezone.utc)
 
     @property
     def id(self) -> int:
