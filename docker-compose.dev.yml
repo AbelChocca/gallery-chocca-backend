@@ -21,6 +21,7 @@ services:
       --maxmemory-policy allkeys-lfu
 
   amd-app:
+    container_name: backend
     build: 
       context: .
       dockerfile: Dockerfile.dev
@@ -32,7 +33,7 @@ services:
       - redis
     volumes:
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - /app/.venv
     env_file:
       - .env
     image: backend_jean

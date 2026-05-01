@@ -15,12 +15,13 @@ RUN set -eux \
 
 # Agrega uv a PATH
 ENV PATH="/root/.local/bin:/root/.cargo/bin:${PATH}"
+ENV UV_PROJECT_ENVIRONMENT=system
 
 # Copia solo deps primero (cacheable)
 COPY pyproject.toml uv.lock ./
 
 # Instala deps (incluye dev si quieres)
-RUN uv sync
+RUN uv sync --frozen
 
 # Copia el código
 COPY app ./app
@@ -28,6 +29,5 @@ COPY app ./app
 # Exponer puerto
 EXPOSE 8000
 
-# CMD para dev con hot reload
-ENTRYPOINT ["uv", "run"]
+ENTRYPOINT ["uv", "run", "uvicorn"]
 CMD ["app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
