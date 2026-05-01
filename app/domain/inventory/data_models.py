@@ -25,4 +25,9 @@ class InventoryMovementFilters:
 
     @property
     def to_dict(self) -> dict:
-        return asdict(self)
+        return {
+            "from_date": self.from_date,
+            "to_date": self.to_date,
+            "sku": self.sku,
+            "type": self.type.value if self.type else None,
+        }

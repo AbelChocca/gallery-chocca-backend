@@ -21,7 +21,8 @@ class VariantSize:
         return {
             "id": self.id,
             "variant_id": self.variant_id,
-            "size": self.size
+            "size": self.size,
+            "stock": self.stock
         }
     
     @property

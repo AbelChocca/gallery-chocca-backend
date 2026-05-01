@@ -9,6 +9,7 @@ class VariantSizeRead(BaseModel):
     id: int
     variant_id: int
     size: SizeType
+    stock: int
 
     model_config = ConfigDict(from_attributes=True)
 
