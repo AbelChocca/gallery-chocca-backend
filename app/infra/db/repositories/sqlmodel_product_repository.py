@@ -11,7 +11,7 @@ from app.core.exceptions import ValueNotFound
 from typing import List
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.sql.expression import SelectOfScalar, Select
-from sqlmodel import select, col, exists
+from sqlmodel import select, col, exists, or_
 from sqlalchemy.orm import selectinload, noload
 from sqlalchemy import func
 
@@ -21,8 +21,28 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         stmt: Select[ProductTable] | SelectOfScalar[ProductTable],
         filter_command: FilterProductCommand,
     ) -> Select[ProductTable] | SelectOfScalar[ProductTable]:
-        if filter_command.name:
-            stmt = stmt.where(col(ProductTable.nombre).ilike(f"%{filter_command.name}%"))
+        if filter_command.name or filter_command.sku:
+            conditions = []
+
+            if filter_command.name:
+                conditions.append(
+                    col(ProductTable.nombre).ilike(f"%{filter_command.name}%")
+                )
+
+            if filter_command.sku:
+                sku_subquery = (
+                    select(1)
+                    .select_from(VariantTable)
+                    .join(VariantSizeTable, VariantSizeTable.variant_id == VariantTable.id)
+                    .where(
+                        VariantTable.product_id == ProductTable.id,
+                        col(VariantSizeTable.sku).ilike(f"%{filter_command.sku}%")
+                    )
+                )
+
+                conditions.append(exists(sku_subquery.correlate(ProductTable)))
+
+            stmt = stmt.where(or_(*conditions))
 
         if filter_command.marca:
             stmt = stmt.where(ProductTable.marca == filter_command.marca)
@@ -33,7 +53,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         if filter_command.model_family:
             stmt = stmt.where(ProductTable.model_family == filter_command.model_family)
 
-        if filter_command.colors or filter_command.sizes or filter_command.sku:
+        if filter_command.colors or filter_command.sizes:
             subqr = (
                 select(1)
                 .select_from(VariantTable)
@@ -43,7 +63,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
             if filter_command.colors:
                 subqr = subqr.where(col(VariantTable.color).in_(filter_command.colors))
 
-            if filter_command.sizes or filter_command.sku:
+            if filter_command.sizes:
                 subqr = (
                     subqr
                     .join(VariantSizeTable, VariantSizeTable.variant_id == VariantTable.id)
@@ -52,11 +72,6 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                 if filter_command.sizes:
                     subqr = subqr.where(
                         col(VariantSizeTable.size).in_(filter_command.sizes)
-                    )
-
-                if filter_command.sku:
-                    subqr = subqr.where(
-                        col(VariantSizeTable.sku).ilike(f"%{filter_command.sku}%")
                     )
 
             stmt = stmt.where(exists(subqr.correlate(ProductTable)))
