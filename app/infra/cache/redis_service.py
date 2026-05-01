@@ -7,15 +7,18 @@ import random
 
 from app.core.log.protocole import LoggerProtocol
 from app.infra.cache.protocole import CacheProtocol
+from app.shared.services.cache_strategy.cache_strategy_service import CacheStrategyService
 from app.infra.cache.exceptions import InternalCacheException
 
 class RedisService(CacheProtocol):
     def __init__(
             self,
             cache_client: Redis,
-            logger: LoggerProtocol
+            logger: LoggerProtocol,
+            cache_strategy: CacheStrategyService
             ):
         self.client = cache_client
+        self._cache_strategy = cache_strategy
         self.logger = logger
 
     async def cache_set(
@@ -93,12 +96,15 @@ class RedisService(CacheProtocol):
         
     async def get_or_set_with_lock(
             self,
-            key: str,
-            ttl: int,
+            tag: str,
             callback: Callable[..., Awaitable[Any] | Any],
             kwargs: dict,
+            key_args: dict,
             lock_ttl: int = 5,
     ) -> Any:
+        args = self._cache_strategy.operation_list(tag, key_args)
+        key = self._cache_strategy.generate_key(args)
+        ttl = self._cache_strategy.determinate_ttl(args)
         try:
             cached = await self.cache_get(key)
             if cached is not None:
@@ -157,7 +163,7 @@ class RedisService(CacheProtocol):
                 await asyncio.sleep(jitter)
         return None
 
-    async def invalidate_family(self, key: str) -> None:
+    async def scan_and_invalidate_related(self, key: str) -> None:
         cursor = 0
 
         while True:
@@ -169,3 +175,13 @@ class RedisService(CacheProtocol):
                     await pipe.execute()
             if cursor == 0:
                 break
+
+    async def invalidate_entity(self, tag: str, entity_id: int) -> None:
+        args = self._cache_strategy.operation_by_id(tag, entity_id)
+        key: str = self._cache_strategy.generate_key(args)
+        await self.cache_delete(key)
+
+    async def invalidate_entities(self, tag: str) -> None:
+        args = self._cache_strategy.operation_list(tag, {})
+        key: str = self._cache_strategy.generate_family_key(args)
+        await self.scan_and_invalidate_related(key)

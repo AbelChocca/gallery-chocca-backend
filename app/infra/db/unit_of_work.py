@@ -2,6 +2,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import AbstractAsyncContextManager
 from typing import Callable, Type
 
+from app.infra.db.repositories.sqlalchemy_inventory_movement_repo import PostgresInventoryMovementReposity
+from app.infra.db.mappers.inventory_movement_mapper import InventoryMovementMapper
+from app.infra.db.models.model_inventory_movement import InventoryMovementTable
+
 from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
 from app.infra.db.mappers.product_mapper import ProductMapper
 from app.infra.db.models.model_product import ProductTable
@@ -54,6 +58,11 @@ class UnitOfWork(AbstractAsyncContextManager):
             self.session,
             ImageMapper,
             MediaImageTable
+        )
+        self.inventory = PostgresInventoryMovementReposity(
+            self.session,
+            InventoryMovementMapper,
+            InventoryMovementTable
         )
 
         return self

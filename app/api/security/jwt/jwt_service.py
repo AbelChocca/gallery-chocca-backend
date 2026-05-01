@@ -83,7 +83,7 @@ class JWTRepositoryInfra(JWTProtocole):
             max_age=expires,
             expires=timedelta(seconds=expires),
             path='/',
-            secure=is_prod,
+            secure=True if is_prod else False,
             httponly=True,
             samesite='none' if is_prod else 'lax'
         )

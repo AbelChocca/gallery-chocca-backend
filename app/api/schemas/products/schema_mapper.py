@@ -95,5 +95,6 @@ class InputSchemaMapper:
             categoria=schema.categoria,
             model_family=schema.model_family,
             colors=colors,
-            sizes=schema.sizes
+            sizes=schema.sizes,
+            sku=schema.sku
         )
