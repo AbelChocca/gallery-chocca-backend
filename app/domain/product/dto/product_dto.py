@@ -122,6 +122,7 @@ class FilterProductCommand:
     model_family: str | None = None
     colors: list[str] | None = None
     sizes: List[str] | None = None
+    sku: str | None = None
 
     @property
     def to_dict(self) -> Dict:

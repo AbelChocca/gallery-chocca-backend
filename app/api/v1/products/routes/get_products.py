@@ -4,27 +4,10 @@ from app.api.dependencies.products.case_depends import get_all_products_case
 from app.api.schemas.products.schema_mapper import InputSchemaMapper
 from app.api.schemas.pagination import PaginationSchema
 from app.application.products.cases.get_products import GetProductsCase
-from app.domain.product.dto.product_dto import ColorFilter, BrandType, CategoryType
+from app.api.schemas.products.types import filter_dep
 
-from fastapi import status, Depends, Query
-from typing import Annotated, List
-
-def filter_dep(
-    name: str | None = Query(None),
-    marca: BrandType | None = Query(None),
-    categoria: CategoryType | None = Query(None),
-    model_family: str | None = Query(None),
-    color: ColorFilter | None = Query(None),
-    sizes: List[str] | None = Query(None),
-) -> FilterSchema:
-    return FilterSchema(
-        name=name,
-        marca=marca,
-        categoria=categoria,
-        model_family=model_family,
-        color=color,
-        sizes=sizes,
-    )
+from fastapi import status, Depends
+from typing import Annotated
 
 
 @router.get(

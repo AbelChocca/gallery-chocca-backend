@@ -9,7 +9,6 @@ from app.infra.saga_service import SagaService
 from app.infra.cache.protocole import CacheProtocol
 from app.domain.media.media_dto import MediaImageDTO
 from app.domain.product.dto.product_dto import UpdateProductCommand, FilterProductCommand
-from app.shared.services.cache_strategy.cache_strategy_service import CacheStrategyService
 from app.shared.services.pagination.pagination_service import PaginationService
 from app.core.exceptions import ValidationError
 
@@ -22,7 +21,6 @@ class ProductService:
             product_repo: PostgresProductRepository,
             favorite_repo: PostgresFavoritesRepository,
             cache_service: CacheProtocol,
-            cache_strategy_service: CacheStrategyService,
             pagination_service: PaginationService,
             image_repo: PostgresImageRepository,
             slug_service: SlugProtocol
@@ -32,23 +30,20 @@ class ProductService:
         self._image_repo: PostgresImageRepository = image_repo
         self._slug_service: SlugProtocol = slug_service
         self._cache_service: CacheProtocol = cache_service
-        self._cache_strategy_service: CacheStrategyService = cache_strategy_service
         self._pagination_service: PaginationService = pagination_service
     
     async def get_product_by_id(
             self,
             product_id: int
     ) -> dict[str, Any]:
-        cache_args = self._cache_strategy_service.operation_by_id(name="product", entity_id=product_id)
-        ttl: int = self._cache_strategy_service.determinate_ttl(cache_args)
-        product_key: str = self._cache_strategy_service.generate_key(cache_args)
-
         return await self._cache_service.get_or_set_with_lock(
-            key=product_key,
-            ttl=ttl,
+            tag="product",
             callback=self._get_product_data,
             kwargs={
                 "product_id": product_id
+            },
+            key_args={
+                "entity_id": product_id
             }
         )
     
@@ -135,8 +130,7 @@ class ProductService:
 
         for variant in product.variants:
             new_product.add_variant(
-                color=variant.color,
-                sizes=[variant_size.size for variant_size in variant.sizes],
+                variant_command=variant,
                 images=images_by_temp_key[variant.temp_key]
             )
 
@@ -211,18 +205,19 @@ class ProductService:
         page: int = 1,
         limit: int = 20,
     ) -> dict[str, Any]:
-        cache_args = self._cache_strategy_service.operation_list(name="product", values={ "filters": command.to_dict, "page": page, "limit": limit})
-        ttl: int = self._cache_strategy_service.determinate_ttl(cache_args)
-        products_key: str = self._cache_strategy_service.generate_key(cache_args)
         offset = self._pagination_service.get_offset(page, limit)
 
         return await self._cache_service.get_or_set_with_lock(
-            key=products_key,
-            ttl=ttl,
+            tag="product",
             callback=self._get_products_data,
             kwargs={
                 "command": command,
                 "offset": offset,
+                "limit": limit
+            },
+            key_args={
+                "filters": command.to_dict, 
+                "page": page, 
                 "limit": limit
             }
         )
@@ -471,16 +466,6 @@ class ProductService:
         )
 
         return product.to_dict
-        
-    async def _invalidate_products(self) -> None:
-        args = self._cache_strategy_service.operation_list("product", {})
-        key = self._cache_strategy_service.generate_family_key(args)
-        await self._cache_service.invalidate_family(key)
-
-    async def _invalidate_product(self, product_id: int) -> None:
-        args = self._cache_strategy_service.operation_by_id("product", product_id)
-        key: str = self._cache_strategy_service.generate_key(args)
-        await self._cache_service.cache_delete(key)
 
     def _sync_variant_images(self, source_product: Product, target_product: Product) -> None:
         """

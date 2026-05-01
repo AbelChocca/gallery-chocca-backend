@@ -1,6 +1,6 @@
 from app.domain.product.entities.product_variant import ProductVariant
 from app.domain.product.dto.product_dto import CategoryType, BrandType
-from app.domain.product.dto.variant_dto import UpdateProductVariantCommand
+from app.domain.product.dto.variant_dto import UpdateProductVariantCommand, PublishProductVariantCommand
 from app.domain.media.entities.image import ImageEntity
 
 from typing import List, Dict, Any
@@ -123,6 +123,21 @@ class Product:
             ]
         }
     
+    @property
+    def to_inventory_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "categoria": self.categoria,
+            "model_family": self.model_family,
+            "marca": self.marca,
+            "fit": self.fit,
+            "variants": [
+                variant.to_inventory_dict
+                for variant in self.variants
+            ]
+        }
+    
     def get_variant_images(self, variant_id: int) -> List[str]:
         if not variant_id:
             return []
@@ -169,25 +184,28 @@ class Product:
     def add_variant(
             self,
             *,
-            color: str,
-            sizes: List[str],
-            images: List[ImageEntity]
+            variant_command: PublishProductVariantCommand,
+            images: List[ImageEntity],
     ) -> None:
         if not images:
             raise ValidationError(
                 "New variant need at least one image",
                 {
                     "event": "product/add_variant",
-                    "color": color,
-                    "variant_sizes_sample": sizes[:5]
+                    "color": variant_command.color,
                 }
             )
         variant = ProductVariant(
-                color=color,
+                color=variant_command.color,
                 product_id=self.id or None
             )
-        for size in sizes:
-            variant.add_new_size(size)
+        for size in variant_command.sizes:
+            variant.add_new_size(
+                size=size,
+                product_name=self.nombre,
+                variant_color=variant_command.color,
+                initial_stock=size.initial_stock
+            )
         variant.imagenes = images
         self.variants.append(variant)
 

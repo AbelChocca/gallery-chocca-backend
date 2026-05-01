@@ -64,4 +64,7 @@ class VariantSizeTable(SQLModel, table=True):
     variant_id: int = Field(foreign_key="variant.id")
     size: str
 
+    stock: int = Field(default=0, ge=0)
+    sku: str
+
     variant: Mapped[VariantTable | None] = Relationship(back_populates="sizes")

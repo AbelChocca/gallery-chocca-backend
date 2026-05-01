@@ -4,8 +4,8 @@ from app.domain.media.entities.image import ImageEntity
 from app.domain.media.media_dto import ImageType
 from app.infra.db.exceptions import DatabaseException
 
-from sqlmodel import col
-from sqlalchemy import select, delete
+from sqlmodel import col, select
+from sqlalchemy import delete
 from sqlalchemy.exc import SQLAlchemyError
 
 from typing import List
@@ -137,3 +137,21 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
                     "publics_id_sample": publics_id[:5]
                 }
             ) from s
+        
+    async def get_first_image_of_owner_ids(self, owner_ids: list[int]) -> dict[int, list[ImageEntity]]:
+        stmt = (
+            select(MediaImageTable.owner_id, MediaImageTable)
+            .distinct(MediaImageTable.owner_id)
+            .where(col(MediaImageTable.owner_id).in_(owner_ids))
+            .order_by(MediaImageTable.owner_id)
+        )
+
+        res = await self._db_session.execute(stmt)
+        rows = res.all()
+
+        image_by_owner_id = {
+            owner_id: [self._base_mapper.to_entity(media_image)]
+            for owner_id, media_image in rows
+        }
+
+        return image_by_owner_id

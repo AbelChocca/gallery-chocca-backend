@@ -13,6 +13,7 @@ venv/
 *.env
 .venv
 .env.test
+__pycache__
 
 # Dependencias locales
 __pycache__/

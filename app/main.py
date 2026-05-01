@@ -17,6 +17,7 @@ from app.api.v1.media import media_router
 from app.api.v1.products import product_route
 from app.api.v1.favorites import favorites_router
 from app.api.v1.dashboard import dashboard_route
+from app.api.v1.inventory import inventory_route
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -68,3 +69,4 @@ app.include_router(slide_route.router)
 app.include_router(media_router.router)
 app.include_router(favorites_router.router)
 app.include_router(dashboard_route.router)
+app.include_router(inventory_route.router)

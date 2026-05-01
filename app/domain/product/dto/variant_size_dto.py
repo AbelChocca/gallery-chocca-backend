@@ -11,3 +11,4 @@ class UpdateVariantSizeCommand:
 @dataclass
 class PublishVariantSizeCommand:
     size: str
+    initial_stock: int | None = None

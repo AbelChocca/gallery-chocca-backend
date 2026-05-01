@@ -1,5 +1,6 @@
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.domain.product.entities.product import Product
+from app.domain.product.entities.variant_size import VariantSize
 from app.infra.db.models.model_product import ProductTable, VariantTable, VariantSizeTable
 
 from app.domain.product.dto.product_dto import FilterProductCommand
@@ -10,7 +11,7 @@ from app.core.exceptions import ValueNotFound
 from typing import List
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel.sql.expression import SelectOfScalar, Select
-from sqlmodel import select, col, exists, delete
+from sqlmodel import select, col, exists, or_
 from sqlalchemy.orm import selectinload, noload
 from sqlalchemy import func
 
@@ -20,9 +21,28 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         stmt: Select[ProductTable] | SelectOfScalar[ProductTable],
         filter_command: FilterProductCommand,
     ) -> Select[ProductTable] | SelectOfScalar[ProductTable]:
+        if filter_command.name or filter_command.sku:
+            conditions = []
 
-        if filter_command.name:
-            stmt = stmt.where(col(ProductTable.nombre).ilike(f"%{filter_command.name}%"))
+            if filter_command.name:
+                conditions.append(
+                    col(ProductTable.nombre).ilike(f"%{filter_command.name}%")
+                )
+
+            if filter_command.sku:
+                sku_subquery = (
+                    select(1)
+                    .select_from(VariantTable)
+                    .join(VariantSizeTable, VariantSizeTable.variant_id == VariantTable.id)
+                    .where(
+                        VariantTable.product_id == ProductTable.id,
+                        col(VariantSizeTable.sku).ilike(f"%{filter_command.sku}%")
+                    )
+                )
+
+                conditions.append(exists(sku_subquery.correlate(ProductTable)))
+
+            stmt = stmt.where(or_(*conditions))
 
         if filter_command.marca:
             stmt = stmt.where(ProductTable.marca == filter_command.marca)
@@ -47,8 +67,12 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                 subqr = (
                     subqr
                     .join(VariantSizeTable, VariantSizeTable.variant_id == VariantTable.id)
-                    .where(col(VariantSizeTable.size).in_(filter_command.sizes))
                 )
+
+                if filter_command.sizes:
+                    subqr = subqr.where(
+                        col(VariantSizeTable.size).in_(filter_command.sizes)
+                    )
 
             stmt = stmt.where(exists(subqr.correlate(ProductTable)))
 
@@ -100,6 +124,34 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         stmt = self._apply_filters(stmt, filter_command)
             
         
+        stmt = (
+            stmt
+            .order_by(col(ProductTable.id).desc())
+            .offset(offset)
+            .limit(limit)
+        )
+
+        res = (await self._db_session.execute(stmt)).scalars().all()
+
+        products = [
+            self._base_mapper.to_entity(product_table)
+            for product_table in res
+        ]
+        return products
+    
+    async def get_inventory_products(
+        self,
+        filter_command: FilterProductCommand,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> List[Product]:
+        stmt = select(ProductTable).options(
+                selectinload(ProductTable.variants).options(
+                    selectinload(VariantTable.sizes)
+                )
+            )
+        stmt = self._apply_filters(stmt, filter_command)
+            
         stmt = (
             stmt
             .order_by(col(ProductTable.id).desc())
@@ -170,3 +222,63 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                     "original_error": s.orig if hasattr(s, "orig") else str(s)
                 }
                 ) from s
+        
+    async def get_variant_size_by_id(self, variant_size_id: int) -> VariantSize:
+        stmt = (
+            select(VariantSizeTable)
+            .where(VariantSizeTable.id == variant_size_id)
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        variant_size = result.scalar_one_or_none()
+        if not variant_size:
+            raise ValueNotFound(
+                "Variant Size wasn't found",
+                {
+                    "event": "get_variant_size_by_id",
+                    "variant_id": variant_size_id
+                }
+            )
+        
+        return VariantSize(
+            size=variant_size.size,
+            stock=variant_size.stock,
+            id=variant_size.id,
+            sku=variant_size.sku,
+            variant_id=variant_size
+        )
+        
+    async def save_variant_size(self, variant_size: VariantSize) -> None:
+        try:
+            exisiting_variant_size = await self._get_variant_size_table_by_id(variant_size.id, True)
+            # Updating attributes
+            exisiting_variant_size.stock = variant_size.stock
+
+            self._db_session.add(exisiting_variant_size)
+        except SQLAlchemyError as s:
+            raise DatabaseException(
+                "Postgres error while saving Variant Size",
+                {
+                    "repository": f"postgres_{Product.__name__.lower()}",
+                    "base_model": VariantSizeTable.__name__,
+                    "event": "save_variant_size",
+                    "original_error": s.orig if hasattr(s, "orig") else str(s)
+                }
+                ) from s
+        
+    async def _get_variant_size_table_by_id(self, model_id: int, raise_exception: bool = False) -> VariantSizeTable | None:
+        stmt = select(VariantSizeTable).where(VariantSizeTable.id == model_id)
+        result = await self._db_session.execute(stmt)
+
+        variant_size = result.scalar_one_or_none()
+        if raise_exception and not variant_size:
+            raise ValueNotFound(
+                "Variant size wasn't found",
+                {
+                    "event": 'get_variant_size_table_by_id',
+                    "variant_size_id": model_id
+                }
+            )
+        
+        return variant_size
