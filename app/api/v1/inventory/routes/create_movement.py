@@ -12,11 +12,12 @@ from typing import Annotated
     status_code=status.HTTP_201_CREATED
 )
 async def create_movement(
-    schema: Annotated[CreateMovementSchema, Depends()],
+    variant_size_id: int,
+    schema: CreateMovementSchema,
     service: Annotated[InventoryService, Depends(get_inventory_service)]
 ) -> dict:
     command = CreateMovementCommand(
-        variant_size_id=schema.variant_size_id,
+        variant_size_id=variant_size_id,
         product_id=schema.product_id,
         type=schema.type,
         quantity=schema.quantity,
