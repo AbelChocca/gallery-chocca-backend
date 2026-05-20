@@ -1,9 +1,8 @@
-from app.api.security.jwt.protocole import JWTProtocole
-from app.api.security.jwt.jwt_service import get_jwt_repo
+from app.api.security.jwt.jwt_service import JWTService, get_jwt_service
 # Ocassionally
-from app.infra.db.repositories.sqlmodel_user_repository import PostgresUserRepository
-from app.infra.db.unit_of_work import UnitOfWork
-from app.api.dependencies.uow import get_uow
+from app.features.user.user_repository import PostgresUserRepository
+from app.infra.db.uow.unit_of_work import UnitOfWork
+from app.infra.db.uow.dependency import get_uow
 from fastapi import Depends
 
 from app.api.security.exceptions import AuthException, SecurityException
@@ -13,7 +12,7 @@ from app.core.exceptions import ValueNotFound
 class SecuritySessions:
     def __init__(
             self,
-            jwt: JWTProtocole,
+            jwt: JWTService,
             user_repo: PostgresUserRepository
             ):
         self.jwt = jwt
@@ -128,7 +127,7 @@ class SecuritySessions:
             return None
         return user.id
     
-def get_auth_sessions(jwt: JWTProtocole = Depends(get_jwt_repo), uow: UnitOfWork = Depends(get_uow)) -> SecuritySessions:
+def get_auth_sessions(jwt: JWTService = Depends(get_jwt_service), uow: UnitOfWork = Depends(get_uow)) -> SecuritySessions:
     return SecuritySessions(jwt=jwt, user_repo=uow.users)
 
 async def get_admin_session(auth: SecuritySessions = Depends(get_auth_sessions)) -> dict:
