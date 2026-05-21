@@ -7,7 +7,7 @@ import random
 
 from app.core.log.protocole import LoggerProtocol
 from app.infra.cache.protocole import CacheProtocol
-from app.shared.services.cache_strategy.cache_strategy_service import CacheStrategyService
+from app.shared.cache_strategy.cache_strategy_service import CacheStrategyService
 from app.infra.cache.exceptions import InternalCacheException
 
 class RedisService(CacheProtocol):
