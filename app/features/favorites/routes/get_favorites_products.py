@@ -1,7 +1,7 @@
 from app.features.favorites.favorites_router import router
 
 from app.features.products.schema import GetGridProductsResponse
-from app.api.schemas.pagination import PaginationSchema
+from app.shared.pagination.schema import PaginationSchema
 from app.features.favorites.service import FavoriteService
 from app.features.favorites.dependency import get_favorite_service
 from app.api.security.resolvers.session_owner import get_session_owner, OwnerSession
