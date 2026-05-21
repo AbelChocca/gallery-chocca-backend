@@ -1,6 +1,6 @@
 from app.infra.db.mappers.base_mapper import BaseMapper
 from app.infra.db.models.model_favorites import FavoritesTable
-from app.domain.favorites.favorite_entity import FavoriteEntity
+from app.features.favorites.favorite_entity import FavoriteEntity
 
 from typing import Optional
 

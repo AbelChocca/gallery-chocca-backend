@@ -1,6 +1,6 @@
 from app.infra.db.mappers.base_mapper import BaseMapper
 from app.infra.db.models.model_media import MediaImageTable
-from app.domain.media.entities.image import ImageEntity
+from app.features.media.entities.image import ImageEntity
 
 class ImageMapper(BaseMapper[ImageEntity, MediaImageTable]):
     @staticmethod

@@ -1,5 +1,5 @@
 from app.infra.db.mappers.base_mapper import BaseMapper
-from app.domain.inventory.inventory_movement_entity import InventoryMovement
+from app.features.inventory.inventory_movement_entity import InventoryMovement
 from app.infra.db.models.model_inventory_movement import InventoryMovementTable
 
 class InventoryMovementMapper(BaseMapper[InventoryMovement, InventoryMovementTable]):

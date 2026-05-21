@@ -1,4 +1,4 @@
-from app.domain.user.entity import User
+from app.features.user.entity import User
 from app.infra.db.models.model_user import UserTable
 
 from app.infra.db.mappers.base_mapper import BaseMapper
