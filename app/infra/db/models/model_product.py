@@ -1,5 +1,6 @@
-from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Index
+from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Index, Column, Numeric, text
 from sqlalchemy.orm import Mapped
+from decimal import Decimal
 
 class ProductTable(SQLModel, table=True):
     __tablename__ = "product"
@@ -25,6 +26,15 @@ class ProductTable(SQLModel, table=True):
     model_family: str = Field(max_length=50) 
     fit: str | None = Field(default=None, max_length=20)
     slug: str | None = Field(default=None)
+
+    price: Decimal = Field(
+        default=Decimal('0.00'),
+        sa_column=Column(
+            Numeric(10, 2),
+            nullable=False,
+            server_default=text('0.00')
+        )
+    )
 
     variants: Mapped[list['VariantTable']] = Relationship(
         back_populates='product',
