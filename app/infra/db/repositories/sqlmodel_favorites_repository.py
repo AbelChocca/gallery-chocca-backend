@@ -1,6 +1,6 @@
-from app.domain.favorites.favorite_entity import FavoriteEntity
-from app.domain.favorites.dto import FavoritesFilter
-from app.domain.product.entities.product import Product
+from app.features.favorites.favorite_entity import FavoriteEntity
+from app.features.favorites.dto import FavoritesFilterDto
+from app.features.products.entities.product import Product
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.infra.db.models.model_favorites import FavoritesTable
 from app.infra.db.models.model_product import ProductTable, VariantTable
@@ -105,7 +105,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
     async def get_favorites_by_user_id(
             self, 
             *,
-            filter: FavoritesFilter,
+            filter: FavoritesFilterDto,
             user_id: int,
             offset: int = 0,
             limit: int = 20,
@@ -147,7 +147,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
     async def get_favorites_by_session_id(
             self, 
             *,
-            filter: FavoritesFilter,
+            filter: FavoritesFilterDto,
             session_id: int,
             offset: int = 0,
             limit: int = 20,

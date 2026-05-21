@@ -1,9 +1,9 @@
 from app.infra.db.repositories.base_repository import BaseRepository
-from app.domain.product.entities.product import Product
-from app.domain.product.entities.variant_size import VariantSize
+from app.features.products.entities.product import Product
+from app.features.products.entities.variant_size import VariantSize
 from app.infra.db.models.model_product import ProductTable, VariantTable, VariantSizeTable
 
-from app.domain.product.dto.product_dto import FilterProductCommand
+from app.features.products.dto.product_dto import FilterProductCommand
 
 from app.infra.db.exceptions import DatabaseException
 from app.core.exceptions import ValueNotFound

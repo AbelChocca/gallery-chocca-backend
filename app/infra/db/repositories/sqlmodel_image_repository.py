@@ -1,7 +1,7 @@
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.infra.db.models.model_media import MediaImageTable
-from app.domain.media.entities.image import ImageEntity
-from app.domain.media.media_dto import ImageType
+from app.features.media.entities.image import ImageEntity
+from app.infra.storage.dto import ImageType
 from app.infra.db.exceptions import DatabaseException
 
 from sqlmodel import col, select
