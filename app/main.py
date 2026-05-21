@@ -7,24 +7,22 @@ from contextlib import asynccontextmanager
 from app.core.log.config import logger_service
 from app.api.middlewares.manager import init_middlewares
 from app.infra.db.config import init_db
-from app.infra.media.config import init_cloudinary_client
 from app.infra.cache.config import get_redis_client
 from app.core.settings.pydantic_settings import settings
 
-from app.api.v1.user import user_route
-from app.api.v1.slides import slide_route
-from app.api.v1.media import media_router
-from app.api.v1.products import product_route
-from app.api.v1.favorites import favorites_router
-from app.api.v1.dashboard import dashboard_route
-from app.api.v1.inventory import inventory_route
+from app.features.user import user_route
+from app.features.slides import slide_route
+from app.features.products import product_route
+from app.features.favorites import favorites_router
+from app.features.dashboard import dashboard_route
+from app.features.inventory import inventory_route
+from app.api.security.auth import auth_route
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger_service.info('🚀 Iniciandoo App')
     try:
         await init_db()
-        init_cloudinary_client()
 
         logger_service.info("✅ Base de datos inicializada correctamente.")
 
@@ -66,7 +64,7 @@ app.add_middleware(
 app.include_router(user_route.router)
 app.include_router(product_route.router)
 app.include_router(slide_route.router)
-app.include_router(media_router.router)
+app.include_router(auth_route.router)
 app.include_router(favorites_router.router)
 app.include_router(dashboard_route.router)
 app.include_router(inventory_route.router)
