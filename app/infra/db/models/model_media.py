@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Column, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ENUM
-from app.domain.media.media_dto import ImageType
+from app.infra.storage.dto import ImageType
 from sqlalchemy import Index, text
 
 class MediaImageTable(SQLModel, table=True):

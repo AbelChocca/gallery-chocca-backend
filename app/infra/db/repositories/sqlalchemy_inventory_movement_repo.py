@@ -1,8 +1,8 @@
 from app.infra.db.repositories.base_repository import BaseRepository
-from app.domain.inventory.inventory_movement_entity import InventoryMovement
+from app.features.inventory.inventory_movement_entity import InventoryMovement
 from app.infra.db.models.model_inventory_movement import InventoryMovementTable
 from app.infra.db.models.model_product import VariantSizeTable
-from app.domain.inventory.data_models import InventoryMovementFilters
+from app.features.inventory.dto import InventoryMovementFilters
 from sqlalchemy import select, func, Select
 from sqlmodel import col
 

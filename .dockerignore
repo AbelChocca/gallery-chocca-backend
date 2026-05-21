@@ -8,6 +8,7 @@ docs
 coverage
 
 # Entornos virtuales
+system
 venv/
 .env
 *.env

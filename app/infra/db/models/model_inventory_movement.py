@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Enum, Column, DateTime
-from app.domain.inventory.data_models import InventoryMovementType
+from app.features.inventory.dto import InventoryMovementType
 from datetime import datetime, timezone
 
 class InventoryMovementTable(SQLModel, table=True):

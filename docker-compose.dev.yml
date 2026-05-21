@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    restart: always 
+    restart: always
     env_file:
       - .env
     volumes:
@@ -9,7 +9,6 @@ services:
     ports:
       - "5435:5432"
 
-  
   redis:
     image: redis:latest
     restart: always
@@ -22,7 +21,7 @@ services:
 
   amd-app:
     container_name: backend
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile.dev
     ports:

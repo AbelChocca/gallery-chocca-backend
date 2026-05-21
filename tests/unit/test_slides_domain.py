@@ -1,8 +1,8 @@
 # test_slide_domain.py
 import pytest
 from datetime import datetime
-from app.domain.media.entities.image import ImageEntity
-from app.domain.slide.slide_entity import SlideEntity
+from app.features.media.entities.image import ImageEntity
+from app.features.slides.entity import SlideEntity
 from app.core.exceptions import ValidationError, ValueNotFound
 
 # ------------------------

@@ -1,6 +1,6 @@
 # test_image_domain.py
 import pytest
-from app.domain.media.entities.image import ImageEntity
+from app.features.media.entities.image import ImageEntity
 from app.core.exceptions import ValidationError
 
 # -------------------------

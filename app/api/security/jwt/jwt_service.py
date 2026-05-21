@@ -1,4 +1,3 @@
-from app.api.security.jwt.protocole import JWTProtocole
 from app.core.settings.pydantic_settings import get_settings, Settings
 from app.api.security.jwt.jwt_exception import JWTException
 from app.core.exceptions import ValueNotFound
@@ -8,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError, ExpiredSignatureError
 from typing import Dict, Any, Optional
 
-class JWTRepositoryInfra(JWTProtocole):
+class JWTService:
     def __init__(self, request: Request, response: Response, settings: Settings):
         self.request = request
         self.response = response
@@ -113,9 +112,9 @@ class JWTRepositoryInfra(JWTProtocole):
     def delete_cookie(self, key: str) -> None:
         self.response.delete_cookie(key, '/')
 
-def get_jwt_repo(
+def get_jwt_service(
         request: Request, 
         response: Response, 
         settings: Settings = Depends(get_settings)
-        ) -> JWTProtocole:
-    return JWTRepositoryInfra(request, response, settings)
+        ) -> JWTService:
+    return JWTService(request, response, settings)
