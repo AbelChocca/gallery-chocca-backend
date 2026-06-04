@@ -18,13 +18,23 @@ from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRep
 from app.infra.db.mappers.image_mapper import ImageMapper
 from app.infra.db.models.model_media import MediaImageTable
 
-from app.features.user.user_repository import PostgresUserRepository
+from app.infra.db.repositories.sqlalchemy_user_repository import PostgresUserRepository
 from app.infra.db.mappers.user_mapper import UserMapper
 from app.infra.db.models.model_user import UserTable
 
 from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavoritesRepository
 from app.infra.db.mappers.favorite_mapper import FavoritesMapper
 from app.infra.db.models.model_favorites import FavoritesTable
+
+from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
+from app.infra.db.mappers.cart_mapper import CartMapper
+from app.infra.db.models.model_cart import CartTable
+
+from app.infra.db.repositories.sqlalchemy_pricing_rule_repository import PricingRuleRepository
+from app.infra.db.mappers.pricing_rule_mapper import PricingRuleMapper
+from app.infra.db.models.model_pricing_rule import PricingRuleTable
+
+from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import ProductPricingRepository
 
 class UnitOfWork(AbstractAsyncContextManager):
     def __init__(self, session_factory: Callable[[], AsyncSession]):
@@ -64,6 +74,17 @@ class UnitOfWork(AbstractAsyncContextManager):
             InventoryMovementMapper,
             InventoryMovementTable
         )
+        self.carts = CartRepository(
+            self.session,
+            CartMapper,
+            CartTable
+        )
+        self.pricing_rules = PricingRuleRepository(
+            self.session,
+            PricingRuleMapper,
+            PricingRuleTable
+        )
+        self.product_pricing = ProductPricingRepository(self.session)
 
         return self
 

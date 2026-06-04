@@ -223,11 +223,13 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
                 }
                 ) from s
         
-    async def get_variant_size_by_id(self, variant_size_id: int) -> VariantSize:
+    async def get_variant_size_by_id(self, variant_size_id: int, with_lock: bool = False) -> VariantSize:
         stmt = (
             select(VariantSizeTable)
             .where(VariantSizeTable.id == variant_size_id)
         )
+        if with_lock:
+            stmt = stmt.with_for_update()
 
         result = await self._db_session.execute(stmt)
 
@@ -246,7 +248,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
             stock=variant_size.stock,
             id=variant_size.id,
             sku=variant_size.sku,
-            variant_id=variant_size
+            variant_id=variant_size.variant_id
         )
         
     async def save_variant_size(self, variant_size: VariantSize) -> None:

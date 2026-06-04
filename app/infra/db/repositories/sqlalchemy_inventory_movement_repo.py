@@ -7,7 +7,6 @@ from sqlalchemy import select, func, Select
 from sqlmodel import col
 
 class PostgresInventoryMovementReposity(BaseRepository[InventoryMovement, InventoryMovementTable]):
-
     async def count_with_filters(
         self,
         filters_command: InventoryMovementFilters | None = None
