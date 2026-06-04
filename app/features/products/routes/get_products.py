@@ -9,7 +9,6 @@ from app.features.products.dependency import get_product_service
 from fastapi import status, Depends
 from typing import Annotated
 
-
 @router.get(
     "/all",
     response_model=GetGridProductsResponse,

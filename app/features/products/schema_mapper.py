@@ -1,7 +1,7 @@
 from app.features.products.schema import CreateProductSchema, FilterSchema, UpdateProductSchema
 from app.features.products.dto.product_dto import PublishProductCommand, PublishProductVariantCommand, UpdateProductCommand, UpdateProductVariantCommand, FilterProductCommand
 from app.features.products.dto.variant_size_dto import UpdateVariantSizeCommand, PublishVariantSizeCommand
-from app.infra.storage.dto import UpdateImageCommand
+from app.features.media.dto import UpdateImageCommand
 from app.core.constants.color_families import COLOR_FAMILY_MAP
 
 class InputSchemaMapper:

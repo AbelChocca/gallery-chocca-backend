@@ -4,6 +4,7 @@ from app.features.products.dto.variant_dto import UpdateProductVariantCommand, P
 from app.features.media.entities.image import ImageEntity
 
 from typing import List, Dict, Any
+from decimal import Decimal
 from app.core.exceptions import ValidationError
 
 class Product:
@@ -16,6 +17,8 @@ class Product:
             categoria: CategoryType,
             slug: str,
             variants: List[ProductVariant],
+            base_price: Decimal,
+            is_active: bool,
             model_family: str,
             marca: BrandType,
             fit: str | None = None,
@@ -32,11 +35,21 @@ class Product:
         self.nombre = nombre
         self.descripcion = descripcion
         self.categoria = categoria
+        self._base_price = base_price
         self.marca = marca
+        self.is_active = is_active
         self._variants = variants
         self.model_family = model_family
         self.fit = fit
         self._slug = slug
+
+    @property
+    def base_price(self) -> Decimal:
+        return self._base_price
+    
+    @base_price.setter
+    def price(self, new_price: Decimal) -> None:
+        self._base_price = new_price
 
     @property
     def variants(self) -> List[ProductVariant]:

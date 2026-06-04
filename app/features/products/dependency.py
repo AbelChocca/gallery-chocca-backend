@@ -25,6 +25,7 @@ def get_product_service(
         product_repo=uow.products,
         favorite_repo=uow.favorites,
         image_repo=uow.images,
+        cart_repo=uow.carts,
         cache_service=cache_service,
         media_service=media_service,
         saga_service=saga_service,

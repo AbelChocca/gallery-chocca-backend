@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from app.infra.storage.dto import UpdateImageCommand
+from app.features.media.dto import UpdateImageCommand
 from app.features.products.dto.variant_size_dto import UpdateVariantSizeCommand, PublishVariantSizeCommand
 
 @dataclass

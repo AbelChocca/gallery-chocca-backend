@@ -59,7 +59,7 @@ class UpdateProductCommand:
         )
     
     @property
-    def variants_to_delete(self) -> int:
+    def variants_to_delete_count(self) -> int:
         return sum(
             1
             for v in self.variants

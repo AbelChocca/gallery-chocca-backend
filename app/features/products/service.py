@@ -1,7 +1,8 @@
 from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
 from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRepository
 from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavoritesRepository
-from app.features.products.dto.product_dto import PublishProductCommand, CreateProductResponse
+from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
+from app.features.products.dto.product_dto import PublishProductCommand
 from app.shared.slug.protocol import SlugProtocol
 from app.features.products.entities.product import Product
 from app.features.media.entities.image import ImageEntity
@@ -15,7 +16,7 @@ from app.infra.saga_service import SagaService
 from app.features.media.service import MediaService
 from app.core.app_exception import AppException
 
-from typing import List, BinaryIO, Dict, Callable, Any
+from typing import List, BinaryIO, Dict, Any
 from collections import defaultdict
 
 class ProductService:
@@ -23,6 +24,7 @@ class ProductService:
             self,
             product_repo: PostgresProductRepository,
             favorite_repo: PostgresFavoritesRepository,
+            cart_repo: CartRepository,
             saga_service: SagaService,
             cache_service: CacheProtocol,
             pagination_service: PaginationService,
@@ -32,6 +34,7 @@ class ProductService:
         ):
         self._product_repo: PostgresProductRepository = product_repo
         self._favorite_repo: PostgresFavoritesRepository = favorite_repo
+        self._cart_repo: CartRepository = cart_repo
         self._image_repo: PostgresImageRepository = image_repo
         self._saga_service: SagaService = saga_service
         self._slug_service: SlugProtocol = slug_service
@@ -57,15 +60,25 @@ class ProductService:
     async def delete_existing_entities(self, command: UpdateProductCommand) -> None:
         self._validate_the_deleting(command)
 
+        variants_size_to_delete_ids: list[int] = []
+        variants_to_delete_ids: list[int] = []
         images_public_id_to_delete = []
+
         for variant in command.variants:
             if variant.id is None: continue
 
             if variant.to_delete:
+                variants_to_delete_ids.append(variant.id)
+
                 images_public_id_to_delete.extend(
                     image.public_id
                     for image in (variant.imagenes or [])
                     if image.public_id is not None
+                )
+                variants_size_to_delete_ids.extend(
+                    variant_size.id
+                    for variant_size in (variant.sizes or [])
+                    if variant_size.id is not None
                 )
             else:
                 images_public_id_to_delete.extend(
@@ -74,11 +87,19 @@ class ProductService:
                     if image.to_delete and image.public_id is not None
                 )
 
+                variants_size_to_delete_ids.extend(
+                    variant_size.id
+                    for variant_size in (variant.sizes or [])
+                    if variant_size.to_delete and variant_size.id is not None
+                )
+
         await self._media_service.delete_images(
             owner_type="variant",
             images_public_id=images_public_id_to_delete,
             saga_service=self._saga_service
         )
+        await self._cart_repo.delete_items_by_variant_id(variants_to_delete_ids)
+        await self._cart_repo.delete_items_by_variant_size_ids(variants_size_to_delete_ids)
 
         await self._saga_service.execute_last()
     
@@ -304,9 +325,9 @@ class ProductService:
         last_three = await self._get_last_n(3)
 
         overview_res: ProductsOverview = {
-            "total_products": total_products,
-            "products_per_category": products_per_category,
-            "last_n_products": last_three
+            "total": total_products,
+            "per_category": products_per_category,
+            "recent": last_three
         }
 
         return overview_res
@@ -393,7 +414,7 @@ class ProductService:
         new_images_per_variant = product_command.new_images_per_variant if product_command.has_new_images else {}
 
         current_variants_count = product_command.existing_variants_count
-        variants_to_delete_count = product_command.variants_to_delete
+        variants_to_delete_count = product_command.variants_to_delete_count
         new_variants_count = product_command.new_variants_count
 
         diff: int = current_variants_count - variants_to_delete_count + new_variants_count
