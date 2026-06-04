@@ -1,5 +1,6 @@
 from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavoritesRepository
-from app.features.user.user_repository import PostgresUserRepository
+from app.infra.db.repositories.sqlalchemy_user_repository import PostgresUserRepository
+from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
 from app.infra.db.exceptions import DatabaseException
 from app.core.exceptions import ValidationError
 from app.features.user.entity import User
@@ -13,11 +14,13 @@ class UserService:
             self,
             user_repo: PostgresUserRepository,
             favorite_repo: PostgresFavoritesRepository,
+            cart_repo: CartRepository,
             pagination_service: PaginationService,
             settings: Settings
         ):
         self._user_repo = user_repo
         self._favorite_repo = favorite_repo
+        self._cart_repository = cart_repo
         self._pagination_service = pagination_service
         self._settings = settings
 
@@ -39,6 +42,11 @@ class UserService:
 
             if anon_session_id is not None:
                 await self._favorite_repo.set_anon_session_favorites_to_user_favorites(anon_session_id, res.id)
+
+                await self._cart_repository.migrate_session_cart_to_user(
+                    session_id=anon_session_id,
+                    user_id=res.id
+                )
 
             return res
         except DatabaseException as db:
@@ -92,10 +100,10 @@ class UserService:
 
         return user.to_dict
     
-    async def get_user_by_email(self, email: str) -> dict:
+    async def get_user_by_email(self, email: str):
         user = await self._user_repo.get_by_email(email)
 
-        return user.to_dict
+        return user
     
     async def overview(self) -> UsersOverview:
         num_users = await self._count_users()
@@ -104,19 +112,30 @@ class UserService:
         last_three_users = await self._get_last_n_users(3)
 
         res: UsersOverview = {
-            "last_three_users": last_three_users,
-            "sessions_count": active_and_inactive_users,
-            "total_users": num_users,
-            "users_per_role": count_users_by_role
+            "recent": last_three_users,
+            "total": num_users,
+            "per_role": count_users_by_role,
+            **active_and_inactive_users
         }
 
         return res
         
-    async def _count_users_by_active_session(self) -> ActivateAndInactiveUsers:
-        results = await self._user_repo.count_users_by_active_session()
-        user_counts: ActivateAndInactiveUsers = { "active" if is_active else "inactive": count for is_active, count in results }
+    async def _count_users_by_active_session(
+        self
+    ) -> ActivateAndInactiveUsers:
 
-        return user_counts
+        results = await self._user_repo.count_users_by_active_session()
+
+        counts: ActivateAndInactiveUsers = {
+            "active": 0,
+            "inactive": 0
+        }
+
+        for is_active, count in results:
+            key = "active" if is_active else "inactive"
+            counts[key] = count
+
+        return counts
     
     async def _count_users_per_role(self) -> list[UsersPerRole]:
         total_users_per_role = await self._user_repo.count_user_per_role()
