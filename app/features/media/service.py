@@ -4,7 +4,7 @@ from app.infra.async_utils import AsyncProtocol
 from app.core.app_exception import AppException
 from app.infra.saga_service import SagaService
 
-from app.infra.storage.dto import MediaImageDTO
+from app.features.media.dto import MediaImageDTO
 from app.features.media.entities.image import ImageEntity
 
 from typing import BinaryIO, List

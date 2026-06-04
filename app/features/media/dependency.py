@@ -14,6 +14,6 @@ def get_media_service(
         ) -> MediaService:
     return MediaService(
         image_repo=uow.images,
-        cloudinary_service=cloudinary_service,
+        storage_service=cloudinary_service,
         async_service=async_service
     )
