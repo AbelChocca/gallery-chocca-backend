@@ -122,7 +122,7 @@ class SlideService:
     ) -> dict[str, Any]:
         offset: int = self._pagination_service.get_offset(page, limit)
 
-        total_slides: int = await self._slide_repo._count_all(filters_command)
+        total_slides: int = await self._slide_repo.count_all(filters_command)
 
         total_pages: int = self._pagination_service.get_total_pages(total_slides, limit)
         current_page: int = self._pagination_service.get_current_page(offset, limit)
@@ -211,14 +211,14 @@ class SlideService:
             raise ae
 
     async def overview(self) -> SlidesOverview:
-        num_slides = await self._count_slides
+        num_slides = await self._count_slides()
         active_and_inactive_slides = await self._count_slides_by_active_session()
         last_three_slides = await self._get_last_n_slides(3)
 
         res: SlidesOverview = {
-            "last_three_slides": last_three_slides,
-            "total_slides": num_slides,
-            "sessions_count": active_and_inactive_slides
+            "recent": last_three_slides,
+            "total": num_slides,
+            **active_and_inactive_slides
         }
         return res
 
@@ -264,6 +264,8 @@ class SlideService:
             "active" if session else "inactive": count
             for session, count in slides_by_active_session
         }
+
+        return res
     
     
     async def _enrich_slides(
