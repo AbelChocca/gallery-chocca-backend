@@ -17,6 +17,8 @@ from app.features.favorites import favorites_router
 from app.features.dashboard import dashboard_route
 from app.features.inventory import inventory_route
 from app.api.security.auth import auth_route
+from app.features.cart import cart_route
+from app.features.pricing import pricing_route
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -68,3 +70,5 @@ app.include_router(auth_route.router)
 app.include_router(favorites_router.router)
 app.include_router(dashboard_route.router)
 app.include_router(inventory_route.router)
+app.include_router(cart_route.router)
+app.include_router(pricing_route.router)
