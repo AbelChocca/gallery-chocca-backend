@@ -45,6 +45,8 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
             categoria=model.categoria,
             model_family=model.model_family,
             fit=model.fit,
+            base_price=model.base_price,
+            is_active=model.is_active,
             marca=model.marca,
             slug=model.slug,
             variants=variants
@@ -65,6 +67,8 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
             existing_model.model_family = entity.model_family
             existing_model.fit = entity.fit
             existing_model.slug = entity.slug
+            existing_model.is_active = entity.is_active
+            existing_model.base_price = entity.base_price
 
             new_variants = []
             existing_variants_map = {
@@ -134,6 +138,8 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
             categoria=entity.categoria,
             marca=entity.marca,
             model_family=entity.model_family,
+            base_price=entity.base_price,
+            is_active=entity.is_active,
             fit=entity.fit,
             slug=entity.slug,
             variants=product_variants
