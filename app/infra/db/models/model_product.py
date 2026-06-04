@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Index, Column, Numeric, text
+from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Index, Column, Numeric, text, Boolean
 from sqlalchemy.orm import Mapped
 from decimal import Decimal
 
@@ -26,8 +26,9 @@ class ProductTable(SQLModel, table=True):
     model_family: str = Field(max_length=50) 
     fit: str | None = Field(default=None, max_length=20)
     slug: str | None = Field(default=None)
+    is_active: bool = Field(default=True, sa_column=Column(Boolean, server_default=text("true")))
 
-    price: Decimal = Field(
+    base_price: Decimal = Field(
         default=Decimal('0.00'),
         sa_column=Column(
             Numeric(10, 2),
