@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from app.infra.storage.dto import ImageType
+from app.features.media.dto import ImageType
 
 from app.core.exceptions import ValidationError
 
