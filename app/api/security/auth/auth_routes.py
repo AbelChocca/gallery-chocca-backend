@@ -4,7 +4,7 @@ from app.api.security.auth.schema import RegisterUserSchema, ReadSessionSchema, 
 from app.api.security.auth.dto import LoginUserCommand, RegisterUserCommand
 from app.api.security.resolvers.session_owner import get_anon_id
 from app.api.security.resolvers.captcha_resolver import verify_captcha
-from app.api.security.resolvers.sessions import get_user_session
+from app.api.security.resolvers.sessions import get_user_session, get_admin_session
 from app.api.security.auth.auth_service import AuthService
 from app.api.security.auth.dependency import get_auth_service
 
@@ -19,9 +19,10 @@ from typing import Annotated
 )
 async def login(
     login_schema: LoginUserSchema,
-    service: Annotated[AuthService, Depends(get_auth_service)]
+    service: Annotated[AuthService, Depends(get_auth_service)],
+    anon_id: Annotated[int, Depends(get_anon_id)]
 ) -> dict[str, str]:
-    return await service.login_user(LoginUserCommand(**login_schema.model_dump()))
+    return await service.login_user(LoginUserCommand(**login_schema.model_dump()), anon_id)
 
 @router.post(
     '/logout',
@@ -59,3 +60,14 @@ async def get_info(
     user_dto: Annotated[dict, Depends(get_user_session)]
 ) -> ReadSessionSchema:
     return ReadSessionSchema(**user_dto)
+
+@router.get(
+    '/admin/me',
+    status_code=status.HTTP_200_OK,
+    response_model=ReadSessionSchema,
+    summary="Endpoint for admin info"
+)
+async def get_admin_info(
+    admin_dto: Annotated[dict, Depends(get_admin_session)]
+) -> ReadSessionSchema:
+    return ReadSessionSchema(**admin_dto)

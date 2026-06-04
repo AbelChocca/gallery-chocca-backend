@@ -1,6 +1,6 @@
 from app.api.security.jwt.jwt_service import JWTService, get_jwt_service
 # Ocassionally
-from app.features.user.user_repository import PostgresUserRepository
+from app.infra.db.repositories.sqlalchemy_user_repository import PostgresUserRepository
 from app.infra.db.uow.unit_of_work import UnitOfWork
 from app.infra.db.uow.dependency import get_uow
 from fastapi import Depends

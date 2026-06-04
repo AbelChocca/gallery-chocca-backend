@@ -1,6 +1,8 @@
 from app.features.user.service import UserService
+from app.features.cart.service import CartService
 from app.api.security.hashing.hash_service import HashService
 from app.api.security.jwt.jwt_service import JWTService
+from app.core.settings.pydantic_settings import Settings
 
 from app.api.security.auth.dto import RegisterUserCommand, LoginUserCommand
 from app.core.exceptions import ValueNotFound
@@ -13,11 +15,15 @@ class AuthService:
         self,
         user_service: UserService,
         hasher_service: HashService,
+        cart_service: CartService,
         jwt_service: JWTService,
+        settings: Settings
     ):
         self._user_service = user_service
         self._hasher_service = hasher_service
+        self._cart_service = cart_service
         self._jwt_service = jwt_service
+        self._settings = settings
 
     def logout_user(self) -> dict:
         """
@@ -35,7 +41,7 @@ class AuthService:
 
         return {"message": "Logout was successful!"}
     
-    async def login_user(self, command: LoginUserCommand) -> dict[str, str]:
+    async def login_user(self, command: LoginUserCommand, anon_session_id: str) -> dict[str, str]:
         user = await self._user_service.get_user_by_email(command.email)
 
         if not self._hasher_service.verify(command.password, user.hashed_password):
@@ -61,6 +67,8 @@ class AuthService:
             token=r_token,
             expires=self._settings.REFRESH_TOKEN_EXPIRES_SECONDS
         )
+
+        await self._cart_service.merge_guest_cart_to_user_cart(anon_session_id, user.id)
         return {"message": "Login successful"}
     
     async def register_user(
