@@ -44,14 +44,11 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
 
             stmt = stmt.where(or_(*conditions))
 
-        if filter_command.marca:
-            stmt = stmt.where(ProductTable.marca == filter_command.marca)
+        if filter_command.brand:
+            stmt = stmt.where(ProductTable.brand == filter_command.brand)
 
-        if filter_command.categoria:
-            stmt = stmt.where(ProductTable.categoria == filter_command.categoria)
-
-        if filter_command.model_family:
-            stmt = stmt.where(ProductTable.model_family == filter_command.model_family)
+        if filter_command.category:
+            stmt = stmt.where(ProductTable.category == filter_command.category)
 
         if filter_command.colors or filter_command.sizes:
             subqr = (
@@ -115,15 +112,27 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         filter_command: FilterProductCommand,
         offset: int = 0,
         limit: int = 100,
+        load_sizes: bool = False
     ) -> List[Product]:
-        stmt = select(ProductTable).options(
-                selectinload(ProductTable.variants).options(
-                    noload(VariantTable.sizes)
-                )
+
+        variants_loader = selectinload(ProductTable.variants)
+
+        if load_sizes:
+            variants_loader = variants_loader.options(
+                selectinload(VariantTable.sizes)
             )
+        else:
+            variants_loader = variants_loader.options(
+                noload(VariantTable.sizes)
+            )
+
+        stmt = (
+            select(ProductTable)
+            .options(variants_loader)
+        )
+
         stmt = self._apply_filters(stmt, filter_command)
-            
-        
+
         stmt = (
             stmt
             .order_by(col(ProductTable.id).desc())
@@ -133,39 +142,10 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
 
         res = (await self._db_session.execute(stmt)).scalars().all()
 
-        products = [
+        return [
             self._base_mapper.to_entity(product_table)
             for product_table in res
         ]
-        return products
-    
-    async def get_inventory_products(
-        self,
-        filter_command: FilterProductCommand,
-        offset: int = 0,
-        limit: int = 100,
-    ) -> List[Product]:
-        stmt = select(ProductTable).options(
-                selectinload(ProductTable.variants).options(
-                    selectinload(VariantTable.sizes)
-                )
-            )
-        stmt = self._apply_filters(stmt, filter_command)
-            
-        stmt = (
-            stmt
-            .order_by(col(ProductTable.id).desc())
-            .offset(offset)
-            .limit(limit)
-        )
-
-        res = (await self._db_session.execute(stmt)).scalars().all()
-
-        products = [
-            self._base_mapper.to_entity(product_table)
-            for product_table in res
-        ]
-        return products
         
     async def search_related(self, query: str, offset: int, limit: int) -> List[Product]:
         statement = (
@@ -183,7 +163,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         ]
     
     async def get_count_by_category(self) -> list[tuple[str, int]]:
-        stmt = select(ProductTable.categoria, func.count()).group_by(ProductTable.categoria)
+        stmt = select(ProductTable.category, func.count()).group_by(ProductTable.category)
 
         res = await self._db_session.execute(stmt)
 

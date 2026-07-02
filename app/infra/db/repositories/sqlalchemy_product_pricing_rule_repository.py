@@ -12,7 +12,7 @@ from app.infra.db.models.model_media import MediaImageTable
 from app.features.pricing.entities.product_applied_pricing_rule import ProductAppliedPricingRule
 from app.infra.db.mappers.pricing_rule_mapper import PricingRuleMapper
 from app.features.pricing.types import ProductPricingSummaryTD
-from app.features.media.dto import ImageType
+from app.features.media.types import ImageType
 
 class ProductPricingRepository:
     def __init__(self, db_session: AsyncSession):
