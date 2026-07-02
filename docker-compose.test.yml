@@ -1,31 +1,14 @@
-
 services:
   test-db:
-    image: postgres:15-alpine
-    container_name: galeria-db-test
-    ports:
-      - "5434:5432"
+    image: postgres:15
+    container_name: backend-test-db
     env_file:
       - .env.test
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U angeloviu -d test_jeans_galery"]
-      interval: 5s
-      retries: 5
-  test-redis-app:
+    ports:
+      - "5436:5432"
+
+  test-redis:
     image: redis:latest
+    container_name: backend-test-redis
     ports:
-      - "6380:6379"
-  galeria-test-app:
-    command: ['pytest', '-v']
-    depends_on:
-      - test-db
-      - test-redis
-    env_file:
-      - .env.test
-    build: 
-      context: .
-      dockerfile: Dockerfile.dev
-    volumes:
-      - .:/app
-      - ./tests:/tests
-    
+      - "6382:6379"

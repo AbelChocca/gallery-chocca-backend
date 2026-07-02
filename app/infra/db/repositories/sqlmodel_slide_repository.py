@@ -1,5 +1,5 @@
-from app.domain.slide.slide_entity import SlideEntity
-from app.domain.slide.slide_dto import SlideFiltersCommand
+from app.features.slides.entity import SlideEntity
+from app.features.slides.dto import SlideFiltersCommand
 from app.infra.db.models.model_slide import SlideTable
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.infra.db.exceptions import DatabaseException

@@ -1,4 +1,3 @@
-from app.api.security.jwt.protocole import JWTProtocole
 from app.core.settings.pydantic_settings import get_settings, Settings
 from app.api.security.jwt.jwt_exception import JWTException
 from app.core.exceptions import ValueNotFound
@@ -8,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError, ExpiredSignatureError
 from typing import Dict, Any, Optional
 
-class JWTRepositoryInfra(JWTProtocole):
+class JWTService:
     def __init__(self, request: Request, response: Response, settings: Settings):
         self.request = request
         self.response = response
@@ -51,13 +50,8 @@ class JWTRepositoryInfra(JWTProtocole):
             except JWTException as e:
                 self.delete_cookie("refresh_token")
                 raise e
-        raise ValueNotFound(
-            "Token not found",
-            {
-                "service": "JWT/security",
-                "event": "get_token_from_cookies"
-            }
-        )
+            
+        return None
     
     def generate_token(self, data: dict, refresh: Optional[bool] = False):
         to_encode = data.copy()
@@ -83,7 +77,7 @@ class JWTRepositoryInfra(JWTProtocole):
             max_age=expires,
             expires=timedelta(seconds=expires),
             path='/',
-            secure=is_prod,
+            secure=True if is_prod else False,
             httponly=True,
             samesite='none' if is_prod else 'lax'
         )
@@ -113,9 +107,9 @@ class JWTRepositoryInfra(JWTProtocole):
     def delete_cookie(self, key: str) -> None:
         self.response.delete_cookie(key, '/')
 
-def get_jwt_repo(
+def get_jwt_service(
         request: Request, 
         response: Response, 
         settings: Settings = Depends(get_settings)
-        ) -> JWTProtocole:
-    return JWTRepositoryInfra(request, response, settings)
+        ) -> JWTService:
+    return JWTService(request, response, settings)

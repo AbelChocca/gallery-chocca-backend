@@ -1,9 +1,9 @@
 # tests/test_product_domain.py
 import pytest
-from app.domain.product.entities.product import Product
-from app.domain.product.entities.product_variant import ProductVariant
-from app.domain.product.entities.variant_size import VariantSize
-from app.domain.media.entities.image import ImageEntity
+from app.features.products.entities.product import Product
+from app.features.products.entities.product_variant import ProductVariant
+from app.features.products.entities.variant_size import VariantSize
+from app.features.media.entities.image import ImageEntity
 from app.core.exceptions import ValidationError
 
 # -----------------------

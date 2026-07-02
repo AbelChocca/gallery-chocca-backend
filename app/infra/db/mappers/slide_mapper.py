@@ -1,4 +1,4 @@
-from app.domain.slide.slide_entity import SlideEntity
+from app.features.slides.entity import SlideEntity
 from app.infra.db.models.model_slide import SlideTable
 from app.infra.db.mappers.base_mapper import BaseMapper
 

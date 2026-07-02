@@ -33,7 +33,7 @@ class BaseRepository(Generic[E, M]):
         
         return model
 
-    async def save(self, entity: E) -> E:
+    async def save(self, entity: E, flush: bool = True) -> E:
         try:
             if entity.id is None:
                 model: M = self._base_mapper.to_db_model(entity)
@@ -41,10 +41,11 @@ class BaseRepository(Generic[E, M]):
                 model: M = self._base_mapper.to_db_model(entity=entity, existing_model=(await self._get_model_by_id_non_raise(entity.id)))
 
             self._db_session.add(model)
-            await self._db_session.flush()
-            await self._db_session.refresh(model)
+            if flush:
+                await self._db_session.flush()
+                await self._db_session.refresh(model)
 
-            return self._base_mapper.to_entity(model)
+                return self._base_mapper.to_entity(model)
         except IntegrityError as i:
             raise DatabaseException(
                 "Integrity constraint violation",

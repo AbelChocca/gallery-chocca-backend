@@ -1,7 +1,7 @@
 # test_user_domain.py
 import pytest
 from datetime import datetime
-from app.domain.user.entity import User
+from app.features.user.entity import User
 from app.core.exceptions import ValidationError
 
 # ------------------------

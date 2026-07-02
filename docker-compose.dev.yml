@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    restart: always 
+    restart: always
     env_file:
       - .env
     volumes:
@@ -9,7 +9,6 @@ services:
     ports:
       - "5435:5432"
 
-  
   redis:
     image: redis:latest
     restart: always
@@ -21,7 +20,8 @@ services:
       --maxmemory-policy allkeys-lfu
 
   amd-app:
-    build: 
+    container_name: backend
+    build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
@@ -31,9 +31,8 @@ services:
       - db
       - redis
     volumes:
-      - ./app:/app/app
-      - ./alembic.ini:/app/alembic.ini
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - .:/app
+      - /app/.venv
     env_file:
       - .env
     image: backend_jean

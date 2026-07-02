@@ -2,7 +2,7 @@ import httpx
 
 from app.core.settings.pydantic_settings import settings
 from app.api.security.exceptions import InvalidCaptcha
-from app.api.schemas.user.user_schema import RegisterUserSchema
+from app.features.auth.schema import RegisterUserSchema
 
 
 async def verify_captcha(payload: RegisterUserSchema) -> RegisterUserSchema:

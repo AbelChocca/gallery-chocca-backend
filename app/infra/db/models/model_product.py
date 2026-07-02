@@ -1,5 +1,7 @@
-from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Index
+from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint, Index, Column, Numeric, text, Boolean, Enum
+from app.features.products.types import BrandType, CategoryType, FitType
 from sqlalchemy.orm import Mapped
+from decimal import Decimal
 
 class ProductTable(SQLModel, table=True):
     __tablename__ = "product"
@@ -10,21 +12,25 @@ class ProductTable(SQLModel, table=True):
             postgresql_using="gin",
             postgresql_ops={"nombre": "gin_trgm_ops"},
         ),
-        Index(
-            "ix_product_category_model_family",
-            "categoria",
-            "model_family"
-        ),
     )
 
     id: int | None = Field(default=None, primary_key=True)
     nombre: str = Field(nullable=False, unique=True)
     descripcion: str
-    marca: str = Field(nullable=False)
-    categoria: str = Field(max_length=30) 
-    model_family: str = Field(max_length=50) 
-    fit: str | None = Field(default=None, max_length=20)
+    brand: BrandType = Field(sa_column=Column(Enum(BrandType, name="brand_type"), nullable=False))
+    category: CategoryType = Field(sa_column=Column(Enum(CategoryType, name="category_type"), index=True))
+    fit: FitType | None = Field(default=None, sa_column=Column(Enum(FitType, name="fit_type")))
     slug: str | None = Field(default=None)
+    is_active: bool = Field(default=True, sa_column=Column(Boolean, server_default=text("true")))
+
+    base_price: Decimal = Field(
+        default=Decimal('0.00'),
+        sa_column=Column(
+            Numeric(10, 2),
+            nullable=False,
+            server_default=text('0.00')
+        )
+    )
 
     variants: Mapped[list['VariantTable']] = Relationship(
         back_populates='product',
@@ -63,5 +69,8 @@ class VariantSizeTable(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     variant_id: int = Field(foreign_key="variant.id")
     size: str
+
+    stock: int = Field(default=0, ge=0)
+    sku: str
 
     variant: Mapped[VariantTable | None] = Relationship(back_populates="sizes")

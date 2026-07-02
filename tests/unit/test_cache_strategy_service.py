@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 import pytest
 
-from app.shared.services.cache_strategy.cache_strategy_service import CacheStrategyService
+from app.shared.cache_strategy.cache_strategy_service import CacheStrategyService
 
 def test_break_operation_by_id():
     settings = Mock()

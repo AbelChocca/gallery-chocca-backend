@@ -1,19 +1,20 @@
-from app.api.security.jwt.protocole import JWTProtocole
-from app.api.security.jwt.jwt_service import get_jwt_repo
+from app.api.security.jwt.jwt_service import JWTService, get_jwt_service
 # Ocassionally
-from app.infra.db.repositories.sqlmodel_user_repository import PostgresUserRepository
-from app.infra.db.unit_of_work import UnitOfWork
-from app.api.dependencies.uow import get_uow
+from app.infra.db.repositories.sqlalchemy_user_repository import PostgresUserRepository
+from app.infra.db.uow.unit_of_work import UnitOfWork
+from app.infra.db.uow.dependency import get_uow
 from fastapi import Depends
 
 from app.api.security.exceptions import AuthException, SecurityException
 from app.core.exceptions import ValueNotFound
-
+from app.features.auth.schema import ReadSessionSchema
+from app.features.user.user_schema import ReadUserSchema
+from app.core.authorization.role_permissions import ROLE_PERMISSIONS
 
 class SecuritySessions:
     def __init__(
             self,
-            jwt: JWTProtocole,
+            jwt: JWTService,
             user_repo: PostgresUserRepository
             ):
         self.jwt = jwt
@@ -22,14 +23,8 @@ class SecuritySessions:
     async def _get_user(self):
         payload = self.jwt.get_token_from_cookies()
 
-        if not payload:
-            raise AuthException(
-                "Unathorized session.",
-                {
-                    "service": "sessions/security",
-                    "event": "_get_user"
-                }
-            )
+        if payload is None:
+            return None
         
         email = payload.get("sub")
         if not email:
@@ -44,7 +39,7 @@ class SecuritySessions:
         user = await self.user_repo.get_by_email(email)
         return user
 
-    async def get_user_session(self) -> dict:        
+    async def get_user_info(self) -> ReadUserSchema:        
         user = await self._get_user()
         if not user:
             raise ValueNotFound(
@@ -64,26 +59,21 @@ class SecuritySessions:
                 }
             )
         
-        return {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "role": user.role,
-            "is_active": user.is_active
-        }
-
-    async def get_admin(self) ->  dict:
-        admin = await self._get_user()
-        if not admin:
-            raise ValueNotFound(
-                "User not found",
-                {
-                    "service": "sessions/security",
-                    "event": "get_user_session"
-                }
-            )
+        return ReadUserSchema(
+            id=user.id,
+            name=user.name,
+            email=user.email,
+            is_active=user.is_active,
+            created_at=user.created_at,
+            role=user.role
+        )
+    
+    async def get_user_session(self) -> ReadSessionSchema | None:       
+        user = await self._get_user()
+        if user is None:
+            return None
         
-        if not admin.is_active:
+        if not user.is_active:
             raise SecurityException(
                 "Account's not longer active.",
                 {
@@ -92,23 +82,11 @@ class SecuritySessions:
                 }
             )
         
-        if admin.role != "admin":
-            raise SecurityException(
-                "Account's not longer active.",
-                {
-                    "service": "sessions/security",
-                    "event": "get_user_session",
-                    "role": admin.role
-                }
-            )
-        
-        return {
-            "id": admin.id,
-            "name": admin.name,
-            "email": admin.email,
-            "role": admin.role,
-            "is_active": admin.is_active
-        }
+        return ReadSessionSchema(
+            id=user.id,
+            role=user.role,
+            permissions=ROLE_PERMISSIONS[user.role]
+        )
 
     async def get_user_id(self) -> int | None:
         session_token = self.jwt.get_session_token_from_cookies_with_no_raises()
@@ -128,14 +106,16 @@ class SecuritySessions:
             return None
         return user.id
     
-def get_auth_sessions(jwt: JWTProtocole = Depends(get_jwt_repo), uow: UnitOfWork = Depends(get_uow)) -> SecuritySessions:
+def get_auth_sessions(jwt: JWTService = Depends(get_jwt_service), uow: UnitOfWork = Depends(get_uow)) -> SecuritySessions:
     return SecuritySessions(jwt=jwt, user_repo=uow.users)
 
-async def get_admin_session(auth: SecuritySessions = Depends(get_auth_sessions)) -> dict:
-    return await auth.get_admin()
-
-async def get_user_session(auth: SecuritySessions = Depends(get_auth_sessions)) -> dict:
-    return await auth.get_user_session()
+async def get_user_info(auth: SecuritySessions = Depends(get_auth_sessions)) -> ReadUserSchema:
+    return await auth.get_user_info()
 
 async def get_user_id(auth: SecuritySessions = Depends(get_auth_sessions)) -> int | None:
     return await auth.get_user_id()
+
+async def get_user_session(
+    auth: SecuritySessions = Depends(get_auth_sessions)
+) -> ReadSessionSchema | None:
+    return await auth.get_user_session()
