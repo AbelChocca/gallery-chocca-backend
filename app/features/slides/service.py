@@ -1,7 +1,7 @@
 from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRepository
 from app.infra.db.repositories.sqlmodel_slide_repository import PostgresSlideRepository
 from app.shared.pagination.pagination_service import PaginationService
-from app.infra.saga_service import SagaService
+from app.infra.saga.saga_service import SagaService
 from app.infra.cache.protocole import CacheProtocol
 from app.features.slides.dto import UpdateSlideCommand, UpdateSlidesOrder, SlideFiltersCommand, PublishSlideCommand
 from app.features.media.entities.image import ImageEntity
