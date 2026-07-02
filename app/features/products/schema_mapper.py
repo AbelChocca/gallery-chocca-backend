@@ -24,9 +24,8 @@ class InputSchemaMapper:
         return PublishProductCommand(
             nombre=schema.nombre,
             descripcion=schema.descripcion,
-            marca=schema.marca,
-            categoria=schema.categoria,
-            model_family=schema.model_family,
+            brand=schema.brand,
+            category=schema.category,
             fit=schema.fit,
             variants=product_variants,
             temp_keys=schema.temp_keys
@@ -77,9 +76,8 @@ class InputSchemaMapper:
             id=schema.id,
             nombre=schema.nombre,
             descripcion=schema.descripcion,
-            marca=schema.marca,
-            categoria=schema.categoria,
-            model_family=schema.model_family,
+            brand=schema.brand,
+            category=schema.category,
             fit=schema.fit,
             variants=product_variants,
             name_changed=schema.name_changed,
@@ -91,9 +89,8 @@ class InputSchemaMapper:
         colors = COLOR_FAMILY_MAP.get(schema.color)
         return FilterProductCommand(
             name=schema.name,
-            marca=schema.marca,
-            categoria=schema.categoria,
-            model_family=schema.model_family,
+            brand=schema.brand,
+            category=schema.category,
             colors=colors,
             sizes=schema.sizes,
             sku=schema.sku

@@ -6,15 +6,16 @@ from app.features.products.dto.product_dto import PublishProductCommand
 from app.shared.slug.protocol import SlugProtocol
 from app.features.products.entities.product import Product
 from app.features.media.entities.image import ImageEntity
-from app.infra.saga_service import SagaService
+from app.infra.saga.saga_service import SagaService
 from app.infra.cache.protocole import CacheProtocol
 from app.features.products.dto.product_dto import UpdateProductCommand, FilterProductCommand
 from app.shared.pagination.pagination_service import PaginationService
 from app.core.exceptions import ValidationError
 from app.features.products.types import ProductsOverview, CountProductPerCategory
-from app.infra.saga_service import SagaService
+from app.infra.saga.saga_service import SagaService
 from app.features.media.service import MediaService
 from app.core.app_exception import AppException
+from app.features.products.constants import CACHE_KEY
 
 from typing import List, BinaryIO, Dict, Any
 from collections import defaultdict
@@ -47,7 +48,7 @@ class ProductService:
             product_id: int
     ) -> dict[str, Any]:
         return await self._cache_service.get_or_set_with_lock(
-            tag="product",
+            tag=CACHE_KEY,
             callback=self._get_product_data,
             kwargs={
                 "product_id": product_id
@@ -143,7 +144,7 @@ class ProductService:
                 )
 
             # Invalidating cache
-            await self._cache_service.invalidate_entities("product")
+            await self._cache_service.invalidate_entities(CACHE_KEY)
 
             return {
                 "id": product_db.id, 
@@ -206,9 +207,9 @@ class ProductService:
                         saga_service=self._saga_service
                     )
 
-            await self._cache_service.invalidate_entity("product", product_id)
+            await self._cache_service.invalidate_entity(CACHE_KEY, product_id)
 
-            await self._cache_service.invalidate_entities("product")
+            await self._cache_service.invalidate_entities(CACHE_KEY)
         except AppException as ae:
             await self._saga_service.compensate_all()
 
@@ -235,7 +236,7 @@ class ProductService:
         offset = self._pagination_service.get_offset(page, limit)
 
         return await self._cache_service.get_or_set_with_lock(
-            tag="product",
+            tag=CACHE_KEY,
             callback=self._get_products_data,
             kwargs={
                 "command": command,

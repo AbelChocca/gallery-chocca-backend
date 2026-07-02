@@ -11,7 +11,7 @@ from app.shared.pagination.pagination_service import PaginationService, get_pagi
 from app.shared.slug.slugify_service import SlugService, get_slugify_service
 from app.features.media.service import MediaService
 from app.features.media.dependency import get_media_service
-from app.infra.saga_service import SagaService, get_saga_service
+from app.infra.saga.saga_service import SagaService, get_saga_service
 
 def get_product_service(
     uow: UnitOfWork = Depends(get_uow),

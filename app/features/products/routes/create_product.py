@@ -1,10 +1,11 @@
 from app.features.products.product_route import router
 from app.features.products.schema import CreateProductSchema, CreateProductResponse
 from app.features.products.schema_mapper import InputSchemaMapper
-from app.api.security.resolvers.sessions import get_admin_session
 from app.features.products.types import ProductImageType
 from app.features.products.service import ProductService
 from app.features.products.dependency import get_product_service
+from app.core.authorization.dependencies import require_permission
+from app.core.authorization.permissions import Permission
 
 from fastapi import status, Depends, File, Form 
 from typing import Annotated
@@ -14,13 +15,15 @@ import orjson
     "/publish/",
     response_model=CreateProductResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create an product"
+    summary="Create an product",
+    dependencies=[
+        require_permission(Permission.PRODUCT_CREATE)
+    ]
 )
 async def create_product(
     product_schema_json: Annotated[str, Form(...)],
     files: Annotated[ProductImageType, File(...)],
-    service: Annotated[ProductService, Depends(get_product_service)],
-    _: Annotated[None, Depends(get_admin_session)]
+    service: Annotated[ProductService, Depends(get_product_service)]
 ) -> CreateProductResponse:
     data = orjson.loads(product_schema_json)   
     schema: CreateProductSchema = CreateProductSchema(**data)

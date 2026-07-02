@@ -14,14 +14,26 @@ class ColorFilter(str, Enum):
     red = "red"
 
 class BrandType(str, Enum):
-    bgoo = "BGOO"
-    amd = "AMD"
+    BGOO = "BGOO"
+    AMD = "AMD"
 
 class CategoryType(str, Enum):
-    pant = 'pant'
-    shirt = 'shirt'
-    short = 'short'
-    jacket = 'jacket'
+    PANT = 'PANT'
+    SHIRT = 'SHIRT'
+    SHORT = 'SHORT'
+    JACKET = 'JACKET'
+
+class FitType(str, Enum):
+    SKINNY = "SKINNY"
+    SLIM = "SLIM"
+    REGULAR = "REGULAR"
+    STRAIGHT = "STRAIGHT"
+    RELAXED = "RELAXED"
+    LOOSE = "LOOSE"
+    MOM_FIT = "MOM_FIT"
+    BOOTCUT = "BOOTCUT"
+    TAPERED = "TAPERED"
+    BOXY = "BOXY"
 
 class SizeType(str, Enum):
     SIZE_28 = "28"

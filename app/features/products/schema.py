@@ -26,9 +26,8 @@ class ProductRead(BaseModel):
     id: int
     nombre: str
     descripcion: str
-    marca: BrandType
-    categoria: CategoryType
-    model_family: str  # Ej: "jean", "drill"
+    brand: BrandType
+    category: CategoryType
     fit: str | None
     slug: str | None
 
@@ -45,8 +44,7 @@ class GridProductVariantRead(BaseModel):
 class GridProductRead(BaseModel):
     id: int
     nombre: str
-    categoria: CategoryType   # Ej: "pantalon", "camisa"
-    model_family: str | None  # Ej: "jean", "drill"
+    category: CategoryType   # Ej: "pantalon", "camisa"
     slug: str | None
 
     variants: List[GridProductVariantRead]
@@ -65,9 +63,8 @@ class CreateProductVariantSchema(BaseModel):
 class CreateProductSchema(BaseModel):
     nombre: str = Field(max_length=55)
     descripcion: str 
-    marca: BrandType
-    categoria: CategoryType 
-    model_family: str = Field(min_length=2)
+    brand: BrandType
+    category: CategoryType 
     fit: str | None = Field(None, min_length=2)
 
     variants: List[CreateProductVariantSchema] = Field(min_length=1, max_length=5)
@@ -96,9 +93,8 @@ class UpdateProductSchema(BaseModel):
     id: int | None = None
     nombre: str | None = Field(default=None, min_length=8, max_length=55, examples=[None])
     descripcion: str | None = Field(default=None, examples=[None], min_length=2)
-    marca: BrandType | None = Field(default=None, examples=[None], min_length=2)
-    categoria: CategoryType | None = Field(default=None, min_length=4, examples=[None]) # Ej: "pantalon", "camisa"
-    model_family: str | None = Field(default=None, min_length=2)
+    brand: BrandType | None = Field(default=None, examples=[None], min_length=2)
+    category: CategoryType | None = Field(default=None, min_length=4, examples=[None]) # Ej: "pantalon", "camisa"\
     fit: str | None = Field(default=None, examples=[None], min_length=2)  # Ej: "jean", "drill"
 
     variants: List[UpdateProductVariantSchema] | None = Field(default=None, min_length=1, max_length=5)
@@ -109,9 +105,8 @@ class UpdateProductSchema(BaseModel):
 
 class FilterSchema(BaseModel):
     name: str | None = None
-    marca: BrandType | None = None
-    categoria: CategoryType | None = None
-    model_family: str | None = None
+    brand: BrandType | None = None
+    category: CategoryType | None = None
     color: ColorFilter | None = None
     sizes: List[SizeType] | None = None
     sku: str | None = None

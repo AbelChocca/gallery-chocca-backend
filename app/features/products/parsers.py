@@ -6,16 +6,14 @@ def filter_dep(
     name: str | None = Query(None),
     marca: BrandType | None = Query(None),
     categoria: CategoryType | None = Query(None),
-    model_family: str | None = Query(None),
     color: ColorFilter | None = Query(None),
     sizes: list[str] | None = Query(None),
     sku: str | None = Query(None),
 ) -> FilterSchema:
     return FilterSchema(
         name=name,
-        marca=marca,
-        categoria=categoria,
-        model_family=model_family,
+        brand=marca,
+        category=categoria,
         color=color,
         sizes=sizes,
         sku=sku

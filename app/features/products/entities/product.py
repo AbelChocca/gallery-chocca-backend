@@ -8,38 +8,36 @@ from decimal import Decimal
 from app.core.exceptions import ValidationError
 
 class Product:
-    _UPDATABLE_FIELDS = {"nombre", "descripcion", "categoria", "model_family", "fit", "marca"}
+    _UPDATABLE_FIELDS = {"nombre", "descripcion", "category", "fit", "brand"}
 
     def __init__(
             self,
             nombre: str,
             descripcion: str,
-            categoria: CategoryType,
+            category: CategoryType,
             slug: str,
             variants: List[ProductVariant],
             base_price: Decimal,
             is_active: bool,
-            model_family: str,
-            marca: BrandType,
+            brand: BrandType,
             fit: str | None = None,
             id: int | None = None,
     ):        
         # validation
-        for v in [nombre, marca, categoria]:
+        for v in [nombre, brand, category]:
             self._not_number(v)    
 
-        for v in [nombre, descripcion, model_family]:
+        for v in [nombre, descripcion]:
             v = self._not_empty(v)
 
         self.id = id
         self.nombre = nombre
         self.descripcion = descripcion
-        self.categoria = categoria
+        self.category = category
         self._base_price = base_price
-        self.marca = marca
+        self.brand = brand
         self.is_active = is_active
         self._variants = variants
-        self.model_family = model_family
         self.fit = fit
         self._slug = slug
 
@@ -125,10 +123,9 @@ class Product:
             "id": self.id,
             "nombre": self.nombre,
             "descripcion": self.descripcion,
-            "categoria": self.categoria,
+            "category": self.category,
             "slug": self.slug,
-            "model_family": self.model_family,
-            "marca": self.marca,
+            "brand": self.brand,
             "fit": self.fit,
             "variants": [
                 variant.to_dict
@@ -141,9 +138,8 @@ class Product:
         return {
             "id": self.id,
             "nombre": self.nombre,
-            "categoria": self.categoria,
-            "model_family": self.model_family,
-            "marca": self.marca,
+            "category": self.category,
+            "brand": self.brand,
             "fit": self.fit,
             "variants": [
                 variant.to_inventory_dict
@@ -275,9 +271,8 @@ class Product:
         res += (
             f"Name: {self.nombre}\n"
             f"Description: {self.descripcion[:55]}\n"
-            f"Category: {self.categoria}\n"
-            f"Model_family: {self.model_family}\n"
-            f"Brand: {self.marca}\n"
+            f"Category: {self.category}\n"
+            f"Brand: {self.brand}\n"
             f"Fit: {self.fit}\n"
         )
         if self.has_variants:
