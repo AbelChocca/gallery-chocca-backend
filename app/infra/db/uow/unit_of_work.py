@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import AbstractAsyncContextManager
-from typing import Callable, Type
+from typing import Callable, Type, TypeVar
+
+T = TypeVar("T")
 
 from app.infra.db.repositories.sqlalchemy_inventory_movement_repo import PostgresInventoryMovementReposity
 from app.infra.db.mappers.inventory_movement_mapper import InventoryMovementMapper
@@ -36,61 +38,187 @@ from app.infra.db.models.model_pricing_rule import PricingRuleTable
 
 from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import ProductPricingRepository
 
+from app.infra.db.repositories.material_repository import PostgresMaterialRepository
+from app.infra.db.mappers.material_mapper import MaterialMapper
+from app.infra.db.models.model_material import MaterialTable
+
 class UnitOfWork(AbstractAsyncContextManager):
     def __init__(self, session_factory: Callable[[], AsyncSession]):
         self._session_factory = session_factory
         self.session: AsyncSession | None = None
 
-    async def __aenter__(self) -> "UnitOfWork":
-        self.session = self._session_factory()
+        self._repositories = None
+    
+    @property
+    def favorites(
+        self
+    ) -> PostgresFavoritesRepository:
 
-        self.products = PostgresProductRepository(
-            self.session,
-            ProductMapper,
-            ProductTable
+        return self._get_or_create(
+            "favorites",
+            lambda: PostgresFavoritesRepository(
+                self.session,
+                FavoritesMapper,
+                FavoritesTable
+            )
         )
-        self.slides = PostgresSlideRepository(
-            self.session,
-            SlideMapper,
-            SlideTable
+
+
+    @property
+    def images(
+        self
+    ) -> PostgresImageRepository:
+
+        return self._get_or_create(
+            "images",
+            lambda: PostgresImageRepository(
+                self.session,
+                ImageMapper,
+                MediaImageTable
+            )
         )
-        self.users = PostgresUserRepository(
-            self.session,
-            UserMapper,
-            UserTable
+
+
+    @property
+    def inventory(
+        self
+    ) -> PostgresInventoryMovementReposity:
+
+        return self._get_or_create(
+            "inventory",
+            lambda: PostgresInventoryMovementReposity(
+                self.session,
+                InventoryMovementMapper,
+                InventoryMovementTable
+            )
         )
-        self.favorites = PostgresFavoritesRepository(
-            self.session,
-            FavoritesMapper,
-            FavoritesTable
+
+
+    @property
+    def carts(
+        self
+    ) -> CartRepository:
+
+        return self._get_or_create(
+            "carts",
+            lambda: CartRepository(
+                self.session,
+                CartMapper,
+                CartTable
+            )
         )
-        self.images = PostgresImageRepository(
-            self.session,
-            ImageMapper,
-            MediaImageTable
+
+
+    @property
+    def pricing_rules(
+        self
+    ) -> PricingRuleRepository:
+
+        return self._get_or_create(
+            "pricing_rules",
+            lambda: PricingRuleRepository(
+                self.session,
+                PricingRuleMapper,
+                PricingRuleTable
+            )
         )
-        self.inventory = PostgresInventoryMovementReposity(
-            self.session,
-            InventoryMovementMapper,
-            InventoryMovementTable
+
+
+    @property
+    def product_pricing(
+        self
+    ) -> ProductPricingRepository:
+
+        return self._get_or_create(
+            "product_pricing",
+            lambda: ProductPricingRepository(
+                self.session
+            )
         )
-        self.carts = CartRepository(
-            self.session,
-            CartMapper,
-            CartTable
+
+
+    @property
+    def materials(
+        self
+    ) -> PostgresMaterialRepository:
+
+        return self._get_or_create(
+            "materials",
+            lambda: PostgresMaterialRepository(
+                self.session,
+                MaterialMapper,
+                MaterialTable
+            )
         )
-        self.pricing_rules = PricingRuleRepository(
-            self.session,
-            PricingRuleMapper,
-            PricingRuleTable
+    
+    @property
+    def products(
+        self
+    ) -> PostgresProductRepository:
+
+        return self._get_or_create(
+            "products",
+            lambda: PostgresProductRepository(
+                self.session,
+                ProductMapper,
+                ProductTable
+            )
         )
-        self.product_pricing = ProductPricingRepository(self.session)
+    
+    @property
+    def slides(
+        self
+    ) -> PostgresSlideRepository:
+
+        return self._get_or_create(
+            "slides",
+            lambda: PostgresSlideRepository(
+                self.session,
+                SlideMapper,
+                SlideTable
+            )
+        )
+    
+    @property
+    def users(
+        self
+    ) -> PostgresUserRepository:
+
+        return self._get_or_create(
+            "users",
+            lambda: PostgresUserRepository(
+                self.session,
+                UserMapper,
+                UserTable
+            )
+        )
+    
+    def _get_or_create(
+        self,
+        key: str,
+        factory: Callable[[], T]
+    ) -> T:
+        if key not in self._repositories:
+            self._repositories[key] = factory()
+
+        return self._repositories[key]
+    
+    async def __aenter__(self) -> "UnitOfWork":
+        if self.session is not None:
+            await self.session.close()
+            
+        self.session = self._session_factory()
+        self._repositories = {}
 
         return self
 
     async def __aexit__(self, exc_type: Type[BaseException], exc, tb):
-        if exc_type:
-            await self.session.rollback()
-        else:
-            await self.session.commit()
-        await self.session.close()
+        try:
+            if exc_type:
+                await self.session.rollback()
+            else:
+                await self.session.commit()
+        finally:
+            await self.session.close() 
+            self.session = None
+            self._repositories = None

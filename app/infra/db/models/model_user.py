@@ -1,5 +1,7 @@
 from sqlmodel import SQLModel, DateTime, Column, Index, text, Field, Boolean
 from datetime import datetime
+from sqlalchemy import Enum as SQLEnum
+from app.features.user.types import UserRole
 
 # Modelo SQL para Admin
 class UserTable(SQLModel, table=True):
@@ -15,7 +17,19 @@ class UserTable(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     nombre: str = Field(max_length=50, unique=True)
     email: str = Field(index=True, unique=True)
-    role: str = Field(default='user',index=True, max_length=20)
+    role: UserRole = Field(
+        sa_column=Column(
+            SQLEnum(
+                UserRole,
+                values_callable=lambda enum: [e.value for e in enum],
+                native_enum=False,
+                create_constraint=True,
+            ),  
+            nullable=False,
+            default=UserRole.USER,
+            index=True,
+        )
+    )
     created_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), server_default=text('now()'), nullable=False)
         )
