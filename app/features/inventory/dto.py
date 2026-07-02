@@ -16,8 +16,8 @@ class InventoryMovementDTO:
     quantity: int
     previous_stock: int
     new_stock: int
-    reason: str
     created_at: str
+    reason: str | None = None
 
     @classmethod
     def from_entity(
@@ -180,8 +180,8 @@ class InventoryMovementAdminDTO:
     previous_stock: int
     new_stock: int
 
-    reason: str
     created_at: str
+    reason: str | None = None
 
     def to_dict(self) -> dict:
         return {

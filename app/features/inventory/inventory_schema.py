@@ -38,8 +38,8 @@ class InventoryMovementRead(BaseModel):
     previous_stock: int
     new_stock: int
 
-    reason: str
     created_at: datetime
+    reason: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
