@@ -94,6 +94,66 @@ class RedisService(CacheProtocol):
                 }
             ) from e
         
+    async def get_or_set_with_lock_v2(
+            self,
+            *,
+            tag: str,
+            callback: Callable[..., Awaitable[Any] | Any],
+            kwargs: dict,
+            key_args: dict,
+            serializer: Callable[[Any], dict],
+            deserializer: Callable[[dict], Any],
+            lock_ttl: int = 5,
+    ) -> Any:
+        args = self._cache_strategy.operation_list(tag, key_args)
+        key = self._cache_strategy.generate_key(args)
+        ttl = self._cache_strategy.determinate_ttl(args)
+        try:
+            cached = await self.cache_get(key)
+            if cached is not None:
+                return deserializer(cached)
+            
+            lock_key = f"lock:{key}"
+        
+            if (await self.client.set(name=lock_key, value="1", ex=lock_ttl, nx=True)):
+                try:
+                    data = await callback(**kwargs)
+
+                    await self.cache_set(
+                        key=key,
+                        data=serializer(data),
+                        seconds=ttl
+                    )
+                    return data
+                finally:
+                    await self.client.delete(lock_key)
+        
+            cached = await self.cache_retry_get(key, 5, delay=0.1)
+            if cached is not None: return deserializer(cached)
+
+            data = await callback(**kwargs)
+
+            await self.cache_set(
+                key=key,
+                data=serializer(data),
+                seconds=ttl
+            )
+
+            return data
+        except RedisError as e:
+            raise InternalCacheException(
+                "Redis set lock failed",
+                {
+                    "service": "redis/infra",
+                    "key_name": key,
+                    "event": "cache_get_or_set_with_lock",
+                    "lock_ttl": lock_ttl,
+                    "ttl": ttl,
+                    "kwargs": kwargs,
+                    "action_name": callback.__name__
+                }
+            ) from e
+        
     async def get_or_set_with_lock(
             self,
             tag: str,
