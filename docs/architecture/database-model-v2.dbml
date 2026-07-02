@@ -1,0 +1,339 @@
+
+Enum "cart_status_type" {
+  "ACTIVE"
+  "ABANDONED"
+  "CONVERTED"
+}
+
+Enum "company_type" {
+  "OLD_DENIM"
+  "CHOCCA"
+}
+
+Enum inventory_owner_type {
+  PRODUCT
+  MATERIAL
+}
+
+Enum brand_type {
+  BGOO
+  AMD
+}
+
+Enum unit_type {
+  UNIT
+  METER
+  KILOGRAM
+}
+
+Enum material_type {
+  FABRIC
+  ACCESSORY
+}
+
+Enum fiber_type {
+  COTTON
+  SPANDEX
+  POLYESTER
+  LINEN
+  NYLON
+  VISCOSE
+}
+
+Enum fit_type {
+  SKINNY
+  SLIM
+  REGULAR
+  STRAIGHT
+  RELAXED
+  LOOSE
+  MOM_FIT
+  BOOTCUT
+}
+
+Enum product_category {
+  PANTS
+  SHORTS
+  SHIRTS
+  JACKETS
+}
+
+Enum "image_owner_type" {
+  "variant"
+  "slide"
+}
+
+Enum "image_type" {
+  "variant"
+  "slide"
+}
+
+Enum "imagetype" {
+  "variant"
+  "slide"
+}
+
+Enum "inventory_movement_type" {
+  "RESTOCK"
+  "MANUAL_ADJUSTMENT"
+  "SALE"
+  "RETURN"
+}
+
+Enum "pricingruletype" {
+  "PERCENTAGE"
+  "FIXED"
+  "FINAL_PRICE"
+}
+
+Table "alembic_version" {
+  "version_num" "character varying(32)" [pk, not null]
+}
+
+Table "cart_items" {
+  "id" integer [pk, not null]
+  "cart_id" integer [not null]
+  "product_id" integer [not null]
+  "variant_id" integer [not null]
+  "variant_size_id" integer [not null]
+  "quantity" integer [not null]
+  "created_at" timestamp
+  "updated_at" timestamp
+
+  Indexes {
+    (cart_id, product_id, variant_id, variant_size_id) [unique, name: "uq_cart_item_unique_line"]
+    cart_id [type: btree, name: "ix_cart_items_cart_id"]
+    product_id [type: btree, name: "ix_cart_items_product_id"]
+    variant_id [type: btree, name: "ix_cart_items_variant_id"]
+    variant_size_id [type: btree, name: "ix_cart_items_variant_size_id"]
+  }
+}
+
+Table "carts" {
+  "id" integer [pk, not null]
+  "user_id" integer [unique]
+  "session_id" "character varying" [unique]
+  "status" cart_status_type [not null]
+  "created_at" timestamp
+  "updated_at" timestamp
+  "expires_at" timestamp
+
+  Checks {
+    `(((user_id IS NOT NULL) AND (session_id IS NULL)) OR ((user_id IS NULL) AND (session_id IS NOT NULL)))` [name: 'ck_cart_user_or_session']
+  }
+
+  Indexes {
+    session_id [type: btree, name: "ix_carts_session_id"]
+    status [type: btree, name: "ix_carts_status"]
+    user_id [type: btree, name: "ix_carts_user_id"]
+  }
+}
+
+Table "favorites" {
+  "id" integer [pk, not null]
+  "session_id" "character varying"
+  "user_id" integer
+  "product_id" integer [not null]
+  "created_at" timestamp [not null]
+
+  Checks {
+    `(((user_id IS NOT NULL) AND (session_id IS NULL)) OR ((user_id IS NULL) AND (session_id IS NOT NULL)))` [name: 'ck_favorites_user_or_session']
+  }
+
+  Indexes {
+    (session_id, product_id) [unique, name: "uq_favorites_session_product"]
+    (user_id, product_id) [unique, name: "uq_favorites_user_product"]
+    product_id [type: btree, name: "ix_favorites_product_id"]
+    session_id [type: btree, name: "ix_favorites_session_id"]
+    user_id [type: btree, name: "ix_favorites_user_id"]
+  }
+}
+
+Table "image" {
+  "id" integer [pk, not null]
+  "image_url" "character varying" [not null]
+  "alt_text" "character varying"
+  "owner_type" image_owner_type [not null]
+  "owner_id" integer [not null]
+  "public_id" "character varying" [not null]
+  "is_primary" boolean
+
+  Indexes {
+    (owner_type, owner_id, public_id) [unique, name: "uq_image_owner_type_owner_id_public_id"]
+    (owner_type, owner_id) [type: btree, unique, name: "uq_only_one_primary_per_owner"]
+  }
+}
+
+Table inventory_movement {
+  id integer [pk]
+
+  owner_type inventory_owner_type [not null]
+  owner_id integer [not null]
+
+  owner_name varchar(55)
+  owner_code text
+
+  type inventory_movement_type [not null]
+
+  quantity numeric(12,2) [not null]
+
+  previous_stock numeric(12,2) [not null]
+  new_stock numeric(12,2) [not null]
+
+  reason varchar(255)
+
+  created_at timestamp
+}
+
+Table "pricing_rules" {
+  "id" integer [pk, not null]
+  "name" "character varying(255)" [not null]
+  "description" text
+  "type" pricingruletype [not null]
+  "value" numeric(10,2) [not null]
+  "is_active" boolean [not null]
+  "is_stackable" boolean [not null]
+  "priority" integer [not null]
+  "starts_at" timestamp
+  "ends_at" timestamp
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+
+  Checks {
+    `(priority >= 0)` [name: 'ck_pricing_rule_priority_positive']
+    `((ends_at IS NULL) OR (starts_at IS NULL) OR (ends_at > starts_at))` [name: 'ck_pricing_rule_valid_dates']
+    `(value >= (0)::numeric)` [name: 'ck_pricing_rule_value_positive']
+  }
+
+  Indexes {
+    name [type: btree, name: "ix_pricing_rules_name"]
+  }
+}
+
+Table "product" {
+  "id" integer [pk, not null]
+  "nombre" "character varying" [unique, not null]
+  "descripcion" "character varying" [not null]
+  brand brand_type [not null]
+  category product_category [not null]
+  "slug" "character varying"
+  fit fit_type
+  "base_price" numeric(10,2) [not null, default: 0.00]
+  "is_active" boolean [default: true]
+
+  Indexes {
+    category [type: btree, name: "ix_product_category"]
+    nombre [type: gin, name: "ix_product_nombre_trgm"]
+  }
+}
+
+Table product_material {
+  id integer [pk]
+
+  product_id integer [not null]
+
+  material_id integer [not null]
+
+  quantity numeric(12,2) [not null]
+}
+
+Table "product_pricing_rules" {
+  "product_id" integer [not null]
+  "pricing_rule_id" integer [not null]
+  "assigned_at" timestamp [not null]
+
+  Indexes {
+    (product_id, pricing_rule_id) [pk, name: "product_pricing_rules_pkey"]
+  }
+}
+
+Table "slide" {
+  "id" integer [pk, not null]
+  "activo" boolean [not null]
+  "orden" integer [unique, not null]
+  "button_href" "character varying"
+  "fecha_creada" timestamp
+  "fecha_actualizada" timestamp
+
+  Indexes {
+    activo [type: btree, name: "ix_slide_activo"]
+  }
+}
+
+Table "material" {
+  "id" integer [pk, not null]
+  "code" "character varying(20)" [unique, not null]
+  "name" "character varying(100)" [not null]
+  "description" "character varying(255)"
+  material_type material_type [not null]
+  unit_type unit_type [not null]
+  "company" company_type [not null]
+  "stock" integer [not null]
+  "minimum_stock" integer [not null]
+  "is_active" boolean [not null]
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+}
+
+Table material_component {
+  id integer [pk, not null]
+
+  material_id integer [not null]
+
+  fiber_type fiber_type [not null]
+
+  percentage numeric(5,2) [not null]
+}
+
+Table "usertable" {
+  "id" integer [pk, not null]
+  "nombre" "character varying(50)" [unique, not null]
+  "email" "character varying" [not null]
+  "role" "character varying(20)" [not null]
+  "hashed_password" "character varying" [not null]
+  "created_at" timestamp [not null, default: `now()`]
+  "is_active" boolean [not null, default: true]
+
+  Indexes {
+    nombre [type: gin, name: "ix_user_nombre_trgm"]
+    email [type: btree, unique, name: "ix_usertable_email"]
+    role [type: btree, name: "ix_usertable_role"]
+  }
+}
+
+Table "variant" {
+  "id" integer [pk, not null]
+  "product_id" integer
+  "color" "character varying" [not null]
+
+  Indexes {
+    (product_id, color) [unique, name: "uq_variant_product_color"]
+  }
+}
+
+Table "variant_size" {
+  "id" integer [pk, not null]
+  "variant_id" integer [not null]
+  "size" "character varying" [not null]
+  "stock" integer [not null]
+  "sku" "character varying" [not null]
+
+  Indexes {
+    (variant_id, size) [unique, name: "uq_variant_size"]
+  }
+}
+
+Ref: product_material.product_id > product.id
+Ref: product_material.material_id > material.id
+
+Ref: material_component.material_id > material.id
+
+Ref "cart_items_cart_id_fkey":"carts"."id" < "cart_items"."cart_id" [delete: cascade]
+
+Ref "product_pricing_rules_pricing_rule_id_fkey":"pricing_rules"."id" < "product_pricing_rules"."pricing_rule_id" [delete: cascade]
+
+Ref "product_pricing_rules_product_id_fkey":"product"."id" < "product_pricing_rules"."product_id" [delete: cascade]
+
+Ref "variant_product_id_fkey":"product"."id" < "variant"."product_id"
+
+Ref "variant_size_variant_id_fkey":"variant"."id" < "variant_size"."variant_id"
