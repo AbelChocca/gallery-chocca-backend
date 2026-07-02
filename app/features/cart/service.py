@@ -180,12 +180,12 @@ class CartService:
                 []
             )
 
-            final_price = self._pricing_calculator.calculate(
+            pricing_result = self._pricing_calculator.calculate(
                 base_price=item['base_price'],
                 rules=product_rules
             )
 
-            item["final_price"] = final_price
+            item["final_price"] = pricing_result.final_price
 
             item["available_quantity"] = min(
                 item["stock"],
@@ -204,7 +204,7 @@ class CartService:
 
             item["final_subtotal"] = (
                 item["quantity"] *
-                final_price
+                pricing_result.final_price
             )
 
             subtotal += item["subtotal"]
