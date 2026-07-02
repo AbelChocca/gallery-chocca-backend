@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Column, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ENUM
-from app.features.media.dto import ImageType
+from app.features.media.types import ImageType
 from sqlalchemy import Index, text
 
 class MediaImageTable(SQLModel, table=True):
@@ -29,7 +29,7 @@ class MediaImageTable(SQLModel, table=True):
 
     owner_type: ImageType = Field(
         sa_column=Column(
-            ENUM(ImageType, name="image_owner_type", create_type=False),
+            ENUM(ImageType, name="image_owner_type"),
             nullable=False
             )
         )
