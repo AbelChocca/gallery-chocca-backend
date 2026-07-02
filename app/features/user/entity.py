@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from app.core.exceptions import ValidationError
+from app.features.user.types import UserRole
 
 class User:
     def __init__(
@@ -10,7 +11,7 @@ class User:
             hashed_password: str,
             is_active: bool = True,
             created_at: datetime = datetime.now(timezone.utc),
-            role: str | None = None,
+            role: UserRole | None = None,
             id: int|None = None
             ):
         self.id = id

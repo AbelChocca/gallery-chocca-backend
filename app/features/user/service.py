@@ -2,12 +2,12 @@ from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavo
 from app.infra.db.repositories.sqlalchemy_user_repository import PostgresUserRepository
 from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
 from app.infra.db.exceptions import DatabaseException
-from app.core.exceptions import ValidationError
+from app.core.exceptions import ValidationError, InvalidOperation, ValueNotFound
 from app.features.user.entity import User
 from app.shared.pagination.pagination_service import PaginationService
 from app.core.settings.pydantic_settings import Settings
 from app.features.user.constraints import USER_EXCEPTIONS_TRANSLATIONS
-from app.features.user.types import UsersOverview, UsersPerRole, ActivateAndInactiveUsers
+from app.features.user.types import UsersOverview, UsersPerRole, ActivateAndInactiveUsers, UserRole
 
 class UserService:
     def __init__(
@@ -64,6 +64,42 @@ class UserService:
                             }
                         )
             raise db
+        
+    async def update_role_by_user_id(
+        self,
+        user_id: int,
+        role: UserRole
+    ) -> None:
+        user = await self._user_repo.get_by_id(user_id)
+
+        if not user:
+            raise ValueNotFound(
+                "Cannot found the user to update role.",
+                {
+                    "user_id": user_id,
+                    "service": "user",
+                    "event": "update_role_by_user_id",
+                    "current_role": user.role,
+                    "requested_role": role,
+                }
+            )
+
+        if not user.is_active:
+            raise InvalidOperation(
+                "Cannot change the role of an inactive user.",
+                {
+                    "service": "user",
+                    "event": "update_role_by_user_id",
+                    "user_id": user_id,
+                    "current_role": user.role,
+                    "requested_role": role,
+                }
+            )
+
+        await self._user_repo.update_role_by_user_id(
+            user_id=user_id,
+            role=role,
+        )
 
     async def get_users(
         self, 
