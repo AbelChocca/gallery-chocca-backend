@@ -1,4 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
 
 class PaginationSchema(BaseModel):
     page: int = Field(1, ge=1, title="Page")
@@ -12,3 +15,10 @@ class PaginationResponseSchema(BaseModel):
     current_page: int
 
     model_config = ConfigDict(from_attributes=True)
+
+class PaginatedResponseSchema(BaseModel, Generic[T]):
+    items: list[T]
+
+    total_items: int
+
+    pagination: PaginationResponseSchema
