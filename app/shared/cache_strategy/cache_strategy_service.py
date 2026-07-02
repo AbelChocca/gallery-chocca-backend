@@ -1,5 +1,7 @@
 from app.core.settings.pydantic_settings import Settings
 from typing import Dict, Any, List
+from datetime import datetime, date
+from uuid import UUID
 from enum import Enum
 from dataclasses import dataclass
 import json
@@ -25,10 +27,11 @@ class CacheStrategyService:
 
     def _normalize_filters(self, **filters) -> Dict[str, Any]:
         return {
-            k: sorted(v) if isinstance(v, list) else v
+            k: self._normalize_value(v)
             for k, v in filters.items()
             if v is not None
         }
+    
     def _filters_hash(self, filters: Dict[str, Any]) -> str:
         normalized_filters = json.dumps(filters, sort_keys=True)
         return hashlib.md5(normalized_filters.encode()).hexdigest()
@@ -100,3 +103,17 @@ class CacheStrategyService:
     def generate_family_key(self, args: CacheArgs) -> str:
         return f"v1:{args.name}:{args.operation.value}:*"
     
+    def _normalize_value(self, value: Any) -> Any:
+        if isinstance(value, datetime):
+            return value.isoformat()
+        if isinstance(value, date):
+            return value.isoformat()
+        if isinstance(value, UUID):
+            return str(value)
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, dict):
+            return {k: self._normalize_value(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return sorted([self._normalize_value(v) for v in value])
+        return value

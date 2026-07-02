@@ -1,0 +1,1 @@
+INVENTORY_MOVEMENTS_CACHE_KEY_TAG='inventory_movements'

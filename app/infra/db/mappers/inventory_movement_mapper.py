@@ -13,7 +13,10 @@ class InventoryMovementMapper(BaseMapper[InventoryMovement, InventoryMovementTab
             existing_model.type = entity.type
             return existing_model
         return InventoryMovementTable(
-            variant_size_id=entity.variant_size_id,
+            owner_name=entity.owner_name,
+            owner_id=entity.owner_id,
+            owner_code=entity.owner_code,
+            owner_type=entity.owner_type,
             type=entity.type,
             quantity=entity.quantity,
             previous_stock=entity.previous_stock,
@@ -25,7 +28,10 @@ class InventoryMovementMapper(BaseMapper[InventoryMovement, InventoryMovementTab
     @staticmethod
     def to_entity(model: InventoryMovementTable):
         return InventoryMovement(
-            variant_size_id=model.variant_size_id,
+            owner_id=model.owner_id,
+            owner_code=model.owner_code,
+            owner_name=model.owner_name,
+            owner_type=model.owner_type,
             type=model.type,
             quantity=model.quantity,
             previous_stock=model.previous_stock,

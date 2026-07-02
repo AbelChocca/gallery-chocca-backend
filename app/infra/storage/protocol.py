@@ -1,4 +1,4 @@
-from app.infra.storage.dto import MediaImageDTO
+from app.features.media.dto import MediaImageDTO
 
 from typing import BinaryIO, Protocol
 

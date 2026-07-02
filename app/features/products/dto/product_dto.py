@@ -11,9 +11,8 @@ class UpdateProductCommand:
     id: Optional[int] = None
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
-    marca: Optional[BrandType] = None
-    categoria: Optional[CategoryType] = None
-    model_family: Optional[str] = None
+    brand: Optional[BrandType] = None
+    category: Optional[CategoryType] = None
     fit: str | None = None
     temp_keys: List[str] | None = None
 
@@ -59,7 +58,7 @@ class UpdateProductCommand:
         )
     
     @property
-    def variants_to_delete(self) -> int:
+    def variants_to_delete_count(self) -> int:
         return sum(
             1
             for v in self.variants
@@ -78,9 +77,8 @@ class UpdateProductCommand:
 class PublishProductCommand:
     nombre: str
     descripcion: str
-    categoria: CategoryType
-    marca: BrandType
-    model_family: str
+    category: CategoryType
+    brand: BrandType
     fit: str
 
     variants: List[PublishProductVariantCommand]
@@ -95,9 +93,8 @@ class CreateProductResponse:
 @dataclass
 class FilterProductCommand:
     name: str | None = None
-    marca: BrandType | None = None
-    categoria: CategoryType | None = None
-    model_family: str | None = None
+    brand: BrandType | None = None
+    category: CategoryType | None = None
     colors: list[str] | None = None
     sizes: List[str] | None = None
     sku: str | None = None

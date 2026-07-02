@@ -1,5 +1,5 @@
 from app.infra.storage.protocol import StorageProtocol
-from app.infra.storage.dto import MediaImageDTO
+from app.features.media.dto import MediaImageDTO
 from app.infra.storage.exceptions import StorageException
 
 from cloudinary.uploader import rename, upload, destroy, Error as CloudinaryError

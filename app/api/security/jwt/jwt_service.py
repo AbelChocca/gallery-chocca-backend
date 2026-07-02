@@ -50,13 +50,8 @@ class JWTService:
             except JWTException as e:
                 self.delete_cookie("refresh_token")
                 raise e
-        raise ValueNotFound(
-            "Token not found",
-            {
-                "service": "JWT/security",
-                "event": "get_token_from_cookies"
-            }
-        )
+            
+        return None
     
     def generate_token(self, data: dict, refresh: Optional[bool] = False):
         to_encode = data.copy()

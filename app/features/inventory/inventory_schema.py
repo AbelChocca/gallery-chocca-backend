@@ -1,69 +1,59 @@
 from pydantic import BaseModel, Field, ConfigDict
-from app.features.inventory.dto import InventoryMovementType
-from app.features.products.dto.product_dto import CategoryType, BrandType
-from app.features.media.schema import ReadImage
-from app.shared.pagination.schema import PaginationResponseSchema
-from datetime import datetime
+from app.features.inventory.dto import InventoryMovementType, InventoryOwnerType
+from app.shared.pagination.schema import PaginatedResponseSchema
+from datetime import datetime, date
+
+class MovementItemSchema(BaseModel):
+    owner_id: int = Field(gt=0)
+    quantity: int
 
 class CreateMovementSchema(BaseModel):
-    product_id: int
-    variant_size_id: int 
+    owner_id: int
+    owner_type: InventoryOwnerType
     type: InventoryMovementType
     quantity: int
-    reason: str | None = Field(default=None, max_length=255)
+    reason: str | None = Field(
+        default=None,
+        max_length=255
+    )
 
-class InventoryVariantSizeRead(BaseModel):
-    id: int
-    size: str
-    stock: int
-    sku: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-class InventoryProductVariantRead(BaseModel):
-    id: int
-    color: str
-    sizes: list[InventoryVariantSizeRead]
-    imagen: ReadImage
-
-    model_config = ConfigDict(from_attributes=True)
-
-class InventoryProductRead(BaseModel):
-    id: int
-    nombre: str
-    categoria: CategoryType
-    model_family: str | None = None  # Ej: "jean", "drill"
-    fit: str | None = None
-    marca: BrandType
-
-    variants: list[InventoryProductVariantRead]
-
-    model_config = ConfigDict(from_attributes=True)
+class CreateBulkMovementSchema(BaseModel):
+    owner_type: InventoryOwnerType
+    type: InventoryMovementType
+    reason: str | None = None
+    items: list[MovementItemSchema]
 
 class InventoryMovementRead(BaseModel):
-    variant_size_id: int
+    id: int
+
+    owner_id: int
+    owner_type: InventoryOwnerType
+
+    owner_code: str
+    owner_name: str
+
     type: InventoryMovementType
+
     quantity: int
     previous_stock: int
     new_stock: int
+
     reason: str
-    id: int
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 class InventoryMovementFilterSchema(BaseModel):
-    from_date: datetime | None = None
-    to_date: datetime | None = None
-    sku: str | None = None
+    from_date: date | None = None
+    to_date: date | None = None
+
+    search: str | None = None
+    owner_type: InventoryOwnerType | None = None
+    owner_id: int | None = None
+
     type: InventoryMovementType | None = None
 
-class GetInventoryItemsResponse(BaseModel):
-    products: list[InventoryProductRead]
-    pagination: PaginationResponseSchema
-    total_items: int
-
-class GetInventoryMovementsResponse(BaseModel):
-    movements: list[InventoryMovementRead]
-    pagination: PaginationResponseSchema
-    total_items: int
+class GetInventoryMovementsResponse(
+    PaginatedResponseSchema[InventoryMovementRead]
+):
+    pass

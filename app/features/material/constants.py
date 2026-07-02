@@ -1,0 +1,2 @@
+MATERIAL_CACHE_KEY_TAG='materials'
+MATERIAL_FOLDER='materials'

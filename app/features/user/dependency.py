@@ -14,6 +14,7 @@ def get_user_service(
     return UserService(
         user_repo=uow.users,
         favorite_repo=uow.favorites,
+        cart_repo=uow.carts,
         pagination_service=pagination_service,
         settings=settings
     )

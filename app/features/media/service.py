@@ -2,9 +2,11 @@ from app.infra.db.repositories.sqlmodel_image_repository import PostgresImageRep
 from app.infra.storage.protocol import StorageProtocol
 from app.infra.async_utils import AsyncProtocol
 from app.core.app_exception import AppException
-from app.infra.saga_service import SagaService
+from app.infra.saga.saga_service import SagaService
+from app.features.media.types import ImageType
+from app.features.media.entities.image import ImageEntity
 
-from app.infra.storage.dto import MediaImageDTO
+from app.features.media.dto import MediaImageDTO
 from app.features.media.entities.image import ImageEntity
 
 from typing import BinaryIO, List
@@ -14,13 +16,31 @@ class MediaService:
             self,
             image_repo: PostgresImageRepository,
             storage_service: StorageProtocol,
-            async_service: AsyncProtocol
+            async_service: AsyncProtocol,
+            saga_service: SagaService
         ):
         self._image_repo: PostgresImageRepository = image_repo
         self._storage_service: StorageProtocol = storage_service
         self._async_service: AsyncProtocol = async_service
+        self._saga_service: SagaService = saga_service
+
+    async def get_images_by_owner_ids(
+        self,
+        *,
+        owner_type: ImageType,
+        owner_ids: list[int]
+    ) -> list[ImageEntity]:
+        
+        if not owner_ids:
+            return []
+
+        return await self._image_repo.get_by_owners(
+            owner_type=owner_type,
+            owner_ids=owner_ids
+        )
 
     
+    # LEGACY
     async def delete_image(
         self, 
         image_public_id: str,
@@ -28,19 +48,18 @@ class MediaService:
         ) -> None:
         await self._image_repo.delete_by_id(image_public_id)
 
-        if saga_service is not None:
-            saga_service.add_step(
-                action=self.move_image_to_trash,
-                action_kwargs={
-                    "public_id": image_public_id
-                },
-                compensation=self.recover_image_from_trash,
-                compensation_kwargs={
-                    "public_id": image_public_id
-                },
-                action_name=self.move_image_to_trash.__name__,
-                compensation_name=self.recover_image_from_trash.__name__
-            )
+        saga_service.add_step(
+            action=self.move_image_to_trash,
+            action_kwargs={
+                "public_id": image_public_id
+            },
+            compensation=self.recover_image_from_trash,
+            compensation_kwargs={
+                "public_id": image_public_id
+            },
+            action_name=self.move_image_to_trash.__name__,
+            compensation_name=self.recover_image_from_trash.__name__
+        )
 
         return None
     
@@ -193,6 +212,7 @@ class MediaService:
                 saga_service=saga_service
             )
     
+    # LEGACY
     async def create_image(
             self,
             image_resource: BinaryIO,
@@ -201,33 +221,62 @@ class MediaService:
             owner_type: str,
             saga_service: SagaService
     ) -> None:
-        saga_service.add_step(
-            action=self.upload_image,
-            action_name=self.upload_image.__name__,
-            action_kwargs={
-                "image_resource": image_resource,
-                "folder": folder
-            }
-        )
+        try:
+            saga_service.add_step(
+                action=self.upload_image,
+                action_name=self.upload_image.__name__,
+                action_kwargs={
+                    "image_resource": image_resource,
+                    "folder": folder
+                }
+            )
 
-        storage_image: MediaImageDTO = await saga_service.execute_last()
+            storage_image: MediaImageDTO = await saga_service.execute_last()
 
-        saga_service.set_last_step_compensation(
-            compesation=self.recover_image_from_trash,
-            compensation_name=self.recover_image_from_trash.__name__,
-            compensation_kwargs={
-                "public_id": storage_image.public_id
-            }
-        )
+            saga_service.set_last_step_compensation(
+                compesation=self.recover_image_from_trash,
+                compensation_name=self.recover_image_from_trash.__name__,
+                compensation_kwargs={
+                    "public_id": storage_image.public_id
+                }
+            )
 
+            new_image = ImageEntity(
+                image_url=storage_image.url,
+                owner_type=owner_type,
+                owner_id=owner_id,
+                public_id=storage_image.public_id,
+            )
+
+            await self._image_repo.save(new_image, flush=False)
+        except AppException as ae:
+            await self._saga_service.compensate_all()
+
+            if self._saga_service.compensation_errors:
+                ae.context["compensation_errors"] = self._saga_service.compensation_errors
+
+            raise ae
+        
+    async def create_image_v2(
+        self,
+        image_url: str,
+        public_id: str,
+        owner_id: int,
+        owner_type: str
+    ) -> ImageEntity:
         new_image = ImageEntity(
-            image_url=storage_image.url,
+            image_url=image_url,
             owner_type=owner_type,
             owner_id=owner_id,
-            public_id=storage_image.public_id,
+            public_id=public_id,
         )
 
-        await self._image_repo.save(new_image, flush=False)
+        await self._image_repo.save(
+            new_image,
+            flush=False
+        )
+
+        return new_image
 
     def _trash_public_id(self, public_id: str) -> str:
         filename = public_id.rsplit("/", 1)[-1]

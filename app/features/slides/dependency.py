@@ -8,7 +8,7 @@ from app.infra.cache.redis_service import RedisService
 from app.features.slides.service import SlideService
 from app.features.media.service import MediaService
 from app.features.media.dependency import get_media_service
-from app.infra.saga_service import SagaService, get_saga_service
+from app.infra.saga.saga_service import SagaService, get_saga_service
 
 def get_slide_service(
     uow: UnitOfWork = Depends(get_uow),
