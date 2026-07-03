@@ -2,8 +2,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 class Settings(BaseSettings):
-    # PostgreSQL
-    DATABASE_URL: str
     # JWT
     SECRET_KEY: str
     TOKEN_ALGORITHM: str
@@ -31,6 +29,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+    POSTGRES_HOST: str
 
     # google captcha
     RECAPTCHA_SECRET_KEY: str

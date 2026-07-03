@@ -2,12 +2,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from redis.asyncio import from_url
 
 # App depends
 from app.core.log.config import logger_service
 from app.api.middlewares.manager import init_middlewares
 from app.infra.db.config import init_db
-from app.infra.cache.config import get_redis_client
 from app.core.settings.pydantic_settings import settings
 from app.infra.storage.config import init_cloudinary_client
 
@@ -28,6 +28,15 @@ async def lifespan(app: FastAPI):
     logger_service.info('🚀 Iniciandoo App')
     try:
         await init_db()
+        redis = from_url(
+            settings.REDIS_URL,
+            encoding="utf-8",
+            decode_responses=True
+        )
+
+        await redis.ping()
+
+        app.state.redis = redis
 
         logger_service.info("✅ Base de datos inicializada correctamente.")
 
@@ -36,7 +45,7 @@ async def lifespan(app: FastAPI):
         logger_service.info("✅ Storage inicializada correctamente.")
 
         try:
-            redis_connected = await get_redis_client().ping()
+            redis_connected = await redis.ping()
             if not redis_connected:
                 logger_service.warning('⚠️ No se pudo verificar la conexión con el cliente Redis')
                 raise RuntimeError('❌ Error de conexion con Redis.')
@@ -48,6 +57,8 @@ async def lifespan(app: FastAPI):
         raise 
 
     yield
+
+    await redis.close()
 
     logger_service.info("🛑 Cerrando aplicación y liberando recursos...")
 

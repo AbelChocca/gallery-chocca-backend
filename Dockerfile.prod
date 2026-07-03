@@ -5,22 +5,19 @@ FROM python:3.12.2-slim AS builder
 
 WORKDIR /app
 
-# Dependencias del sistema
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl build-essential \
+    && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:/root/.cargo/bin:${PATH}"
 
-# Copiar solo archivos de dependencias 
 COPY pyproject.toml uv.lock ./
 
 RUN uv sync --frozen --no-dev
 
 # -------------------------
-# Runtime stage (imagen final)
+# Runtime stage
 # -------------------------
 FROM python:3.12.2-slim
 
@@ -35,14 +32,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 RUN useradd -m appuser
 
-COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
-
+COPY --from=builder /app/.venv /app/.venv
 COPY --chown=appuser:appuser app ./app
 
 ENV PATH="/app/.venv/bin:$PATH"
-
-COPY app ./app
 
 USER appuser
 

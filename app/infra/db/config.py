@@ -1,8 +1,18 @@
 from sqlmodel import SQLModel
+from sqlalchemy.ext.asyncio.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, AsyncSession
 from app.core.settings.pydantic_settings import settings
 
-DATABASE_URL = settings.DATABASE_URL
+DATABASE_URL = URL.create(
+    drivername="postgresql+asyncpg",
+    username=settings.POSTGRES_USER,
+    password=settings.POSTGRES_PASSWORD,
+    host=settings.POSTGRES_HOST,
+    port=5432,
+    database=settings.POSTGRES_DB,
+    query={"ssl": "require"}
+)
+
 
 engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False, pool_size=10, max_overflow=5)
 
