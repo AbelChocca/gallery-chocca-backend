@@ -6,7 +6,7 @@ from app.core.settings.pydantic_settings import settings
 def get_db_url():
     ssl_mode = {}
 
-    if settings.ENV == "prod":
+    if settings.ENV == "production":
         ssl_mode = {"ssl": "require"}
 
     return URL.create(
