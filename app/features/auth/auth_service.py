@@ -8,6 +8,7 @@ from app.features.auth.dto import RegisterUserCommand, LoginUserCommand
 from app.core.exceptions import ValueNotFound
 
 from app.api.security.exceptions import AuthException
+from app.core.authorization.role_permissions import ROLE_PERMISSIONS
 
 
 class AuthService:
@@ -89,5 +90,6 @@ class AuthService:
             "id": user.id,
             "nombre": user.name,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "permissions": ROLE_PERMISSIONS[user.role]
         }

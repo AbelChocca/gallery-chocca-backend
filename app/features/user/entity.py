@@ -17,7 +17,7 @@ class User:
         self.id = id
         self.name = name
         self.email = email
-        self.role = "user" if role is None else role
+        self.role = UserRole.USER if role is None else role
         self.is_active = is_active
         self.created_at = created_at
         self.hashed_password = hashed_password
