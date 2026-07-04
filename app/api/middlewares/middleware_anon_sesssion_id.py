@@ -8,19 +8,24 @@ class AnonSessionIdMiddleware:
         async def check_anon_session(request: Request, call_next):
             session_id = request.cookies.get("anon_session_id")
 
+            if not session_id:
+                session_id = str(uuid4())
+
+                request.state.anon_session_id = session_id
+            else:
+                request.state.anon_session_id = session_id
+
             response: Response = await call_next(request)
 
-            if not session_id:
-                is_prod = settings.ENV == "production"
+            is_prod = settings.ENV == "production"
 
-                session_id = str(uuid4())
-                response.set_cookie(
-                    key="anon_session_id",
-                    value=session_id,
-                    httponly=True,
-                    secure=is_prod,   # True en prod
-                    samesite="none" if is_prod else "lax",
-                    path="/"
-                )
+            response.set_cookie(
+                key="anon_session_id",
+                value=session_id,
+                httponly=True,
+                secure=is_prod or True,   
+                samesite="none",   
+                path="/"
+            )
 
             return response

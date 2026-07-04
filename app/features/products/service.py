@@ -400,6 +400,7 @@ class ProductService:
     
     async def _get_last_n(self, n: int) -> list[dict]:
         last_n_products = await self._product_repo.get_last_n_products(n)
+        if not last_n_products: return []
 
         enriched_products = await self.enrich_products(last_n_products)
 

@@ -168,6 +168,7 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         res = await self._db_session.execute(stmt)
 
         category_counts = res.all()
+        if not category_counts: return []
         return category_counts
     
     async def get_last_n_products(self, n: int) -> list[Product]:
@@ -176,6 +177,8 @@ class PostgresProductRepository(BaseRepository[Product, ProductTable]):
         res = await self._db_session.execute(stmt)
 
         products = res.scalars().all()
+        if not products: return []
+        
         return [
             self._base_mapper.to_entity(product)
             for product in products

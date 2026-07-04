@@ -12,16 +12,9 @@ class OwnerSession:
     def is_user(self) -> bool:
         return self.user_id is not None
     
-def get_anon_id(request: Request) -> int:
+def get_anon_id(request: Request) -> int | None:
     anon_id = request.cookies.get("anon_session_id")
-    if not anon_id:
-        raise AuthException(
-            "Missing authentication or anonymous session",
-            {
-                "resolver": "session_owner/security",
-                "event": "get_session_owner"
-            }
-        )
+    if not anon_id: return None
 
     return anon_id
 

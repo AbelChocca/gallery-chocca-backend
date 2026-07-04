@@ -44,7 +44,7 @@ async def logout(
 async def register_user(
     register_schema: Annotated[RegisterUserSchema, Depends(verify_captcha)],
     service: Annotated[AuthService, Depends(get_auth_service)],
-    anon_id: Annotated[int, Depends(get_anon_id)]
+    anon_id: Annotated[int | None, Depends(get_anon_id)]
 ) -> ReadSessionSchema:
     command = RegisterUserCommand(
         name=register_schema.name,

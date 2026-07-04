@@ -13,21 +13,21 @@ class _RoleCount(BaseModel):
 
 class _ProductsOverview(BaseModel):
     total: int
-    per_category: list[_CategoryCount]
-    recent: list[GridProductRead]
+    per_category: list[_CategoryCount] = []
+    recent: list[GridProductRead] = []
 
 class _UsersOverview(BaseModel):
     total: int
     active: int
     inactive: int
-    per_role: list[_RoleCount]
-    recent: list[ReadUserSchema]
+    per_role: list[_RoleCount] =[]
+    recent: list[ReadUserSchema] = []
 
 class _SlidesOverview(BaseModel):
     total: int
     active: int
     inactive: int
-    recent: list[ReadSlideSchema]
+    recent: list[ReadSlideSchema] = []
 
 class OverviewSchema(BaseModel):
     admin: ReadUserSchema
