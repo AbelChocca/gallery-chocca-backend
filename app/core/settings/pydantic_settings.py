@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     ENV: str
 
     # Configuración del settings
-    model_config = SettingsConfigDict(env_file='.env')
+    model_config = SettingsConfigDict(extra="ignore")
 
 @lru_cache
 def get_settings():

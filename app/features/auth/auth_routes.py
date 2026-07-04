@@ -46,7 +46,11 @@ async def register_user(
     service: Annotated[AuthService, Depends(get_auth_service)],
     anon_id: Annotated[int, Depends(get_anon_id)]
 ) -> ReadSessionSchema:
-    command = RegisterUserCommand(**register_schema.model_dump())
+    command = RegisterUserCommand(
+        name=register_schema.name,
+        email=register_schema.email,
+        password=register_schema.password
+    )
     res = await service.register_user(command, anon_id)
     return ReadSessionSchema(**res)
 
