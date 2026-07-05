@@ -25,7 +25,8 @@ class AnonSessionIdMiddleware:
                 httponly=True,
                 secure=is_prod or True,   
                 samesite="none",   
-                path="/"
+                path="/",
+                domain=settings.COOKIE_DOMAIN
             )
 
             return response

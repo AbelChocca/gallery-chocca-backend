@@ -16,7 +16,7 @@ from fastapi import (
 from typing import Annotated
 
 @router.post(
-    "/",
+    "",
     status_code=status.HTTP_201_CREATED,
     summary="Create material",
     dependencies=[

@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRES_SECONDS: int
     REFRESH_TOKEN_EXPIRES_SECONDS: int
 
+    COOKIE_DOMAIN: str
+
     # Cloudinary
     CLOUDINARY_NAME: str
     CLOUDINARY_API_SECRET: str

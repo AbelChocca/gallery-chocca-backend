@@ -79,7 +79,8 @@ class JWTService:
             path='/',
             secure=True if is_prod else False,
             httponly=True,
-            samesite='none' if is_prod else 'lax'
+            samesite='none' if is_prod else 'lax',
+            domain=self.settings.COOKIE_DOMAIN
         )
 
     def verify_token(self, token: str) -> Dict[str, Any]:

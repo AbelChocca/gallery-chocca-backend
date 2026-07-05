@@ -13,7 +13,7 @@ from fastapi import status, Depends
 from typing import Annotated
 
 @router.get(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     summary="Get materials",
     response_model=MaterialPaginatedResponseSchema,
