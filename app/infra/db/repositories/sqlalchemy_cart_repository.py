@@ -6,11 +6,10 @@ from app.infra.db.models.model_media import MediaImageTable
 from app.features.cart.types import CartItemRow, CartStatus
 from app.core.exceptions import ValueNotFound
 from app.infra.db.exceptions import DatabaseException
-from sqlalchemy import select, and_, delete, or_, insert
+from sqlalchemy import select, delete, or_, insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlmodel import col
-from decimal import Decimal
 
 class CartRepository(BaseRepository[Cart, CartTable]):   
     async def update_item(
@@ -320,7 +319,7 @@ class CartRepository(BaseRepository[Cart, CartTable]):
             .where(
                 MediaImageTable.owner_id == VariantTable.id,
                 MediaImageTable.owner_type == "variant",
-                MediaImageTable.is_primary == True
+                col(MediaImageTable.is_primary).is_(True)
             )
             .limit(1)
             .scalar_subquery()

@@ -11,7 +11,6 @@ from app.infra.cache.protocole import CacheProtocol
 from app.features.products.dto.product_dto import UpdateProductCommand, FilterProductCommand, CountProductPerCategoryDTO
 from app.shared.pagination.pagination_service import PaginationService
 from app.core.exceptions import ValidationError
-from app.infra.saga.saga_service import SagaService
 from app.features.media.service import MediaService
 from app.core.app_exception import AppException
 from app.features.products.constants import CACHE_KEY
@@ -65,7 +64,8 @@ class ProductService:
         images_public_id_to_delete = []
 
         for variant in command.variants:
-            if variant.id is None: continue
+            if variant.id is None: 
+                continue
 
             if variant.to_delete:
                 variants_to_delete_ids.append(variant.id)
@@ -384,7 +384,8 @@ class ProductService:
     
     async def _get_last_n(self, n: int) -> list[dict]:
         last_n_products = await self._product_repo.get_last_n_products(n)
-        if not last_n_products: return []
+        if not last_n_products: 
+            return []
 
         enriched_products = await self.enrich_products(last_n_products)
 
@@ -417,7 +418,8 @@ class ProductService:
             )
         
         for variant in product_command.variants:
-            if variant.id is not None and variant.to_delete: continue
+            if variant.id is not None and variant.to_delete: 
+                continue
 
             current_images_count = variant.existing_images_count
             images_to_delete_count = variant.images_to_delete_count

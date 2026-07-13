@@ -18,4 +18,4 @@ def test_break_operation_by_id():
 
     assert broken_key != fresh_key
     assert broken_operation.name == "unknow_name"
-    assert type(broken_operation.name) == str
+    assert isinstance(broken_operation.name, str)

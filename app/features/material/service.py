@@ -4,7 +4,6 @@ from app.infra.db.repositories.material_repository import (
 from app.shared.pagination.pagination_service import PaginationService
 from app.features.material.entities.material import Material
 from app.features.material.entities.material_component import MaterialComponent
-from app.features.material.dto.material_component import CreateMaterialComponentDTO
 from app.features.material.dto.material import (
     CreateMaterialDTO,
     UpdateMaterialDTO,

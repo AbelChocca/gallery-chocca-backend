@@ -129,7 +129,8 @@ class RedisService(CacheProtocol):
                     await self.client.delete(lock_key)
         
             cached = await self.cache_retry_get(key, 5, delay=0.1)
-            if cached is not None: return deserializer(cached)
+            if cached is not None: 
+                return deserializer(cached)
 
             data = await callback(**kwargs)
 
@@ -181,7 +182,8 @@ class RedisService(CacheProtocol):
                 return data
         
             cached = await self.cache_retry_get(key, 5, delay=0.1)
-            if cached is not None: return cached
+            if cached is not None: 
+                return cached
 
             data = await callback(**kwargs)
 

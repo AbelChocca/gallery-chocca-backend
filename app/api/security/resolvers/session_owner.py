@@ -1,7 +1,6 @@
 from fastapi import Depends, Request
 from dataclasses import dataclass
 from app.api.security.resolvers.sessions import get_user_id
-from app.api.security.exceptions import AuthException
 
 @dataclass(frozen=True)
 class OwnerSession:
@@ -14,7 +13,8 @@ class OwnerSession:
     
 def get_anon_id(request: Request) -> int | None:
     anon_id = request.cookies.get("anon_session_id")
-    if not anon_id: return None
+    if not anon_id: 
+        return None
 
     return anon_id
 

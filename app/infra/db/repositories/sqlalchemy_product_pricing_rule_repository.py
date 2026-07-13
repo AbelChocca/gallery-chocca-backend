@@ -112,7 +112,7 @@ class ProductPricingRepository:
             .where(
                 VariantTable.product_id == ProductTable.id,
                 MediaImageTable.owner_type == ImageType.variant,
-                MediaImageTable.is_primary == True
+                col(MediaImageTable.is_primary).is_(True)
             )
             .limit(1)
             .scalar_subquery()

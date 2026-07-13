@@ -1,10 +1,13 @@
+from app.features.inventory.types import (
+    InventoryMovementType, 
+    InventoryOwnerType
+)
+from app.features.inventory.inventory_movement_entity import InventoryMovement
+from app.shared.pagination.dto import PaginatedDTO, PaginationDTO
+
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-
-from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
-from app.features.inventory.inventory_movement_entity import InventoryMovement
-from app.shared.pagination.dto import PaginatedDTO, PaginationDTO
 
 @dataclass(slots=True)
 class InventoryMovementDTO:
@@ -256,9 +259,6 @@ class InventoryMovementAdminPaginatedDTO(
                 total_pages=data["pagination"]["total_pages"]
             )
         )
-
-from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
-
 
 @dataclass(slots=True)
 class InventoryMovementFilters:

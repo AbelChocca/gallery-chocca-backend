@@ -3,7 +3,6 @@ from app.features.inventory.dto import CreateMovementCommand
 from app.features.inventory.types import (
     InventoryOwnerType
 )
-from app.features.inventory.types import InventoryOwnerType
 from app.infra.cache.redis_service import RedisService
 from app.features.inventory.resolvers.base import InventoryOwnerResolver
 from app.features.inventory.constants import INVENTORY_MOVEMENTS_CACHE_KEY_TAG

@@ -1,7 +1,3 @@
-from datetime import datetime, timezone
-
-import pytest
-
 from app.features.material.entities.material import Material
 from app.features.material.dto.material import MaterialFilters
 from app.features.material.types import (
@@ -10,8 +6,15 @@ from app.features.material.types import (
     UnitType,
     MaterialAvailabilityStatus
 )
+from app.core.exceptions import (
+    ValueNotFound
+)
 
 from app.infra.db.uow.unit_of_work import UnitOfWork
+
+from datetime import datetime, timezone
+
+import pytest
 
 def build_material(
     **overrides
@@ -353,11 +356,6 @@ async def test_should_get_material_by_code(
 
         assert material.code == "TEL-000001"
         assert material.name == "Tela Blanca"
-
-from app.core.exceptions import (
-    ValueNotFound
-)
-
 
 @pytest.mark.asyncio
 async def test_should_raise_error_when_material_code_does_not_exist(

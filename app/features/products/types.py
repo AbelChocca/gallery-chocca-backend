@@ -1,5 +1,5 @@
 from app.api.helpers.validators import max_length_validator, max_file_size_validator
-from typing import Annotated, List, TypedDict
+from typing import Annotated, List
 from fastapi import UploadFile
 from pydantic import WrapValidator
 from enum import Enum

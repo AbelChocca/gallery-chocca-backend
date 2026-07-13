@@ -1,7 +1,7 @@
 from app.features.cart.entities.cart import Cart
 from app.features.cart.entities.cart_item import CartItem
 
-from app.infra.db.models.model_cart import CartTable, CartItemTable
+from app.infra.db.models.model_cart import CartTable
 from app.infra.db.mappers.base_mapper import BaseMapper
 
 class CartMapper(BaseMapper[Cart, CartTable]):

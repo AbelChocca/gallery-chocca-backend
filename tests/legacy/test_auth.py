@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import Mock, AsyncMock
 
 from app.api.security.exceptions import SecurityException, AuthException
-from app.api.security.jwt.jwt_exception import JWTException
 from app.api.security.resolvers.sessions import SecuritySessions
 from app.core.exceptions import ValueNotFound
 

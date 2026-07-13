@@ -1,7 +1,6 @@
 from app.core.exceptions import ValidationError
 from typing import List
 from fastapi import UploadFile, File
-from app.core.exceptions import ValidationError
 from app.features.media.types import MAX_IMAGE_SIZE
 
 def max_length_validator(max_items: int):

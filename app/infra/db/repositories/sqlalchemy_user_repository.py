@@ -31,7 +31,7 @@ class PostgresUserRepository(BaseRepository[User, UserTable]):
             .values(role=role)
         )
 
-        result = await self._db_session.execute(statement)
+        await self._db_session.execute(statement)
     
     async def count_all(
             self, 

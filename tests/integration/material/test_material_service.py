@@ -1,5 +1,4 @@
 import pytest
-from decimal import Decimal
 
 from app.features.material.service import MaterialService
 from app.features.material.dto.material import CreateMaterialDTO, UpdateMaterialDTO

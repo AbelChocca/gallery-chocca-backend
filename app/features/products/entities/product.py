@@ -253,7 +253,8 @@ class Product:
             )
         
     def _not_empty(self, v: str | None) -> str:
-        if v is None: return None
+        if v is None: 
+            return None
         
         if not v.strip():
             raise ValidationError(

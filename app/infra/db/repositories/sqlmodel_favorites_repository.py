@@ -57,7 +57,7 @@ class PostgresFavoritesRepository(BaseRepository[FavoriteEntity, FavoritesTable]
             await self._db_session.execute(stmt)
         except SQLAlchemyError as s:
             raise DatabaseException(
-                f"Failed to delete the favorite by user id",
+                "Failed to delete the favorite by user id",
                 {
                     "repository": "postgres_favorite",
                     "user_id": user_id,

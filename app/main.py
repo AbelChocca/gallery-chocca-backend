@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
                 logger_service.warning('⚠️ No se pudo verificar la conexión con el cliente Redis')
                 raise RuntimeError('❌ Error de conexion con Redis.')
         finally:
-            logger_service.info(f"✅ Redis service was inicializated correctly")
+            logger_service.info("✅ Redis service was inicializated correctly")
 
     except Exception as e:
         logger_service.error(f'Error al inicializar los servicios: {e}')

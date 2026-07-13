@@ -5,7 +5,7 @@ from app.infra.db.uow.unit_of_work import UnitOfWork
 from app.infra.db.uow.dependency import get_uow
 from fastapi import Depends
 
-from app.api.security.exceptions import AuthException, SecurityException
+from app.api.security.exceptions import SecurityException
 from app.core.exceptions import ValueNotFound
 from app.features.auth.schema import ReadSessionSchema
 from app.features.user.user_schema import ReadUserSchema

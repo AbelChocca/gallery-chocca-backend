@@ -1,6 +1,5 @@
 from types import SimpleNamespace
 import pytest
-from fastapi import HTTPException
 from app.api.security.exceptions import AuthException
 
 from app.api.security.resolvers.session_owner import (

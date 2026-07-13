@@ -7,7 +7,6 @@ from app.features.media.types import ImageType
 from app.features.media.entities.image import ImageEntity
 
 from app.features.media.dto import MediaImageDTO
-from app.features.media.entities.image import ImageEntity
 
 from typing import BinaryIO, List
 

@@ -137,7 +137,8 @@ class ProductVariant:
         new_sizes = []
 
         for size in sizes:
-            if size.to_delete: continue
+            if size.to_delete: 
+                continue
 
             if size.id is not None and size.id in existing_sizes:
                 new_sizes.append(existing_sizes[size.id])
@@ -166,7 +167,8 @@ class ProductVariant:
         self.sizes.append(new_variant_size)
         
     def _validate_color(self, v: str) -> None:
-        if v is None: return None
+        if v is None: 
+            return None
 
         if v.startswith('#'):
             raise ValidationError(

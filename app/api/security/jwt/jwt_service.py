@@ -1,6 +1,5 @@
 from app.core.settings.pydantic_settings import get_settings, Settings
 from app.api.security.jwt.jwt_exception import JWTException
-from app.core.exceptions import ValueNotFound
 
 from fastapi import Request, Response, Depends
 from datetime import datetime, timezone, timedelta

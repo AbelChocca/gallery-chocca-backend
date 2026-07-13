@@ -3,8 +3,6 @@ from app.features.media.schema import ReadImage
 from app.features.material.dto.material import MaterialCatalogDTO
 from app.shared.pagination.schema import PaginationResponseSchema
 
-from app.features.material.schema import MaterialResponseSchema
-from app.features.media.schema import ReadImage
 from app.features.material.dto.material import MaterialResponseDTO
 
 

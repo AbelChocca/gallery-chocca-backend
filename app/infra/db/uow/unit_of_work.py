@@ -1,9 +1,3 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from contextlib import AbstractAsyncContextManager
-from typing import Callable, Type, TypeVar
-
-T = TypeVar("T")
-
 from app.infra.db.repositories.sqlalchemy_inventory_movement_repo import PostgresInventoryMovementReposity
 from app.infra.db.mappers.inventory_movement_mapper import InventoryMovementMapper
 from app.infra.db.models.model_inventory_movement import InventoryMovementTable
@@ -41,6 +35,12 @@ from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import
 from app.infra.db.repositories.material_repository import PostgresMaterialRepository
 from app.infra.db.mappers.material_mapper import MaterialMapper
 from app.infra.db.models.model_material import MaterialTable
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from contextlib import AbstractAsyncContextManager
+from typing import Callable, Type, TypeVar
+
+T = TypeVar("T")
 
 class UnitOfWork(AbstractAsyncContextManager):
     def __init__(self, session_factory: Callable[[], AsyncSession]):

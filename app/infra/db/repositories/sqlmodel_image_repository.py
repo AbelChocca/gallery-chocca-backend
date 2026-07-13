@@ -91,7 +91,8 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
             owner_type: str,
             owner_ids: List[int]
     ) -> None:
-        if not owner_ids: return
+        if not owner_ids: 
+            return None
         try:
             stmt = (
                 delete(MediaImageTable)
@@ -117,7 +118,9 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
             owner_type: str,
             publics_id: List[int]
     ) -> None:
-        if not publics_id: return
+        if not publics_id: 
+            return None
+        
         try:
             stmt = (
                 delete(MediaImageTable)

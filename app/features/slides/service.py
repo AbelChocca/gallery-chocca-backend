@@ -5,7 +5,6 @@ from app.infra.saga.saga_service import SagaService
 from app.infra.cache.protocole import CacheProtocol
 from app.features.slides.dto import UpdateSlideCommand, UpdateSlidesOrder, SlideFiltersCommand, PublishSlideCommand
 from app.features.media.entities.image import ImageEntity
-from app.features.slides.dto import SlidesOverviewDTO
 from app.features.media.service import MediaService
 
 from app.features.slides.entity import SlideEntity

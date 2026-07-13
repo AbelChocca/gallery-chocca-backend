@@ -68,11 +68,11 @@ def test_set_alt_text():
 # ------------------------------
 def test_validate_image_attr():
     with pytest.raises(ValidationError):
-        image_empty_url = ImageEntity("", "variant", "img_123")
+        _ = ImageEntity("", "variant", "img_123")
     
     with pytest.raises(ValidationError):
         # public_id vacío
-        image_empty_id = ImageEntity("url", "variant", "")
+        _ = ImageEntity("url", "variant", "")
 
 # ------------------------------
 # 6️⃣ Test to_dict
