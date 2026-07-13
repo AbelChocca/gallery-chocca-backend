@@ -35,7 +35,7 @@ services:
       - /app/.venv
     env_file:
       - .env
-    image: backend_jean
+    image: backend_jean:dev
 
 volumes:
   postgres_data:
