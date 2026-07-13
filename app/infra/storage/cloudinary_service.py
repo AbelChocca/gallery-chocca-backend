@@ -20,7 +20,8 @@ class CloudinaryService(StorageProtocol):
                 {
                     "service": "storage/infra",
                     "event": "upload_image",
-                    "folder": folder
+                    "folder": folder,
+                    "cloudinary_error": str(e),
                 }
                 ) from e
 
@@ -34,6 +35,7 @@ class CloudinaryService(StorageProtocol):
                     "service": "storage/infra",
                     "event": "delete_image",
                     "public_id": public_id,
+                    "cloudinary_error": str(e),
                 }
             ) from e
         
@@ -51,7 +53,8 @@ class CloudinaryService(StorageProtocol):
                     "service": "storage/infra",
                     "event": "rename_resource",
                     "original_public_id": origin_public_id,
-                    "destinaraty_public_id": destinatary_public_id
+                    "destinaraty_public_id": destinatary_public_id,
+                    "cloudinary_error": str(e),
                 }
             ) from e
         
