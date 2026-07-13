@@ -1,9 +1,15 @@
 import pytest
+from decimal import Decimal
 
 from app.features.material.service import MaterialService
-from app.features.material.dto import CreateMaterialDTO, UpdateMaterialDTO
-from app.features.material.types import CompanyType, MaterialType, UnitType
+from app.features.material.dto.material import CreateMaterialDTO, UpdateMaterialDTO
 from app.core.exceptions import ValidationError
+
+from app.features.material.types import (
+    CompanyType,
+    MaterialType,
+    UnitType
+)
 
 @pytest.mark.asyncio
 async def test_should_create_material(material_service: MaterialService):

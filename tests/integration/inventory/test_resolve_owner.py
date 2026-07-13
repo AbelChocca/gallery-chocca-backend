@@ -5,7 +5,7 @@ from app.features.inventory.dto import (
     MovementItem,
 )
 from app.features.inventory.types import InventoryMovementType
-from app.features.material.dto import CreateMaterialDTO
+from app.features.material.dto.material import CreateMaterialDTO
 from tests.factories.material_factory import build_material
 
 

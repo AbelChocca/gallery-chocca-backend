@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.features.material.entity import Material
+from app.features.material.entities.material import Material
 
 from app.features.material.types import (
     CompanyType,
