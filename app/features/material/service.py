@@ -2,8 +2,10 @@ from app.infra.db.repositories.material_repository import (
     PostgresMaterialRepository
 )
 from app.shared.pagination.pagination_service import PaginationService
-from app.features.material.entity import Material
-from app.features.material.dto import (
+from app.features.material.entities.material import Material
+from app.features.material.entities.material_component import MaterialComponent
+from app.features.material.dto.material_component import CreateMaterialComponentDTO
+from app.features.material.dto.material import (
     CreateMaterialDTO,
     UpdateMaterialDTO,
     MaterialFilters,
@@ -11,9 +13,10 @@ from app.features.material.dto import (
 )
 from app.features.inventory.types import InventoryMovementType
 from app.features.inventory.dto import MovementItem
-from app.core.exceptions import ValidationError, ValueNotFound
+from app.core.exceptions import ValidationError, ValueNotFound, InvalidOperation
 from app.features.inventory.strategy.registry import get_inventory_strategy
-
+from decimal import Decimal
+from app.features.material.types import MaterialType
 
 class MaterialService:
     def __init__(
@@ -28,7 +31,6 @@ class MaterialService:
         self,
         dto: CreateMaterialDTO
     ) -> Material:
-
         if await self._material_repository.exists_by_name(
             dto.name
         ):
@@ -39,6 +41,21 @@ class MaterialService:
                     "repeated_name": dto.name
                 }
             )
+        
+        components = None
+
+        if dto.components:
+            self._validate_components(dto, dto.material_type)
+        
+            components = [
+                MaterialComponent(
+                    id=None,
+                    material_id=None,
+                    fiber_type=component.fiber_type,
+                    percentage=component.percentage,
+                )
+                for component in dto.components
+            ]
 
         total_materials = (
             await self._material_repository.count_all()
@@ -60,7 +77,8 @@ class MaterialService:
             company=dto.company,
             material_type=dto.material_type,
             unit_type=dto.unit_type,
-            is_active=True
+            is_active=True,
+            components=components,
         )
 
         return await self._material_repository.save(
@@ -71,11 +89,53 @@ class MaterialService:
         self,
         material_id: int,
         dto: UpdateMaterialDTO
-    ) -> None:
-
+    ) -> Material:
         material = await self._material_repository.get_by_id(
             material_id
         )
+
+        if not material.is_active:
+            raise InvalidOperation(
+                "Cannot update material because it's disabled.",
+                context={
+                    "service": "material",
+                    "material_id": material_id,
+                    "material_name": material.name
+                }
+            )
+        
+        effective_material_type = (
+            dto.material_type
+            if dto.material_type is not None
+            else material.material_type
+        )
+
+        if effective_material_type != MaterialType.FABRIC:
+            if material.components:
+                await self._material_repository.delete_components_by_material_id(
+                    material.id
+                )
+                material.components = []
+
+        elif dto.components is not None:
+            self._validate_components(
+                dto,
+                effective_material_type
+            )
+
+            await self._material_repository.delete_components_by_material_id(
+                material.id
+            )
+
+            material.components = [
+                MaterialComponent(
+                    id=None,
+                    material_id=material.id,
+                    fiber_type=c.fiber_type,
+                    percentage=c.percentage,
+                )
+                for c in dto.components
+            ]
 
         material.update_information(
             name=dto.name,
@@ -88,16 +148,16 @@ class MaterialService:
 
         material.regenerate_code_prefix()
 
-        await self._material_repository.save(
+        material = await self._material_repository.save(
             material
         )
 
-        return None
+        return material
     
     async def update_stock(
         self,
         material_id: int,
-        quantity: int,
+        quantity: Decimal,
         movement_type: InventoryMovementType
     ) -> tuple[Material, int]:
 
@@ -290,5 +350,48 @@ class MaterialService:
                     "service": "material",
                     "event": "update_stock_many",
                     "missing_ids": missing_ids
+                }
+            )
+        
+    def _validate_components(
+            self, 
+            dto: CreateMaterialDTO | UpdateMaterialDTO,
+            material_type: MaterialType   
+        ):
+        if dto.components and material_type != MaterialType.FABRIC:
+            raise ValidationError(
+                "Los componentes de un material no pueden asociarse a un material que no sea de tipo Tela.",
+                {
+                    "module_service": "material_service"
+                }
+            )
+        
+        for component in dto.components:
+            if component.percentage <= Decimal("0"):
+                raise ValidationError(
+                    "Cada porcentaje debe ser mayor a 0.",
+                    {
+                        "module_service": "material_service"
+                    }   
+                )
+        
+        if len(dto.components) > 0:
+            total = sum((c.percentage for c in dto.components), start=Decimal("0"))
+
+            if total != Decimal("100"):
+                raise ValidationError(
+                    "La suma de los porcentajes de la composición debe ser exactamente 100%.",
+                    {
+                        "modele_service": "material_service"
+                    }
+                )
+        
+        fiber_types = [c.fiber_type for c in dto.components]
+
+        if len(fiber_types) != len(set(fiber_types)):
+            raise ValidationError(
+                "No se pueden repetir tipos de fibra en la composición.",
+                {
+                    "modele_service": "material_service"
                 }
             )

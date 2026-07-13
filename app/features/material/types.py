@@ -17,6 +17,8 @@ class UnitType(str, Enum):
 class MaterialType(str, Enum):
     FABRIC = "FABRIC"
     ACCESSORY = "ACCESSORY"
+    BAG = "BAG"
+    SUPPLY = "SUPPLY"  
 
 class FiberType(str, Enum):
     COTTON = "COTTON"

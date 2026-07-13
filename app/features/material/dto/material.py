@@ -1,9 +1,12 @@
-from dataclasses import dataclass
-from app.features.material.entity import Material
+from dataclasses import dataclass, field
+from app.features.material.entities.material import Material
 from app.features.media.entities.image import ImageEntity
 from app.shared.pagination.dto import PaginatedDTO, PaginationDTO
 from app.features.media.dto import ReadMediaImageDTO
 from datetime import datetime
+from decimal import Decimal
+
+from app.features.material.dto.material_component import MaterialComponentDTO, CreateMaterialComponentDTO
 
 from app.features.material.types import (
     CompanyType,
@@ -22,8 +25,8 @@ class MaterialResponseDTO:
     material_type: MaterialType
     unit_type: UnitType
 
-    stock: int
-    minimum_stock: int
+    stock: Decimal
+    minimum_stock: Decimal
 
     is_active: bool
 
@@ -34,6 +37,8 @@ class MaterialResponseDTO:
 
     image: ReadMediaImageDTO | None = None
     description: str | None = None
+
+    components: list[MaterialComponentDTO] | None = None
 
     @classmethod
     def from_entities(
@@ -60,6 +65,10 @@ class MaterialResponseDTO:
             ),
             created_at=material.created_at,
             updated_at=material.updated_at,
+            components=[
+                MaterialComponentDTO.from_entity(component)
+                for component in material.components
+            ]
         )
 
     def to_dict(self) -> dict:
@@ -71,8 +80,8 @@ class MaterialResponseDTO:
             "company": self.company.value,
             "material_type": self.material_type.value,
             "unit_type": self.unit_type.value,
-            "stock": self.stock,
-            "minimum_stock": self.minimum_stock,
+            "stock": str(self.stock),
+            "minimum_stock": str(self.minimum_stock),
             "is_active": self.is_active,
             "availability_status": self.availability_status.value,
             "image": (
@@ -82,6 +91,12 @@ class MaterialResponseDTO:
             ),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "components": [
+                component.to_dict()
+                for component in self.components
+            ]
+            if self.components
+            else [],
         }
 
     @classmethod
@@ -94,8 +109,8 @@ class MaterialResponseDTO:
             company=CompanyType(data["company"]),
             material_type=MaterialType(data["material_type"]),
             unit_type=UnitType(data["unit_type"]),
-            stock=data["stock"],
-            minimum_stock=data["minimum_stock"],
+            stock=Decimal(data["stock"]),
+            minimum_stock=Decimal(data["minimum_stock"]),
             is_active=data["is_active"],
             availability_status=MaterialAvailabilityStatus(
                 data["availability_status"]
@@ -107,6 +122,10 @@ class MaterialResponseDTO:
             ),
             created_at=datetime.fromisoformat(data["created_at"]),
             updated_at=datetime.fromisoformat(data["updated_at"]),
+            components=[
+                MaterialComponentDTO.from_dict(component)
+                for component in data.get("components", [])
+            ],
         )
 
 @dataclass(slots=True)
@@ -115,10 +134,10 @@ class MaterialCatalogDTO:
     code: str
     name: str
     material_type: str
-    stock: int
+    stock: Decimal
+    minimum_stock: Decimal
     unit_type: str
     availability_status: MaterialAvailabilityStatus
-    minimum_stock: int
 
     is_active: bool
     image: ReadMediaImageDTO | None = None
@@ -153,10 +172,10 @@ class MaterialCatalogDTO:
             "code": self.code,
             "name": self.name,
             "material_type": self.material_type,
-            "stock": self.stock,
+            "stock": str(self.stock),
+            "minimum_stock": str(self.minimum_stock),
             "unit_type": self.unit_type,
             "availability_status": self.availability_status.value,
-            "minimum_stock": self.minimum_stock,
             "is_active": self.is_active,
             "image": (
                 self.image.to_dict()
@@ -172,12 +191,12 @@ class MaterialCatalogDTO:
             code=data["code"],
             name=data["name"],
             material_type=data["material_type"],
-            stock=data["stock"],
+            stock=Decimal(data["stock"]),
+            minimum_stock=Decimal(data["minimum_stock"]),
             availability_status=MaterialAvailabilityStatus(
                 data["availability_status"]
             ),
             unit_type=data["unit_type"],
-            minimum_stock=data["minimum_stock"],
             is_active=data["is_active"],
             image=(
                 ReadMediaImageDTO.from_dict(data["image"])
@@ -229,18 +248,23 @@ class UpdateMaterialDTO:
     name: str | None = None
     description: str | None = None
     company: CompanyType | None = None
-    minimum_stock: int | None = None
+    minimum_stock: Decimal | None = None
     material_type: MaterialType | None = None
     unit_type: UnitType | None = None
+    delete_image: bool = False
+    components: list[CreateMaterialComponentDTO] | None = None
 
 @dataclass(slots=True)
 class CreateMaterialDTO:
     name: str
     description: str | None
     company: CompanyType
-    minimum_stock: int
+    minimum_stock: Decimal
     material_type: MaterialType
     unit_type: UnitType
+    components: list[CreateMaterialComponentDTO] = field(
+    default_factory=list
+)
 
 @dataclass(slots=True)
 class MaterialFilters:

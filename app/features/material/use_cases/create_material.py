@@ -1,11 +1,11 @@
 from app.features.material.service import MaterialService
 from app.features.media.service import MediaService
-from app.features.material.dto import CreateMaterialDTO
+from app.features.material.dto.material import CreateMaterialDTO
 from app.infra.saga.saga_service import SagaService
 from app.features.material.constants import MATERIAL_FOLDER
 from app.features.media.types import ImageType
 from app.infra.saga.saga_use_case import UseCaseSaga
-from app.features.material.entity import Material
+from app.features.material.entities.material import Material
 from app.infra.cache.redis_service import RedisService
 from app.features.material.constants import MATERIAL_CACHE_KEY_TAG
 

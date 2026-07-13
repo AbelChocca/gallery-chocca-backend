@@ -1,6 +1,6 @@
 from app.features.material.material_route import router
 from app.features.material.schema import GetMaterialsQuerySchema, MaterialPaginatedResponseSchema
-from app.features.material.dto import MaterialFilters
+from app.features.material.dto.material import MaterialFilters
 from app.features.material.mappers import MaterialPaginatedResponseMapper
 from app.features.material.use_cases.get_materials import GetMaterialsUseCase
 from app.features.material.dependency import get_materials_case

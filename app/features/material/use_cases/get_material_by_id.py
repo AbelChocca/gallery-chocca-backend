@@ -2,7 +2,7 @@ from app.features.material.service import MaterialService
 from app.features.media.service import MediaService
 from app.infra.cache.redis_service import RedisService
 
-from app.features.material.dto import MaterialResponseDTO
+from app.features.material.dto.material import MaterialResponseDTO
 from app.features.media.types import ImageType
 from app.features.material.constants import MATERIAL_CACHE_KEY_TAG
 

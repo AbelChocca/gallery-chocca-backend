@@ -1,11 +1,11 @@
-from app.features.material.schema import MaterialResponseSchema, MaterialPaginatedResponseSchema, MaterialCatalogResponseSchema
+from app.features.material.schema import MaterialResponseSchema, MaterialPaginatedResponseSchema, MaterialCatalogResponseSchema, MaterialComponentSchema
 from app.features.media.schema import ReadImage
-from app.features.material.dto import MaterialCatalogDTO
+from app.features.material.dto.material import MaterialCatalogDTO
 from app.shared.pagination.schema import PaginationResponseSchema
 
 from app.features.material.schema import MaterialResponseSchema
 from app.features.media.schema import ReadImage
-from app.features.material.dto import MaterialResponseDTO
+from app.features.material.dto.material import MaterialResponseDTO
 
 
 class MaterialResponseMapper:
@@ -35,6 +35,15 @@ class MaterialResponseMapper:
             ),
             created_at=dto.created_at,
             updated_at=dto.updated_at,
+            components=[
+                MaterialComponentSchema(
+                    id=component.id,
+                    material_id=component.material_id,
+                    fiber_type=component.fiber_type,
+                    percentage=component.percentage,
+                )
+                for component in (dto.components or [])
+            ],
         )
     
 class MaterialPaginatedResponseMapper:

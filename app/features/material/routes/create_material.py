@@ -1,6 +1,7 @@
 from app.features.material.material_route import router
 from app.features.material.schema import CreateSupplyRequest
-from app.features.material.dto import CreateMaterialDTO
+from app.features.material.dto.material import CreateMaterialDTO
+from app.features.material.dto.material_component import CreateMaterialComponentDTO
 from app.features.material.dependency import get_create_material_case
 from app.features.material.use_cases.create_material import CreateMaterialUseCase
 from app.api.helpers.validators import validate_image
@@ -36,9 +37,14 @@ async def create_supply(
 ) -> None:
     image_file = await validate_image(image_file)
 
+    data = request.model_dump()
+
+    data["components"] = [
+        CreateMaterialComponentDTO(**component)
+        for component in data["components"]
+    ]
+
     await case.execute(
-        command=CreateMaterialDTO(
-            **request.model_dump()
-        ),
+        command=CreateMaterialDTO(**data),
         image_file=image_file.file if image_file else None
     )

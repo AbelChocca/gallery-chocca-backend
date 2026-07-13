@@ -38,6 +38,23 @@ class MediaService:
             owner_type=owner_type,
             owner_ids=owner_ids
         )
+    
+    async def get_first_image_by_owner(
+        self,
+        *,
+        owner_type: ImageType,
+        owner_id: int
+    ) -> ImageEntity | None:
+        return await self._image_repo.get_first_by_owner(
+            owner_type=owner_type,
+            owner_id=owner_id
+        )
+    
+    async def delete_image_v2(
+            self,
+            image_public_id: str
+    ) -> None:
+        await self._image_repo.delete_by_id(image_public_id)
 
     
     # LEGACY
@@ -129,7 +146,7 @@ class MediaService:
                 self._trash_public_id(public_id)
             )
         except AppException as ae:
-            ae["head_context"] = {
+            ae.context["head_context"] = {
                 "service": "media",
                 "service_event": "move_image_to_trash"
             }
@@ -143,7 +160,7 @@ class MediaService:
                 public_id
             )
         except AppException as ae:
-            ae["head_context"] = {
+            ae.context["head_context"] = {
                 "service": "media",
                 "service_event": "move_image_to_trash"
             }
@@ -159,7 +176,7 @@ class MediaService:
 
             return data
         except AppException as ae:
-            ae["head_context"] = {
+            ae.context["head_context"] = {
                 "service": "media",
                 "service_event": "upload_image"
             }
@@ -277,6 +294,22 @@ class MediaService:
         )
 
         return new_image
+    
+    async def update_image(
+        self,
+        *,
+        image: ImageEntity,
+        image_url: str,
+        public_id: str,
+        is_primary: bool | None = None
+    ) -> ImageEntity:
+        image.image_url = image_url
+        image.public_id = public_id
+
+        if is_primary is not None:
+            image.is_primary = is_primary
+
+        return await self._image_repo.update(image)
 
     def _trash_public_id(self, public_id: str) -> str:
         filename = public_id.rsplit("/", 1)[-1]

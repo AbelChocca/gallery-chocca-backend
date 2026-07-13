@@ -5,6 +5,9 @@ from app.features.material.types import (
     UnitType
 )
 from datetime import datetime, timezone
+from decimal import Decimal
+
+from app.features.material.entities.material_component import MaterialComponent
 
 class Material:
     def __init__(
@@ -16,32 +19,34 @@ class Material:
         description: str | None,
         material_type: MaterialType,
         unit_type: UnitType,
-        minimum_stock: int,
+        minimum_stock: Decimal,
         is_active: bool,
-        stock: int | None = None,
+        stock: Decimal | None = None,
         company: CompanyType = CompanyType.OLD_DENIM,
         created_at: datetime | None = None,
-        updated_at: datetime | None = None
+        updated_at: datetime | None = None,
+        components: list[MaterialComponent] | None = None,
     ):
         self.id = id
         self.code = code
         self.name = name
         self.description = description
         self.company = company
-        self.stock = stock if stock is not None else 0
+        self.stock = stock if stock is not None else Decimal("0")
         self.material_type = material_type
         self.unit_type = unit_type
         self.minimum_stock = minimum_stock
         self.is_active = is_active
         self.created_at = created_at or datetime.now(timezone.utc)
         self.updated_at = updated_at or datetime.now(timezone.utc)
+        self.components = components or []
 
     @property
     def availability_status(
         self
     ) -> MaterialAvailabilityStatus:
 
-        if self.stock == 0:
+        if self.stock == Decimal("0"):
             return MaterialAvailabilityStatus.OUT_OF_STOCK
 
         if self.stock <= self.minimum_stock:
@@ -57,7 +62,7 @@ class Material:
         company: CompanyType | None = None,
         material_type: MaterialType | None = None,
         unit_type: UnitType | None = None,
-        minimum_stock: int | None = None
+        minimum_stock: Decimal | None = None
     ) -> None:
 
         updated = False
