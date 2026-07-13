@@ -11,13 +11,15 @@ class ImageMapper(BaseMapper[ImageEntity, MediaImageTable]):
             existing_model.owner_id = entity.owner_id
             existing_model.owner_type = entity.owner_type
             existing_model.public_id = entity.public_id
+            existing_model.is_primary = entity.is_primary
             return existing_model
         return MediaImageTable(
             public_id=entity.public_id,
             image_url=entity.image_url,
             alt_text=entity.alt_text,
             owner_type=entity.owner_type,
-            owner_id=entity.owner_id
+            owner_id=entity.owner_id,
+            is_primary=entity.is_primary
         )
 
     @staticmethod
@@ -28,5 +30,6 @@ class ImageMapper(BaseMapper[ImageEntity, MediaImageTable]):
             owner_id=model.owner_id,
             owner_type=model.owner_type,
             public_id=model.public_id,
-            alt_text=model.alt_text
+            alt_text=model.alt_text,
+            is_primary=model.is_primary
         )

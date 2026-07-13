@@ -1,9 +1,10 @@
 from typing import Optional
 
-from app.features.material.entity import Material
+from app.features.material.entities.material import Material
 
 from app.infra.db.mappers.base_mapper import BaseMapper
 from app.infra.db.models.model_material import MaterialTable
+from app.infra.db.mappers.material_component_mapper import MaterialComponentMapper
 
 
 class MaterialMapper(
@@ -29,7 +30,11 @@ class MaterialMapper(
                 unit_type=entity.unit_type,
                 is_active=entity.is_active,
                 created_at=entity.created_at,
-                updated_at=entity.updated_at
+                updated_at=entity.updated_at,
+                components=[
+                    MaterialComponentMapper.to_db_model(component)
+                    for component in entity.components
+                ]
             )
 
         existing_model.code = entity.code
@@ -42,6 +47,10 @@ class MaterialMapper(
         existing_model.unit_type = entity.unit_type
         existing_model.is_active = entity.is_active
         existing_model.updated_at = entity.updated_at
+        existing_model.components = [
+            MaterialComponentMapper.to_db_model(component)
+            for component in entity.components
+        ]
 
         return existing_model
 
@@ -61,5 +70,9 @@ class MaterialMapper(
             unit_type=model.unit_type,
             is_active=model.is_active,
             created_at=model.created_at,
-            updated_at=model.updated_at
+            updated_at=model.updated_at,
+             components=[
+                MaterialComponentMapper.to_entity(component)
+                for component in model.components
+            ]
         )

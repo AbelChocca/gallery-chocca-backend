@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, Field, String, Index
 from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
 from datetime import datetime, timezone
-from sqlalchemy import Enum, Column, DateTime
-
+from sqlalchemy import Enum, Column, DateTime, Numeric
+from decimal import Decimal
 
 class InventoryMovementTable(SQLModel, table=True):
     __tablename__ = "inventory_movement"
@@ -53,11 +53,26 @@ class InventoryMovementTable(SQLModel, table=True):
         )
     )
 
-    quantity: int
+    quantity: Decimal = Field(
+        sa_column=Column(
+            Numeric(10, 2),
+            nullable=False
+        )
+    )
 
-    previous_stock: int
+    previous_stock: Decimal = Field(
+        sa_column=Column(
+            Numeric(10, 2),
+            nullable=False
+        )
+    )
 
-    new_stock: int
+    new_stock: Decimal = Field(
+        sa_column=Column(
+            Numeric(10, 2),
+            nullable=False
+        )
+    )
 
     reason: str | None = Field(
         default=None,

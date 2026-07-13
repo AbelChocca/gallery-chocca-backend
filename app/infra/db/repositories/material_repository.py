@@ -1,18 +1,66 @@
 from sqlmodel import select, col
-from sqlalchemy import or_, Select, func, and_, case, update
+from sqlalchemy import or_, Select, func, and_, case, update, delete
+from sqlalchemy.orm import selectinload
 
-from app.features.material.entity import Material
-from app.infra.db.models.model_material import MaterialTable
+from app.features.material.entities.material import Material
+from app.infra.db.models.model_material import MaterialTable, MaterialComponentTable
 from app.infra.db.repositories.base_repository import BaseRepository
-from app.features.material.dto import MaterialFilters
+from app.features.material.dto.material import MaterialFilters
 from app.features.material.types import MaterialAvailabilityStatus
 
 from app.core.exceptions import ValueNotFound
+from decimal import Decimal
 
 
 class PostgresMaterialRepository(
     BaseRepository[Material, MaterialTable]
 ):
+    async def delete_components_by_material_id(
+        self,
+        material_id: int
+    ) -> None:
+        statement = (
+            delete(MaterialComponentTable)
+            .where(
+                MaterialComponentTable.material_id == material_id
+            )
+        )
+
+        await self._db_session.execute(statement)
+        
+    async def get_by_id(
+        self,
+        material_id: int,
+    ) -> Material | None:
+        statement = (
+            select(MaterialTable)
+            .where(
+                MaterialTable.id == material_id
+            )
+            .options(
+                selectinload(
+                    MaterialTable.components
+                )
+            )
+        )
+
+        result = await self._db_session.execute(statement)
+
+        material = result.scalar_one_or_none()
+
+        if not material:
+            raise ValueNotFound(
+                "Material wasn't found.",
+                {
+                    "repository": "material",
+                    "base_model": self._base_model.__name__,
+                    "event": "get_by_id",
+                    "material_id": material_id
+                }
+            )
+        
+        return self._base_mapper.to_entity(material)
+    
     async def get_by_code(
         self,
         code: str
@@ -65,7 +113,7 @@ class PostgresMaterialRepository(
     async def update_stock(
         self,
         material_id: int,
-        new_stock: int
+        new_stock: Decimal
     ) -> None:
 
         await self._db_session.execute(
@@ -80,13 +128,13 @@ class PostgresMaterialRepository(
     
     async def update_stock_many(
         self,
-        stock_updates: dict[int, int]
+        stock_updates: dict[int, Decimal]
     ) -> None:
 
         await self._db_session.execute(
             update(MaterialTable)
             .where(
-                MaterialTable.id.in_(stock_updates.keys())
+                col(MaterialTable.id).in_(stock_updates.keys())
             )
             .values(
                 stock=case(

@@ -85,14 +85,22 @@ class MaterialTable(SQLModel, table=True):
         )
     )
 
-    stock: int = Field(
-        default=0,
-        ge=0
+    stock: Decimal = Field(
+        default=Decimal("0.00"),
+        sa_column=Column(
+            Numeric(10, 2),
+            nullable=False,
+            default=0
+        )
     )
 
-    minimum_stock: int = Field(
-        default=0,
-        ge=0
+    minimum_stock: Decimal = Field(
+        default=Decimal("0.00"),
+        sa_column=Column(
+            Numeric(10, 2),
+            nullable=False,
+            default=0
+        )
     )
 
     is_active: bool = Field(
