@@ -1,5 +1,7 @@
-from typing import Callable, Any, List, Dict, Coroutine
+from typing import Callable, Any, List, Dict, Coroutine, TypeVar, Awaitable
 from app.core.app_exception import AppException, serialize_exception
+
+T = TypeVar("T")
 
 class SagaStep:
     """Representa un paso de la saga con su acción y compensación"""
@@ -55,7 +57,7 @@ class SagaService:
                 # Lanza la excepción original con context de errores de compensación
                 raise AppException("Saga failed", {"original_exception": serialize_exception(e), "compensation_errors": self.compensation_errors}) from e
         
-    async def execute_last(self) -> Any:
+    async def execute_last(self) -> T:
         if not self.steps:
             raise AppException(
                 "No steps to execute",
@@ -117,8 +119,8 @@ class SagaService:
     
     async def execute_safely(
         self,
-        callback
-    ):
+        callback: Callable[..., Awaitable[T]]
+    ) -> T:
         try:
             return await callback()
 
@@ -134,10 +136,10 @@ class SagaService:
 
     async def execute_step(
         self,
-        action: Callable[..., Any],
+        action: Callable[..., Awaitable[T]],
         action_kwargs: dict | None = None,
-        compensation_factory: Callable[[Any], tuple] | None = None
-    ) -> Any:
+        compensation_factory: Callable[[T], tuple] | None = None
+    ) -> T:
         step = SagaStep(
             action=action,
             action_name=action.__name__,
