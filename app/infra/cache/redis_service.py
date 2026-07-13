@@ -227,12 +227,15 @@ class RedisService(CacheProtocol):
         cursor = 0
 
         while True:
-            cursor, keys = await self.client.scan(cursor=cursor, match=key, count=100)
-            if keys:
-                async with self.client.pipeline() as pipe:
-                    for k in keys:
-                        pipe.delete(k)
-                    await pipe.execute()
+            cursor, keys = await self.client.scan(
+                cursor=cursor,
+                match=key,
+                count=100,
+            )
+
+            for k in keys:
+                await self.client.delete(k)
+
             if cursor == 0:
                 break
 
