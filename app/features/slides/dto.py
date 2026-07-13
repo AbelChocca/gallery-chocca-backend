@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import List
 from datetime import datetime
 
@@ -50,3 +50,10 @@ class UpdateSlideCommand:
     @property
     def to_dict(self) -> dict:
         return asdict(self)
+    
+@dataclass(slots=True)
+class SlidesOverviewDTO:
+    total: int = 0
+    active: int = 0
+    inactive: int = 0
+    recent: list[dict] = field(default_factory=list)

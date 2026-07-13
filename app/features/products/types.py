@@ -46,15 +46,6 @@ class SizeType(str, Enum):
     L = "L"
     XL = "XL"
 
-class CountProductPerCategory(TypedDict):
-    category: str
-    total: int
-
-class ProductsOverview(TypedDict):
-    total_products: int
-    products_per_category: list[CountProductPerCategory]
-    last_n_products: list[dict]
-
 ProductImageType = Annotated[
     List[UploadFile],
     WrapValidator(

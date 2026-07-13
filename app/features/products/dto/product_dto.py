@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict
 
 from app.features.products.dto.variant_dto import UpdateProductVariantCommand, PublishProductVariantCommand
@@ -102,3 +102,14 @@ class FilterProductCommand:
     @property
     def to_dict(self) -> Dict:
         return asdict(self)
+    
+@dataclass(slots=True)
+class CountProductPerCategoryDTO:
+    category: str
+    total: int
+
+@dataclass(slots=True)
+class ProductsOverviewDTO:
+    total: int = 0
+    per_category: list[CountProductPerCategoryDTO] = field(default_factory=list)
+    recent: list[dict] = field(default_factory=list)

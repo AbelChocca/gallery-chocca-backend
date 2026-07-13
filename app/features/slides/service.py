@@ -5,7 +5,7 @@ from app.infra.saga.saga_service import SagaService
 from app.infra.cache.protocole import CacheProtocol
 from app.features.slides.dto import UpdateSlideCommand, UpdateSlidesOrder, SlideFiltersCommand, PublishSlideCommand
 from app.features.media.entities.image import ImageEntity
-from app.features.slides.types import SlidesOverview, ActiveAndInactiveSlides
+from app.features.slides.dto import SlidesOverviewDTO
 from app.features.media.service import MediaService
 
 from app.features.slides.entity import SlideEntity
@@ -209,19 +209,7 @@ class SlideService:
                 ae.context["compensation_errors"] = self._saga_service.compensation_errors
 
             raise ae
-
-    async def overview(self) -> SlidesOverview:
-        num_slides = await self._count_slides()
-        active_and_inactive_slides = await self._count_slides_by_active_session()
-        last_three_slides = await self._get_last_n_slides(3)
-
-        res: SlidesOverview = {
-            "recent": last_three_slides,
-            "total": num_slides,
-            **active_and_inactive_slides
-        }
-        return res
-
+        
     async def _get_last_order(self) -> int:
         return await self._slide_repo._get_last_order()
     
@@ -257,13 +245,21 @@ class SlideService:
             for slide in slides
         ] 
     
-    async def _count_slides_by_active_session(self) -> ActiveAndInactiveSlides:
-        slides_by_active_session = await self._slide_repo.count_slides_by_active_session()
+    async def _count_slides_by_active_session(self) -> dict:
+        slides_by_active_session = (
+            await self._slide_repo.count_slides_by_active_session()
+        )
 
-        res: ActiveAndInactiveSlides = {
-            "active" if session else "inactive": count
-            for session, count in slides_by_active_session
+        res = {
+            "active": 0,
+            "inactive": 0,
         }
+
+        for session, count in slides_by_active_session:
+            if session:
+                res["active"] = count
+            else:
+                res["inactive"] = count
 
         return res
     

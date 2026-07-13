@@ -7,7 +7,8 @@ from app.features.user.entity import User
 from app.shared.pagination.pagination_service import PaginationService
 from app.core.settings.pydantic_settings import Settings
 from app.features.user.constraints import USER_EXCEPTIONS_TRANSLATIONS
-from app.features.user.types import UsersOverview, UsersPerRole, ActivateAndInactiveUsers, UserRole
+from app.features.user.types import UserRole
+from app.features.user.dto import CountUsersPerRoleDTO
 
 class UserService:
     def __init__(
@@ -140,29 +141,14 @@ class UserService:
         user = await self._user_repo.get_by_email(email)
 
         return user
-    
-    async def overview(self) -> UsersOverview:
-        num_users = await self._count_users()
-        active_and_inactive_users = await self._count_users_by_active_session()
-        count_users_by_role = await self._count_users_per_role()
-        last_three_users = await self._get_last_n_users(3)
-
-        res: UsersOverview = {
-            "recent": last_three_users,
-            "total": num_users,
-            "per_role": count_users_by_role,
-            **active_and_inactive_users
-        }
-
-        return res
         
     async def _count_users_by_active_session(
         self
-    ) -> ActivateAndInactiveUsers:
+    ) -> dict:
 
         results = await self._user_repo.count_users_by_active_session()
 
-        counts: ActivateAndInactiveUsers = {
+        counts = {
             "active": 0,
             "inactive": 0
         }
@@ -173,14 +159,14 @@ class UserService:
 
         return counts
     
-    async def _count_users_per_role(self) -> list[UsersPerRole]:
+    async def _count_users_per_role(self) -> list[CountUsersPerRoleDTO]:
         total_users_per_role = await self._user_repo.count_user_per_role()
 
-        res: list[UsersPerRole] = [
-            {
-                "total": total,
-                "role": role
-            }
+        res: list[CountUsersPerRoleDTO] = [
+            CountUsersPerRoleDTO(
+                total=total,
+                role=role
+            )
             for (role, total) in total_users_per_role
         ]
 

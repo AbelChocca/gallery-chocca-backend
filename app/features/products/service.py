@@ -8,10 +8,9 @@ from app.features.products.entities.product import Product
 from app.features.media.entities.image import ImageEntity
 from app.infra.saga.saga_service import SagaService
 from app.infra.cache.protocole import CacheProtocol
-from app.features.products.dto.product_dto import UpdateProductCommand, FilterProductCommand
+from app.features.products.dto.product_dto import UpdateProductCommand, FilterProductCommand, CountProductPerCategoryDTO
 from app.shared.pagination.pagination_service import PaginationService
 from app.core.exceptions import ValidationError
-from app.features.products.types import ProductsOverview, CountProductPerCategory
 from app.infra.saga.saga_service import SagaService
 from app.features.media.service import MediaService
 from app.core.app_exception import AppException
@@ -318,21 +317,6 @@ class ProductService:
 
         return product
     
-    async def overview(
-        self
-    ) -> ProductsOverview:
-        total_products = await self._count_products()
-        products_per_category = await self._count_by_category()
-        last_three = await self._get_last_n(3)
-
-        overview_res: ProductsOverview = {
-            "total": total_products,
-            "per_category": products_per_category,
-            "recent": last_three
-        }
-
-        return overview_res
-    
     def _validate_product_form(
         self,
         images_file: List[BinaryIO],
@@ -385,14 +369,14 @@ class ProductService:
         res = await self._product_repo.count_filtered_products(command)
         return res
     
-    async def _count_by_category(self) -> list[CountProductPerCategory]:
+    async def _count_by_category(self) -> list[CountProductPerCategoryDTO]:
         res = await self._product_repo.get_count_by_category()
 
-        products_per_category: list[CountProductPerCategory] = [
-            {
-                "total": total,
-                "category": category
-            }
+        products_per_category: list[CountProductPerCategoryDTO] = [
+            CountProductPerCategoryDTO(
+                total=total,
+                category=category
+            )
             for category, total in res
         ]
 

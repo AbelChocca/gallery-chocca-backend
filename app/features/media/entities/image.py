@@ -11,7 +11,8 @@ class ImageEntity:
             public_id: str,
             owner_id: int | None = None,
             id: int | None = None,
-            alt_text: str | None = None
+            alt_text: str | None = None,
+            is_primary: bool | None = None
             ):
         
         if not image_url:
@@ -37,6 +38,7 @@ class ImageEntity:
         self._owner_id: int = owner_id or None
         self._id: int | None = id or None
         self.alt_text: str | None = alt_text or None
+        self.is_primary = False if is_primary is None else is_primary
 
     @property
     def owner_id(self) -> int | None:
