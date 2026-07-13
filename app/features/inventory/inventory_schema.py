@@ -2,16 +2,17 @@ from pydantic import BaseModel, Field, ConfigDict
 from app.features.inventory.dto import InventoryMovementType, InventoryOwnerType
 from app.shared.pagination.schema import PaginatedResponseSchema
 from datetime import datetime, date
+from decimal import Decimal
 
 class MovementItemSchema(BaseModel):
     owner_id: int = Field(gt=0)
-    quantity: int
+    quantity: Decimal
 
 class CreateMovementSchema(BaseModel):
     owner_id: int
     owner_type: InventoryOwnerType
     type: InventoryMovementType
-    quantity: int
+    quantity: Decimal
     reason: str | None = Field(
         default=None,
         max_length=255
@@ -34,9 +35,9 @@ class InventoryMovementRead(BaseModel):
 
     type: InventoryMovementType
 
-    quantity: int
-    previous_stock: int
-    new_stock: int
+    quantity: Decimal
+    previous_stock: Decimal
+    new_stock: Decimal
 
     created_at: datetime
     reason: str | None = None

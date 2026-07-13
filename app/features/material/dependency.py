@@ -17,6 +17,7 @@ from app.features.material.use_cases.get_materials import GetMaterialsUseCase
 from app.features.material.use_cases.deactivate_material import DeactivateMaterialUseCase
 from app.features.material.use_cases.activate_material import ActivateMaterialUseCase
 from app.features.material.use_cases.get_material_by_id import GetMaterialByIdUseCase
+from app.features.material.use_cases.update_material import UpdateMaterialUseCase
 
 
 def get_material_service(
@@ -94,5 +95,19 @@ def get_material_by_id_case(
     return GetMaterialByIdUseCase(
         material_service=material_service,
         media_service=media_service,
+        cache_service=cache_service
+    )
+
+def get_update_material_use_case(
+    material_service: MaterialService = Depends(get_material_service),
+    media_service: MediaService = Depends(get_media_service),
+    saga_service: SagaService = Depends(get_saga_service),
+    cache_service: RedisService = Depends(get_cache_service)
+) -> UpdateMaterialUseCase:
+
+    return UpdateMaterialUseCase(
+        material_service=material_service,
+        media_service=media_service,
+        saga_service=saga_service,
         cache_service=cache_service
     )

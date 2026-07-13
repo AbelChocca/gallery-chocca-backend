@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from app.features.inventory.types import (
     InventoryMovementType,
@@ -14,9 +15,9 @@ class InventoryMovement:
         owner_name: str,
         owner_code: str,
         type: InventoryMovementType,
-        quantity: int,
-        previous_stock: int,
-        new_stock: int,
+        quantity: Decimal,
+        previous_stock: Decimal,
+        new_stock: Decimal,
         reason: str | None = None,
         id: int | None = None,
         created_at: datetime | None = None
@@ -54,9 +55,9 @@ class InventoryMovement:
             "owner_name": self.owner_name,
             "owner_code": self.owner_code,
             "type": self.type,
-            "quantity": self.quantity,
-            "previous_stock": self.previous_stock,
-            "new_stock": self.new_stock,
+            "quantity": str(self.quantity),
+            "previous_stock": str(self.previous_stock),
+            "new_stock": str(self.new_stock),
             "reason": self.reason,
             "created_at": self.created_at
         }
@@ -69,9 +70,9 @@ class InventoryMovement:
         owner_name: str,
         owner_code: str,
         movement_type: InventoryMovementType,
-        quantity: int,
-        previous_stock: int,
-        new_stock: int,
+        quantity: Decimal,
+        previous_stock: Decimal,
+        new_stock: Decimal,
         reason: str | None = None
     ):
         return cls(

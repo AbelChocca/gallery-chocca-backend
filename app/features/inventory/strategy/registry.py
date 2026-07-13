@@ -12,6 +12,7 @@ from app.features.inventory.strategy.sale import (
 )
 from app.features.inventory.strategy.customer_return_strategy import CustomerReturnStrategy
 from app.features.inventory.strategy.supplier_return_strategy import SupplierReturnStrategy
+from app.features.inventory.strategy.usage import UsageStrategy
 from app.features.inventory.strategy.adjustment import (
     ManualAdjustmentStrategy
 )
@@ -31,6 +32,8 @@ inventory_movement_registry = {
 
     InventoryMovementType.MANUAL_ADJUSTMENT:
         ManualAdjustmentStrategy(),
+    InventoryMovementType.USAGE:
+        UsageStrategy(),
 }
 
 def get_inventory_strategy(

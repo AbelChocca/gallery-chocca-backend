@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 
 from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
 from app.features.inventory.inventory_movement_entity import InventoryMovement
@@ -13,9 +14,9 @@ class InventoryMovementDTO:
     owner_name: str
     owner_code: str
     type: InventoryMovementType
-    quantity: int
-    previous_stock: int
-    new_stock: int
+    quantity: Decimal
+    previous_stock: Decimal
+    new_stock: Decimal
     created_at: str
     reason: str | None = None
 
@@ -46,9 +47,9 @@ class InventoryMovementDTO:
             "owner_name": self.owner_name,
             "owner_code": self.owner_code,
             "type": self.type.value,
-            "quantity": self.quantity,
-            "previous_stock": self.previous_stock,
-            "new_stock": self.new_stock,
+            "quantity": str(self.quantity),
+            "previous_stock": str(self.previous_stock),
+            "new_stock": str(self.new_stock),
             "reason": self.reason,
             "created_at": self.created_at
         }
@@ -69,9 +70,9 @@ class InventoryMovementDTO:
             type=InventoryMovementType(
                 data["type"]
             ),
-            quantity=data["quantity"],
-            previous_stock=data["previous_stock"],
-            new_stock=data["new_stock"],
+            quantity=Decimal(data["quantity"]),
+            previous_stock=Decimal(data["previous_stock"]),
+            new_stock=Decimal(data["new_stock"]),
             reason=data["reason"],
             created_at=data["created_at"]
         )
@@ -115,21 +116,21 @@ class CreateMovementCommand:
     owner_id: int
     owner_type: InventoryOwnerType
     type: InventoryMovementType
-    quantity: int
+    quantity: Decimal
     reason: str | None = None
 
 @dataclass
 class MovementItem:
     owner_id: int
-    quantity: int
+    quantity: Decimal
 
 @dataclass(slots=True)
 class UpdatedOwnerStockResult:
     owner_id: int
     owner_code: str
     owner_name: str
-    previous_stock: int
-    new_stock: int
+    previous_stock: Decimal
+    new_stock: Decimal
 
 @dataclass
 class CreateBulkMovementCommand:
@@ -146,8 +147,8 @@ class CreateBulkMovementCommand:
             )
         )
     
-    def get_quantities_by_owner_id(self) -> dict[int, int]:
-        quantities: dict[int, int] = {}
+    def get_quantities_by_owner_id(self) -> dict[int, Decimal]:
+        quantities: dict[int, Decimal] = {}
 
         for item in self.items:
             if item.owner_id in quantities:
@@ -162,7 +163,7 @@ class InventoryOwnerDTO:
     id: int
     code: str
     name: str
-    stock: int
+    stock: Decimal
 
 @dataclass(slots=True)
 class InventoryMovementAdminDTO:
@@ -176,9 +177,9 @@ class InventoryMovementAdminDTO:
 
     type: InventoryMovementType
 
-    quantity: int
-    previous_stock: int
-    new_stock: int
+    quantity: Decimal
+    previous_stock: Decimal
+    new_stock: Decimal
 
     created_at: str
     reason: str | None = None
@@ -191,9 +192,9 @@ class InventoryMovementAdminDTO:
             "owner_code": self.owner_code,
             "owner_name": self.owner_name,
             "type": self.type.value,
-            "quantity": self.quantity,
-            "previous_stock": self.previous_stock,
-            "new_stock": self.new_stock,
+            "quantity": str(self.quantity),
+            "previous_stock": str(self.previous_stock),
+            "new_stock": str(self.new_stock),
             "reason": self.reason,
             "created_at": self.created_at
         }
@@ -214,9 +215,9 @@ class InventoryMovementAdminDTO:
             type=InventoryMovementType(
                 data["type"]
             ),
-            quantity=data["quantity"],
-            previous_stock=data["previous_stock"],
-            new_stock=data["new_stock"],
+            quantity=Decimal(data["quantity"]),
+            previous_stock=Decimal(data["previous_stock"]),
+            new_stock=Decimal(data["new_stock"]),
             reason=data["reason"],
             created_at=data["created_at"]
         )
@@ -255,9 +256,6 @@ class InventoryMovementAdminPaginatedDTO(
                 total_pages=data["pagination"]["total_pages"]
             )
         )
-
-from dataclasses import dataclass
-from datetime import datetime
 
 from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
 

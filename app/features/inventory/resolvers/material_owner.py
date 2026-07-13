@@ -8,6 +8,7 @@ from app.features.inventory.dto import (
     UpdatedOwnerStockResult
 )
 from app.features.inventory.types import InventoryMovementType
+from decimal import Decimal
 
 class MaterialOwnerResolver(InventoryOwnerResolver):
 
@@ -20,7 +21,7 @@ class MaterialOwnerResolver(InventoryOwnerResolver):
     async def update_stock(
         self,
         owner_id: int,
-        quantity: int,
+        quantity: Decimal,
         movement_type: InventoryMovementType
     ) -> tuple[InventoryOwnerDTO, int]:
 

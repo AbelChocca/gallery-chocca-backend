@@ -1,5 +1,6 @@
 from app.features.inventory.strategy.base import InventoryMovementStrategy
 from app.core.exceptions import InvalidOperation
+from decimal import Decimal
 
 class ManualAdjustmentStrategy(
     InventoryMovementStrategy
@@ -8,11 +9,11 @@ class ManualAdjustmentStrategy(
     def compute_new_stock(
         self,
         *,
-        current_stock: int,
-        quantity: int
-    ) -> int:
+        current_stock: Decimal,
+        quantity: Decimal
+    ) -> Decimal:
 
-        if quantity < 0:
+        if quantity < Decimal("0"):
             raise InvalidOperation(
                 "Stock must be >= 0 after adjustment.",
                 {

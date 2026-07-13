@@ -3,6 +3,7 @@ from app.infra.db.repositories.sqlalchemy_inventory_movement_repo import Postgre
 from app.features.inventory.inventory_movement_entity import InventoryMovement
 from app.shared.pagination.pagination_service import PaginationService
 from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
+from decimal import Decimal
 
 class InventoryService:
     def __init__(
@@ -21,9 +22,9 @@ class InventoryService:
         owner_id: int,
         owner_name: str,
         owner_code: str,
-        quantity: int,
-        prev_stock: int,
-        new_stock: int,
+        quantity: Decimal,
+        prev_stock: Decimal,
+        new_stock: Decimal,
         reason: str,
     ) -> None:
         new_movement = InventoryMovement.create(

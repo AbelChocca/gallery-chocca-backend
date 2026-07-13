@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from decimal import Decimal
 
 class InventoryMovementStrategy(ABC):
 
@@ -6,7 +7,7 @@ class InventoryMovementStrategy(ABC):
     def compute_new_stock(
         self,
         *,
-        current_stock: int,
-        quantity: int
-    ) -> int:
+        current_stock: Decimal,
+        quantity: Decimal
+    ) -> Decimal:
         pass
