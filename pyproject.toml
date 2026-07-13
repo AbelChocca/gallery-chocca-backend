@@ -78,3 +78,8 @@ dependencies = [
     "websockets==15.0.1",
     "xlsxwriter>=3.2.9",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.21",
+]
