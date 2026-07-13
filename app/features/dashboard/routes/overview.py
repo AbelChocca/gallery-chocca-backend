@@ -35,5 +35,5 @@ async def overview(
 
     return OverviewSchema(
         admin=user_info,
-        **res,
+        **res.dto_to_dict(),
     )
