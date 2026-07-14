@@ -1,7 +1,7 @@
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 from sqlalchemy.engine import URL
 from sqlmodel import SQLModel
 
@@ -49,8 +49,6 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
 
-    configuration = config.get_section(config.config_ini_section)
-
     connect_args = {}
 
     if settings.ENV == "production":
@@ -58,9 +56,8 @@ def run_migrations_online() -> None:
             "sslmode": "require"
         }
 
-    connectable = engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
+    connectable = create_engine(
+        database_url,
         poolclass=pool.NullPool,
         connect_args=connect_args,
     )
