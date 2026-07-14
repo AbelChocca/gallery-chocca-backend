@@ -1,35 +1,35 @@
 from decimal import Decimal
 
-from sqlmodel import SQLModel, Field, Column
 from sqlalchemy import (
+    CheckConstraint,
+    Column,
     ForeignKey,
+    Index,
     Numeric,
     UniqueConstraint,
-    Index,
-    CheckConstraint
 )
+from sqlmodel import Field, SQLModel
 
-
-class ProductMaterialTable(SQLModel, table=True):
-    __tablename__ = "product_materials"
+class VariantSizeMaterialTable(SQLModel, table=True):
+    __tablename__ = "variant_size_materials"
 
     __table_args__ = (
         UniqueConstraint(
-            "product_id",
+            "variant_size_id",
             "material_id",
-            name="uq_product_material_product_material"
+            name="uq_variant_size_material"
         ),
         Index(
-            "ix_product_material_product_id",
-            "product_id"
+            "ix_variant_size_material_variant_size_id",
+            "variant_size_id"
         ),
         Index(
-            "ix_product_material_material_id",
+            "ix_variant_size_material_material_id",
             "material_id"
         ),
         CheckConstraint(
             "quantity > 0",
-            name="ck_product_material_quantity_positive"
+            name="ck_variant_size_material_quantity_positive"
         ),
     )
 
@@ -38,10 +38,10 @@ class ProductMaterialTable(SQLModel, table=True):
         primary_key=True
     )
 
-    product_id: int = Field(
+    variant_size_id: int = Field(
         sa_column=Column(
             ForeignKey(
-                "products.id",
+                "variant_sizes.id",
                 ondelete="CASCADE"
             ),
             nullable=False
