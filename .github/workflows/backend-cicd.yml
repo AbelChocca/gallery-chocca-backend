@@ -76,6 +76,20 @@ jobs:
         run: |
           uv run ruff check .
 
+      - name: Enable PostgreSQL extensions
+        run: |
+          PGPASSWORD=postgres psql \
+            -h localhost \
+            -U postgres \
+            -d test_db \
+            -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
+          PGPASSWORD=postgres psql \
+            -h localhost \
+            -U postgres \
+            -d test_db \
+            -c "CREATE EXTENSION IF NOT EXISTS unaccent;"
+
       - name: Run tests
         run: |
           uv run pytest tests/integration tests/unit
