@@ -10,7 +10,7 @@ async def test_should_create_inventory_movement(
     inventory_service: InventoryService
 ):
     await inventory_service.create_movement(
-        movement_type=InventoryMovementType.RESTOCK,
+        movement_type=InventoryMovementType.ENTRY,
         owner_type=InventoryOwnerType.MATERIAL,
         owner_id=1,
         owner_name="Cemento",
@@ -35,7 +35,7 @@ async def test_should_get_inventory_movements_filtered_and_paginated(
     inventory_service: InventoryService
 ):
     await inventory_service.create_movement(
-        movement_type=InventoryMovementType.RESTOCK,
+        movement_type=InventoryMovementType.ENTRY,
         owner_type=InventoryOwnerType.MATERIAL,
         owner_id=1,
         owner_name="Cemento",
@@ -76,4 +76,4 @@ async def test_should_get_inventory_movements_filtered_and_paginated(
 
     assert movement.owner_name == "Cemento"
     assert movement.owner_code == "MAT-001"
-    assert movement.type == InventoryMovementType.RESTOCK
+    assert movement.type == InventoryMovementType.ENTRY
