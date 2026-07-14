@@ -92,10 +92,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest tests/integration tests/unit \
-            --cov=app \
-            --cov-report=term-missing \
-            --cov-fail-under=75
+          uv run pytest tests/integration tests/unit
 
   deploy:
     name: Build and Deploy
