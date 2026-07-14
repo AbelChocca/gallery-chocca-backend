@@ -18,3 +18,9 @@ build/
 logs/
 
 .DS_store
+
+.idea/
+
+/shelf/
+/workspace.xml
+.ruff_cache

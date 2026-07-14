@@ -42,3 +42,9 @@ docker-compose*
 
 # Recursos innecesarios
 *.DS_Store
+
+.idea/
+
+/shelf/
+/workspace.xml
+.ruff_cache

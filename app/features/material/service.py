@@ -14,8 +14,8 @@ from app.features.inventory.types import InventoryMovementType
 from app.features.inventory.dto import MovementItem
 from app.core.exceptions import ValidationError, ValueNotFound, InvalidOperation
 from app.features.inventory.strategy.registry import get_inventory_strategy
-from decimal import Decimal
 from app.features.material.types import MaterialType
+from decimal import Decimal
 
 class MaterialService:
     def __init__(
@@ -187,7 +187,7 @@ class MaterialService:
         movement_type: InventoryMovementType,
         movement_items: list[MovementItem]
 
-    ) -> list[tuple[Material, int]]:
+    ) -> list[tuple[Material, Decimal]]:
 
         materials = await self._material_repository.get_by_ids(
             material_ids
@@ -207,8 +207,8 @@ class MaterialService:
             movement_type
         )
 
-        stock_updates: dict[int, int] = {}
-        result: list[tuple[Material, int]] = []
+        stock_updates: dict[int, Decimal] = {}
+        result: list[tuple[Material, Decimal]] = []
 
         for item in movement_items:
 
