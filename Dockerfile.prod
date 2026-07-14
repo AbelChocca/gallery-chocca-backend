@@ -34,6 +34,7 @@ RUN useradd -m appuser
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --chown=appuser:appuser app ./app
+COPY --chown=appuser:appuser alembic.ini ./alembic.ini
 
 ENV PATH="/app/.venv/bin:$PATH"
 
