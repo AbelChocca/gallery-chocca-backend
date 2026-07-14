@@ -125,6 +125,7 @@ jobs:
       - name: Build image
         run: |
           docker build \
+            -f Dockerfile.prod \
             -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }} \
             -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
             .
