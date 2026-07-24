@@ -1,79 +1,144 @@
+from app.features.inventory.services.inventory_service import InventoryService
+from app.core.exceptions import InvalidOperation, ValueNotFound
+from app.features.inventory.types.inventory import AvailabilityStatus
+
 import pytest
-
-from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
-from app.features.inventory.dto import InventoryMovementFilters
-from app.features.inventory.inventory_service import InventoryService
+from decimal import Decimal
 
 
-@pytest.mark.asyncio
-async def test_should_create_inventory_movement(
-    inventory_service: InventoryService
+async def test_create_inventory_success(
+    inventory_service: InventoryService,
+    variant_size,
+    location,
 ):
-    await inventory_service.create_movement(
-        movement_type=InventoryMovementType.ENTRY,
-        owner_type=InventoryOwnerType.MATERIAL,
-        owner_id=1,
-        owner_name="Cemento",
-        owner_code="MAT-001",
-        quantity=10,
-        prev_stock=20,
-        new_stock=30,
-        reason="Compra"
+    inventory = await inventory_service.create_inventory(
+        variant_size_id=variant_size.id,
+        location_id=location.id,
+        minimum_stock=Decimal("5"),
     )
 
-    movement = await inventory_service.get_movement_by_id(1)
+    assert inventory.id is not None
+    assert inventory.quantity == Decimal("0")
+    assert inventory.reserved_quantity == Decimal("0")
+    assert inventory.minimum_stock == Decimal("5")
 
-    assert movement is not None
-    assert movement.owner_name == "Cemento"
-    assert movement.owner_code == "MAT-001"
-    assert movement.quantity == 10
-    assert movement.previous_stock == 20
-    assert movement.new_stock == 30
 
-@pytest.mark.asyncio
-async def test_should_get_inventory_movements_filtered_and_paginated(
-    inventory_service: InventoryService
+async def test_create_inventory_negative_minimum(
+    inventory_service,
+    variant_size,
+    location,
 ):
-    await inventory_service.create_movement(
-        movement_type=InventoryMovementType.ENTRY,
-        owner_type=InventoryOwnerType.MATERIAL,
-        owner_id=1,
-        owner_name="Cemento",
-        owner_code="MAT-001",
-        quantity=10,
-        prev_stock=20,
-        new_stock=30,
-        reason="Compra"
+    with pytest.raises(
+        InvalidOperation,
+        match="Minimum stock cannot be negative",
+    ):
+        await inventory_service.create_inventory(
+            variant_size_id=variant_size.id,
+            location_id=location.id,
+            minimum_stock=Decimal("-1"),
+        )
+
+
+async def test_update_minimum_stock(
+    inventory_service: InventoryService,
+    variant_size,
+    location,
+):
+    inventory = await inventory_service.create_inventory(
+        variant_size_id=variant_size.id,
+        location_id=location.id,
+        minimum_stock=Decimal("2"),
     )
 
-    await inventory_service.create_movement(
-        movement_type=InventoryMovementType.SALE,
-        owner_type=InventoryOwnerType.MATERIAL,
-        owner_id=2,
-        owner_name="Arena",
-        owner_code="MAT-002",
-        quantity=5,
-        prev_stock=30,
-        new_stock=25,
-        reason="Venta"
+    updated = await inventory_service.update_minimum_stock(
+        inventory_id=inventory.id,
+        minimum_stock=Decimal("10"),
     )
 
-    result = await inventory_service.get_paginated_inventory_movements(
-        filter_command=InventoryMovementFilters(
-            search="cement"
-        ),
-        page=1,
-        limit=10
+    inventory = await inventory_service._inventory_repository.get_by_id(inventory.id)
+
+    assert inventory.minimum_stock == Decimal("10")
+
+
+async def test_update_minimum_stock_negative(
+    inventory_service,
+):
+    with pytest.raises(
+        InvalidOperation,
+        match="Minimum stock cannot be negative.",
+    ):
+        await inventory_service.update_minimum_stock(
+            inventory_id=1,
+            minimum_stock=Decimal("-1"),
+        )
+
+
+async def test_delete_inventory(
+    inventory_service: InventoryService,
+    variant_size,
+    location,
+):
+    inventory = await inventory_service.create_inventory(
+        variant_size_id=variant_size.id,
+        location_id=location.id,
     )
 
-    assert result.total_items == 1
-    assert result.pagination.current_page == 1
-    assert result.pagination.total_pages == 1
+    await inventory_service.delete_inventory(
+        inventory_id=inventory.id,
+    )
 
-    assert len(result.items) == 1
+    deleted = await inventory_service._inventory_repository.get_by_id(
+        model_id=inventory.id,
+        raises=False
+    )
 
-    movement = result.items[0]
+    assert deleted is None
 
-    assert movement.owner_name == "Cemento"
-    assert movement.owner_code == "MAT-001"
-    assert movement.type == InventoryMovementType.ENTRY
+
+async def test_delete_inventory_with_stock(
+    inventory_service: InventoryService,
+    variant_size,
+    location,
+):
+    inventory = await inventory_service.create_inventory(
+        variant_size_id=variant_size.id,
+        location_id=location.id,
+    )
+
+    inventory.quantity = Decimal("5")
+
+    await inventory_service._inventory_repository.save(
+        inventory,
+    )
+
+    with pytest.raises(
+        InvalidOperation,
+        match="Cannot remove an inventory that still contains stock.",
+    ):
+        await inventory_service.delete_inventory(
+            inventory_id=inventory.id,
+        )
+
+
+def test_calculate_status_available(
+    inventory_service: InventoryService,
+):
+    assert (
+        inventory_service._calculate_status(
+            Decimal("10"),
+            Decimal("5"),
+        )
+        == AvailabilityStatus.AVAILABLE
+    )
+
+
+async def test_delete_inventory_not_found(
+    inventory_service: InventoryService,
+):
+    with pytest.raises(
+        ValueNotFound,
+        match="Inventory not found.",
+    ):
+        await inventory_service.delete_inventory(
+            inventory_id=999999,
+        )

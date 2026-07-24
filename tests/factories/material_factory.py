@@ -2,10 +2,10 @@ from datetime import datetime, timezone
 
 from app.features.material.entities.material import Material
 from app.features.material.types import (
-    CompanyType,
     MaterialType,
     UnitType,
 )
+from app.shared.types import CompanyType
 
 
 def build_material(**overrides) -> Material:
