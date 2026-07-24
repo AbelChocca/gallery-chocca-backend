@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from app.features.reports.constants import REPORT_CONTEXT_NAMES
-from app.features.inventory.inventory_service import InventoryService
+from app.features.inventory.services.inventory_movement_service import InventoryMovementService
 from app.features.inventory.inventory_movement_entity import InventoryMovement
-from app.features.inventory.dto import InventoryMovementFilters
-from app.features.inventory.types import (
+from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters
+from app.features.inventory.types.inventory_movement import (
     InventoryOwnerType,
     InventoryMovementType
 )
@@ -21,7 +21,7 @@ class InventoryMovementReportBuilder:
 
     def __init__(
         self,
-        inventory_service: InventoryService
+        inventory_service: InventoryMovementService
     ) -> None:
 
         self._inventory_service = (

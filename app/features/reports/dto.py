@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from app.features.inventory.types import InventoryMovementType, InventoryOwnerType
+from app.features.inventory.types.inventory_movement import InventoryMovementType, InventoryOwnerType
 
 @dataclass(slots=True, frozen=True)
 class GenerateInventoryMovementReportCommand:

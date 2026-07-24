@@ -1,5 +1,5 @@
 from app.features.reports.dto import ColumnDefinition
-from app.features.inventory.types import InventoryOwnerType
+from app.features.inventory.types.inventory_movement import InventoryOwnerType
 from zoneinfo import ZoneInfo
 
 LIMA_TZ = ZoneInfo("America/Lima")

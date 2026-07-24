@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from app.features.inventory.types import (
+from app.features.inventory.types.inventory_movement import (
     InventoryOwnerType
 )
 
