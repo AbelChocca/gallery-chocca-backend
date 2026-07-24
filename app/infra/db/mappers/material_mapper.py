@@ -23,8 +23,6 @@ class MaterialMapper(
                 code=entity.code,
                 name=entity.name,
                 description=entity.description,
-                minimum_stock=entity.minimum_stock,
-                stock=entity.stock,
                 company=entity.company,
                 material_type=entity.material_type,
                 unit_type=entity.unit_type,
@@ -39,8 +37,6 @@ class MaterialMapper(
 
         existing_model.code = entity.code
         existing_model.name = entity.name
-        existing_model.stock = entity.stock
-        existing_model.minimum_stock = entity.minimum_stock
         existing_model.description = entity.description
         existing_model.company = entity.company
         existing_model.material_type = entity.material_type
@@ -63,8 +59,6 @@ class MaterialMapper(
             code=model.code,
             name=model.name,
             description=model.description,
-            minimum_stock=model.minimum_stock,
-            stock=model.stock,
             company=model.company,
             material_type=model.material_type,
             unit_type=model.unit_type,

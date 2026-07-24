@@ -18,8 +18,6 @@ class Material:
         description: str | None,
         material_type: MaterialType,
         unit_type: UnitType,
-        stock: Decimal,
-        minimum_stock: Decimal,
         is_active: bool,
         company: CompanyType = CompanyType.OLD_DENIM,
         created_at: datetime | None = None,
@@ -32,8 +30,6 @@ class Material:
         self.description = description
         self.company = company
         self.material_type = material_type
-        self.stock = stock
-        self.minimum_stock = minimum_stock
         self.unit_type = unit_type
         self.is_active = is_active
         self.created_at = created_at or datetime.now(timezone.utc)

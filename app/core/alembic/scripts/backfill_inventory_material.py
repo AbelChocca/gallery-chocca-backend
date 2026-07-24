@@ -1,3 +1,6 @@
+# Script ejecutado el 24 de julio del 2026
+# NO EJECUTAR ESTE SCRIPT POR EL MOMENTO 
+
 import asyncio
 
 from app.infra.db.config import async_session_factory
