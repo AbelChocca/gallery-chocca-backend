@@ -1,14 +1,13 @@
 from app.features.material.entities.material import Material
 from app.features.material.dto.material import MaterialFilters
 from app.features.material.types import (
-    CompanyType,
     MaterialType,
     UnitType,
-    MaterialAvailabilityStatus
 )
 from app.core.exceptions import (
     ValueNotFound
 )
+from app.shared.types import CompanyType
 
 from app.infra.db.uow.unit_of_work import UnitOfWork
 
@@ -25,8 +24,6 @@ def build_material(
         "name": "Material",
         "description": "Material de prueba",
         "company": CompanyType.OLD_DENIM,
-        "stock": 100,
-        "minimum_stock": 20,
         "material_type": MaterialType.FABRIC,
         "unit_type": UnitType.METER,
         "is_active": True,
@@ -85,153 +82,6 @@ async def test_should_filter_materials_by_search_text(
             materials[0].code
             == "TEL-000001"
         )
-@pytest.mark.asyncio
-async def test_should_return_only_critical_materials(
-    uow_factory
-):
-    async with uow_factory() as uow:
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000001",
-                name="Tela Critica",
-                stock=10,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000002",
-                name="Tela Sin Stock",
-                stock=0,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000003",
-                name="Tela Disponible",
-                stock=50,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-    async with uow_factory() as uow:
-
-        materials = await uow.materials.get_all(
-            filters=MaterialFilters(
-                availability_status=(
-                    MaterialAvailabilityStatus.CRITICAL
-                )
-            )
-        )
-
-        assert len(materials) == 1
-        assert materials[0].code == "TEL-000001"
-        assert materials[0].name == "Tela Critica"
-
-@pytest.mark.asyncio
-async def test_should_return_only_out_of_stock_materials(
-    uow_factory
-):
-    async with uow_factory() as uow:
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000001",
-                name="Tela Sin Stock",
-                stock=0,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000002",
-                name="Tela Critica",
-                stock=10,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000003",
-                name="Tela Disponible",
-                stock=50,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-    async with uow_factory() as uow:
-
-        materials = await uow.materials.get_all(
-            filters=MaterialFilters(
-                availability_status=
-                MaterialAvailabilityStatus.OUT_OF_STOCK
-            )
-        )
-
-        assert len(materials) == 1
-        assert materials[0].code == "TEL-000001"
-        assert materials[0].name == "Tela Sin Stock"
-
-@pytest.mark.asyncio
-async def test_should_return_only_available_materials(
-    uow_factory
-):
-    async with uow_factory() as uow:
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000001",
-                name="Tela Disponible",
-                stock=50,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000002",
-                name="Tela Critica",
-                stock=10,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-        await uow.materials.save(
-            build_material(
-                code="TEL-000003",
-                name="Tela Sin Stock",
-                stock=0,
-                minimum_stock=20
-            ),
-            flush=False
-        )
-
-    async with uow_factory() as uow:
-
-        materials = await uow.materials.get_all(
-            filters=MaterialFilters(
-                availability_status=
-                MaterialAvailabilityStatus.AVAILABLE
-            )
-        )
-
-        assert len(materials) == 1
-        assert materials[0].code == "TEL-000001"
-        assert materials[0].name == "Tela Disponible"
 
 
 @pytest.mark.asyncio
@@ -249,8 +99,6 @@ async def test_should_apply_all_filters(
                 name="Tela Blanca",
                 company=CompanyType.OLD_DENIM,
                 is_active=True,
-                stock=10,
-                minimum_stock=20,
                 created_at=now
             ),
             flush=False
@@ -263,8 +111,6 @@ async def test_should_apply_all_filters(
                 name="Hilo Negro",
                 company=CompanyType.OLD_DENIM,
                 is_active=True,
-                stock=10,
-                minimum_stock=20,
                 created_at=now
             ),
             flush=False
@@ -277,8 +123,6 @@ async def test_should_apply_all_filters(
                 name="Tela Azul",
                 company=CompanyType.CHOCCA,
                 is_active=True,
-                stock=10,
-                minimum_stock=20,
                 created_at=now
             ),
             flush=False
@@ -291,8 +135,6 @@ async def test_should_apply_all_filters(
                 name="Tela Roja",
                 company=CompanyType.OLD_DENIM,
                 is_active=False,
-                stock=10,
-                minimum_stock=20,
                 created_at=now
             ),
             flush=False
@@ -303,10 +145,8 @@ async def test_should_apply_all_filters(
             build_material(
                 code="TEL-000004",
                 name="Tela Verde",
-                company=CompanyType.OLD_DENIM,
+                company=CompanyType.CHOCCA,
                 is_active=True,
-                stock=50,
-                minimum_stock=20,
                 created_at=now
             ),
             flush=False
@@ -319,9 +159,6 @@ async def test_should_apply_all_filters(
                 search="Tela",
                 company=CompanyType.OLD_DENIM,
                 is_active=True,
-                availability_status=(
-                    MaterialAvailabilityStatus.CRITICAL
-                )
             )
         )
 
@@ -440,125 +277,3 @@ async def test_should_return_empty_list_when_ids_are_empty(
         )
 
         assert materials == []
-
-@pytest.mark.asyncio
-async def test_should_update_material_stock(
-    uow_factory
-):
-    uow: UnitOfWork = uow_factory()
-    async with uow:
-
-        material = build_material(
-            stock=100
-        )
-
-        material = await uow.materials.save(material)
-
-        material_id = material.id
-
-    uow: UnitOfWork = uow_factory()
-    async with uow:
-
-        await uow.materials.update_stock(
-            material_id=material_id,
-            new_stock=50
-        )
-
-    uow: UnitOfWork = uow_factory()
-    async with uow:
-
-        updated_material = (
-            await uow.materials.get_by_id(
-                material_id
-            )
-        )
-
-        assert updated_material.stock == 50
-
-@pytest.mark.asyncio
-async def test_should_update_many_material_stocks(
-    uow_factory
-):
-    uow: UnitOfWork = uow_factory()
-    async with uow:
-
-        material_1 = build_material(
-            code="MAT-000001",
-            stock=100
-        )
-
-        material_2 = build_material(
-            code="MAT-000002",
-            stock=200
-        )
-
-        material_3 = build_material(
-            code="MAT-000003",
-            stock=300
-        )
-
-        material_1 = await uow.materials.save(
-            material_1,
-        )
-
-        material_2 = await uow.materials.save(
-            material_2,
-        )
-
-        material_3 = await uow.materials.save(
-            material_3
-        )
-
-        material_1_id = material_1.id
-        material_2_id = material_2.id
-        material_3_id = material_3.id
-
-    uow: UnitOfWork = uow_factory()
-    async with uow:
-
-        await uow.materials.update_stock_many(
-            {
-                material_1_id: 10,
-                material_2_id: 20,
-                material_3_id: 30
-            }
-        )
-
-    uow: UnitOfWork = uow_factory()
-    async with uow:
-
-        materials = await (
-            uow.materials.get_by_ids(
-                [
-                    material_1_id,
-                    material_2_id,
-                    material_3_id
-                ]
-            )
-        )
-
-        materials_by_id = {
-            material.id: material
-            for material in materials
-        }
-
-        assert (
-            materials_by_id[
-                material_1_id
-            ].stock
-            == 10
-        )
-
-        assert (
-            materials_by_id[
-                material_2_id
-            ].stock
-            == 20
-        )
-
-        assert (
-            materials_by_id[
-                material_3_id
-            ].stock
-            == 30
-        )

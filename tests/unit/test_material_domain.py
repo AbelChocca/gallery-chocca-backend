@@ -5,14 +5,11 @@ import pytest
 from app.features.material.entities.material import Material
 
 from app.features.material.types import (
-    CompanyType,
     MaterialType,
     UnitType
 )
 
-from app.features.material.types import (
-    MaterialAvailabilityStatus
-)
+from app.shared.types import CompanyType
 
 
 @pytest.fixture
@@ -24,8 +21,6 @@ def make_material():
             "name": "Algodón",
             "description": "Algodón premium",
             "company": CompanyType.OLD_DENIM,
-            "stock": 100,
-            "minimum_stock": 20,
             "material_type": MaterialType.FABRIC,
             "unit_type": UnitType.METER,
             "is_active": True,
@@ -58,9 +53,6 @@ def test_should_create_material_with_provided_values(
 
     assert material.company == CompanyType.OLD_DENIM
 
-    assert material.stock == 100
-    assert material.minimum_stock == 20
-
     assert (
         material.material_type
         == MaterialType.FABRIC
@@ -85,8 +77,6 @@ def test_should_generate_created_and_updated_at_when_not_provided():
         name="Algodón",
         description="Algodón premium",
         company=CompanyType.OLD_DENIM,
-        stock=100,
-        minimum_stock=20,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.METER,
         is_active=True,
@@ -111,45 +101,6 @@ def test_should_generate_created_and_updated_at_when_not_provided():
         <= after_creation
     )
 
-def test_should_return_out_of_stock_when_stock_is_zero(
-    make_material
-):
-    material = make_material(
-        stock=0
-    )
-
-    assert (
-        material.availability_status
-        == MaterialAvailabilityStatus.OUT_OF_STOCK
-    )
-
-
-def test_should_return_critical_when_stock_is_less_or_equal_minimum_stock(
-    make_material
-):
-    material = make_material(
-        stock=20,
-        minimum_stock=20
-    )
-
-    assert (
-        material.availability_status
-        == MaterialAvailabilityStatus.CRITICAL
-    )
-
-
-def test_should_return_available_when_stock_is_greater_than_minimum_stock(
-    make_material
-):
-    material = make_material(
-        stock=21,
-        minimum_stock=20
-    )
-
-    assert (
-        material.availability_status
-        == MaterialAvailabilityStatus.AVAILABLE
-    )
 
 def test_should_update_material_information(
     make_material
@@ -162,7 +113,6 @@ def test_should_update_material_information(
         company=CompanyType.OLD_DENIM,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.KILOGRAM,
-        minimum_stock=50
     )
 
     assert material.name == "Raw Cotton"
@@ -179,8 +129,6 @@ def test_should_update_material_information(
         == UnitType.KILOGRAM
     )
 
-    assert material.minimum_stock == 50
-
 def test_should_update_updated_at_when_information_changes(
     make_material
 ):
@@ -196,7 +144,6 @@ def test_should_update_updated_at_when_information_changes(
         company=CompanyType.OLD_DENIM,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.KILOGRAM,
-        minimum_stock=50
     )
 
     assert (

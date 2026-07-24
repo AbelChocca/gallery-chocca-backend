@@ -7,11 +7,11 @@ from app.core.exceptions import ValidationError
 
 from app.features.material.dto.material_component import CreateMaterialComponentDTO
 from app.features.material.types import (
-    CompanyType,
     MaterialType,
     UnitType,
     FiberType,
 )
+from app.shared.types import CompanyType
 
 @pytest.mark.asyncio
 async def test_should_create_material_with_components(
@@ -22,7 +22,6 @@ async def test_should_create_material_with_components(
             name="Tela Jersey",
             description=None,
             company=CompanyType.OLD_DENIM,
-            minimum_stock=10,
             material_type=MaterialType.FABRIC,
             unit_type=UnitType.METER,
             components=[
@@ -71,7 +70,6 @@ async def test_should_remove_all_components_when_updating_with_empty_list(
             name="Tela Jersey",
             description=None,
             company=CompanyType.OLD_DENIM,
-            minimum_stock=10,
             material_type=MaterialType.FABRIC,
             unit_type=UnitType.METER,
             components=[
@@ -105,7 +103,6 @@ async def test_should_replace_existing_components(
             name="Tela Jersey",
             description=None,
             company=CompanyType.OLD_DENIM,
-            minimum_stock=10,
             material_type=MaterialType.FABRIC,
             unit_type=UnitType.METER,
             components=[
@@ -167,7 +164,6 @@ async def test_should_not_create_components_for_non_fabric_material(
         name="Botón Negro",
         description=None,
         company=CompanyType.OLD_DENIM,
-        minimum_stock=10,
         material_type=MaterialType.ACCESSORY,
         unit_type=UnitType.UNIT,
         components=[
@@ -191,7 +187,6 @@ async def test_should_not_create_component_with_non_positive_percentage(
         name="Tela Jersey",
         description=None,
         company=CompanyType.OLD_DENIM,
-        minimum_stock=10,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.METER,
         components=[
@@ -215,7 +210,6 @@ async def test_should_not_create_components_when_total_percentage_is_not_100(
         name="Tela Jersey",
         description=None,
         company=CompanyType.OLD_DENIM,
-        minimum_stock=10,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.METER,
         components=[
@@ -243,7 +237,6 @@ async def test_should_not_create_components_with_duplicate_fiber_types(
         name="Tela Jersey",
         description=None,
         company=CompanyType.OLD_DENIM,
-        minimum_stock=10,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.METER,
         components=[
@@ -272,7 +265,6 @@ async def test_should_get_material_with_components_mapped(
             name="Tela Piqué",
             description="Tela de prueba",
             company=CompanyType.OLD_DENIM,
-            minimum_stock=10,
             material_type=MaterialType.FABRIC,
             unit_type=UnitType.METER,
             components=[
@@ -316,7 +308,6 @@ async def test_should_remove_components_when_material_changes_to_non_fabric(
             name="Tela Jersey",
             description=None,
             company=CompanyType.OLD_DENIM,
-            minimum_stock=10,
             material_type=MaterialType.FABRIC,
             unit_type=UnitType.METER,
             components=[

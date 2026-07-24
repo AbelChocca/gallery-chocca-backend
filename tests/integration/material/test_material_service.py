@@ -5,10 +5,10 @@ from app.features.material.dto.material import CreateMaterialDTO, UpdateMaterial
 from app.core.exceptions import ValidationError
 
 from app.features.material.types import (
-    CompanyType,
     MaterialType,
     UnitType
 )
+from app.shared.types import CompanyType
 
 @pytest.mark.asyncio
 async def test_should_create_material(material_service: MaterialService):
@@ -17,7 +17,6 @@ async def test_should_create_material(material_service: MaterialService):
         name="Tela Blanca",
         description="Algodón premium",
         company=CompanyType.OLD_DENIM,
-        minimum_stock=20,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.METER
     )
@@ -30,8 +29,6 @@ async def test_should_create_material(material_service: MaterialService):
     assert result.description == "Algodón premium"
     assert result.company == CompanyType.OLD_DENIM
 
-    assert result.stock == 0
-    assert result.minimum_stock == 20
     assert result.is_active is True
 
     assert result.code.startswith("TBX-")
@@ -45,7 +42,6 @@ async def test_should_not_create_material_when_name_already_exists(
         name="Tela Blanca",
         description="Algodón premium",
         company=CompanyType.OLD_DENIM,
-        minimum_stock=20,
         material_type=MaterialType.FABRIC,
         unit_type=UnitType.METER
     )
@@ -56,7 +52,6 @@ async def test_should_not_create_material_when_name_already_exists(
         name="Tela Blanca",
         description="Otro producto",
         company=CompanyType.CHOCCA,
-        minimum_stock=10,
         material_type=MaterialType.ACCESSORY,
         unit_type=UnitType.UNIT
     )
@@ -72,7 +67,6 @@ async def test_should_generate_incremental_code_sequence(
     first_material = await material_service.create(
         CreateMaterialDTO(
             name="Tela Blanca",
-            minimum_stock=10,
             description=None,
             company=CompanyType.OLD_DENIM,
             material_type=MaterialType.FABRIC,
@@ -83,7 +77,6 @@ async def test_should_generate_incremental_code_sequence(
     second_material = await material_service.create(
         CreateMaterialDTO(
             name="Tela Negra",
-            minimum_stock=10,
             description=None,
             company=CompanyType.OLD_DENIM,
             material_type=MaterialType.FABRIC,
@@ -104,7 +97,6 @@ async def test_should_update_material_information(
             name="Tela Blanca",
             description="Tela para camisas",
             company=CompanyType.OLD_DENIM,
-            minimum_stock=20,
             material_type=MaterialType.FABRIC,
             unit_type=UnitType.METER
         )
@@ -116,7 +108,6 @@ async def test_should_update_material_information(
             name="Tela Premium",
             description="Tela premium importada",
             company=CompanyType.CHOCCA,
-            minimum_stock=50
         )
     )
 
@@ -127,7 +118,6 @@ async def test_should_update_material_information(
     assert updated_material.name == "Tela Premium"
     assert updated_material.description == "Tela premium importada"
     assert updated_material.company == CompanyType.CHOCCA
-    assert updated_material.minimum_stock == 50
     assert not updated_material.code.startswith("TBX")
 
 async def test_should_regenerate_code_prefix_when_name_changes(
@@ -136,7 +126,6 @@ async def test_should_regenerate_code_prefix_when_name_changes(
     created_material = await material_service.create(
         CreateMaterialDTO(
             name="Tela Blanca",
-            minimum_stock=20,
             description=None,
             company=CompanyType.OLD_DENIM,
             material_type=MaterialType.FABRIC,
@@ -150,7 +139,6 @@ async def test_should_regenerate_code_prefix_when_name_changes(
         created_material.id,
         UpdateMaterialDTO(
             name="Hilo Negro",
-            minimum_stock=20,
             company=CompanyType.OLD_DENIM,
             description=None
         )
@@ -170,7 +158,6 @@ async def test_should_return_paginated_materials(
         await material_service.create(
             CreateMaterialDTO(
                 name=f"Tela {i}",
-                minimum_stock=10,
                 description=None,
                 company=CompanyType.OLD_DENIM,
                 material_type=MaterialType.FABRIC,
