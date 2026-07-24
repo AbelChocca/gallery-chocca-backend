@@ -1,5 +1,5 @@
 from app.features.dashboard.dto import DashboardOverviewDTO
-from app.features.products.dto.product_dto import ProductsOverviewDTO
+from app.features.products.product_dto import ProductsOverviewDTO
 from app.features.slides.dto import SlidesOverviewDTO
 from app.features.user.dto import UsersOverviewDTO
 
@@ -23,7 +23,7 @@ class GetDashboardOverviewUseCase:
 
         return DashboardOverviewDTO(
             products=ProductsOverviewDTO(
-                total=await self._product_service._count_products(),
+                total=await self._product_service.count_products(),
                 per_category=await self._product_service._count_by_category(),
                 recent=await self._product_service._get_last_n(3),
             ),

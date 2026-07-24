@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict
-from app.features.products.dto.product_dto import ProductsOverviewDTO
+from app.features.products.product_dto import ProductsOverviewDTO
 from app.features.slides.dto import SlidesOverviewDTO
 from app.features.user.dto import UsersOverviewDTO
 

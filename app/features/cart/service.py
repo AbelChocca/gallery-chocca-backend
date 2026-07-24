@@ -1,5 +1,5 @@
 from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
-from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
+from app.infra.db.repositories.product_repository import PostgresProductRepository
 from app.core.exceptions import ValueNotFound, ValidationError
 from app.features.cart.entities.cart import Cart
 from app.features.cart.types import CartItemRow
@@ -48,6 +48,14 @@ class CartService:
             variant_id,
             variant_size_id,
             quantity
+        )
+
+    async def delete_product_from_carts(
+        self,
+        product_id: int,
+    ) -> None:
+        await self._cart_repository.delete_product_from_carts(
+            product_id
         )
     
     async def clear_cart(

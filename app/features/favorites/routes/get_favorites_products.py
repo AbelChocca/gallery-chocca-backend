@@ -2,8 +2,9 @@ from app.features.favorites.favorites_router import router
 
 from app.features.products.schema import GetGridProductsResponse
 from app.shared.pagination.schema import PaginationSchema
-from app.features.favorites.service import FavoriteService
-from app.features.favorites.dependency import get_favorite_service
+from app.features.products.mappers.schema_mapper import OutputSchemaMapper
+from app.features.favorites.use_cases.get_favorites_products import GetFavoriteProductsUseCase
+from app.features.favorites.dependency import get_favorite_products_use_case
 from app.api.security.resolvers.session_owner import get_session_owner, OwnerSession
 from app.features.favorites.schema import FavoritesFilterSchema
 from app.features.favorites.dto import FavoritesFilterDto
@@ -22,21 +23,20 @@ async def get_favorites_products(
     filter_body: Annotated[FavoritesFilterSchema, Depends()],
     pagination: Annotated[PaginationSchema, Depends()],
     owner: Annotated[OwnerSession, Depends(get_session_owner)],
-    service: Annotated[FavoriteService, Depends(get_favorite_service)]
-) -> GetGridProductsResponse:
-    if owner.is_user:
-        res = await service.get_favorite_products(
-            filter=FavoritesFilterDto(**filter_body.model_dump()),
-            page=pagination.page,
-            limit=pagination.limit,
-            user_id=owner.user_id
-            )
-        return GetGridProductsResponse(**res)
-    
-    res = await service.get_favorite_products(
-        filter=FavoritesFilterDto(**filter_body.model_dump()),
+    use_case: Annotated[
+        GetFavoriteProductsUseCase,
+        Depends(get_favorite_products_use_case),
+    ],
+):
+
+    res = await use_case.execute(
+        filter=FavoritesFilterDto(
+            **filter_body.model_dump()
+        ),
         page=pagination.page,
         limit=pagination.limit,
-        session_id=owner.session_id
-        )
-    return GetGridProductsResponse(**res)
+        user_id=owner.user_id,
+        session_id=owner.session_id,
+    )
+
+    return OutputSchemaMapper.to_grid_products_response(res)
