@@ -1,5 +1,5 @@
 from sqlmodel import select, col
-from sqlalchemy import or_, Select, func, case, update, delete
+from sqlalchemy import or_, Select, func, delete
 from sqlalchemy.orm import selectinload
 
 from app.features.material.entities.material import Material
@@ -8,7 +8,6 @@ from app.infra.db.repositories.base_repository import BaseRepository
 from app.features.material.dto.material import MaterialFilters
 
 from app.core.exceptions import ValueNotFound
-from decimal import Decimal
 
 
 class PostgresMaterialRepository(

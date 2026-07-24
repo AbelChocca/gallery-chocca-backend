@@ -11,10 +11,7 @@ from app.features.material.dto.material import (
     MaterialPaginatedDTO,
     MaterialComponentDTO
 )
-from app.features.inventory.types.inventory_movement import InventoryMovementType
-from app.features.inventory.dtos.inventory_movements import MovementItem
 from app.core.exceptions import ValidationError, ValueNotFound, InvalidOperation
-from app.features.inventory.strategy.registry import get_inventory_strategy
 from app.features.material.types import MaterialType
 from decimal import Decimal
 

@@ -4,7 +4,6 @@ from app.features.material.types import (
 )
 from app.shared.types import CompanyType
 from datetime import datetime, timezone
-from decimal import Decimal
 
 from app.features.material.entities.material_component import MaterialComponent
 
