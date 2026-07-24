@@ -1,4 +1,4 @@
-from app.infra.db.repositories.material_repository import (
+from app.features.material.material_repository import (
     PostgresMaterialRepository
 )
 from app.shared.pagination.pagination_service import PaginationService
@@ -8,10 +8,11 @@ from app.features.material.dto.material import (
     CreateMaterialDTO,
     UpdateMaterialDTO,
     MaterialFilters,
-    MaterialPaginatedDTO
+    MaterialPaginatedDTO,
+    MaterialComponentDTO
 )
-from app.features.inventory.types import InventoryMovementType
-from app.features.inventory.dto import MovementItem
+from app.features.inventory.types.inventory_movement import InventoryMovementType
+from app.features.inventory.dtos.inventory_movements import MovementItem
 from app.core.exceptions import ValidationError, ValueNotFound, InvalidOperation
 from app.features.inventory.strategy.registry import get_inventory_strategy
 from app.features.material.types import MaterialType
@@ -72,7 +73,6 @@ class MaterialService:
             code=code,
             name=dto.name,
             description=dto.description,
-            minimum_stock=dto.minimum_stock,
             company=dto.company,
             material_type=dto.material_type,
             unit_type=dto.unit_type,
@@ -142,7 +142,6 @@ class MaterialService:
             company=dto.company,
             material_type=dto.material_type,
             unit_type=dto.unit_type,
-            minimum_stock=dto.minimum_stock
         )
 
         material.regenerate_code_prefix()
@@ -152,6 +151,30 @@ class MaterialService:
         )
 
         return material
+
+    async def get_components(
+        self,
+        *,
+        material_id: int,
+    ) -> list[MaterialComponentDTO]:
+
+        components = await (
+            self._material_repository
+            .get_components_by_material_id(
+                material_id=material_id,
+            )
+        )
+
+
+        return [
+            MaterialComponentDTO(
+                id=component.id,
+                material_id=component.material_id,
+                fiber_type=component.fiber_type,
+                percentage=component.percentage,
+            )
+            for component in components
+        ]
     
     async def update_stock(
         self,

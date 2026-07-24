@@ -7,13 +7,14 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.features.material.dto.material_component import MaterialComponentDTO, CreateMaterialComponentDTO
+from app.features.inventory.dtos.inventory import CreateInventoryCommand
 
 from app.features.material.types import (
-    CompanyType,
-    MaterialAvailabilityStatus,
     MaterialType,
     UnitType
 )
+from app.shared.types import CompanyType
+from app.features.inventory.types.inventory import AvailabilityStatus
 
 @dataclass(slots=True)
 class MaterialResponseDTO:
@@ -30,7 +31,7 @@ class MaterialResponseDTO:
 
     is_active: bool
 
-    availability_status: MaterialAvailabilityStatus
+    availability_status: AvailabilityStatus
 
     created_at: datetime
     updated_at: datetime
@@ -112,7 +113,7 @@ class MaterialResponseDTO:
             stock=Decimal(data["stock"]),
             minimum_stock=Decimal(data["minimum_stock"]),
             is_active=data["is_active"],
-            availability_status=MaterialAvailabilityStatus(
+            availability_status=AvailabilityStatus(
                 data["availability_status"]
             ),
             image=(
@@ -137,7 +138,7 @@ class MaterialCatalogDTO:
     stock: Decimal
     minimum_stock: Decimal
     unit_type: str
-    availability_status: MaterialAvailabilityStatus
+    availability_status: AvailabilityStatus
 
     is_active: bool
     image: ReadMediaImageDTO | None = None
@@ -193,7 +194,7 @@ class MaterialCatalogDTO:
             material_type=data["material_type"],
             stock=Decimal(data["stock"]),
             minimum_stock=Decimal(data["minimum_stock"]),
-            availability_status=MaterialAvailabilityStatus(
+            availability_status=AvailabilityStatus(
                 data["availability_status"]
             ),
             unit_type=data["unit_type"],
@@ -248,7 +249,6 @@ class UpdateMaterialDTO:
     name: str | None = None
     description: str | None = None
     company: CompanyType | None = None
-    minimum_stock: Decimal | None = None
     material_type: MaterialType | None = None
     unit_type: UnitType | None = None
     delete_image: bool = False
@@ -259,12 +259,15 @@ class CreateMaterialDTO:
     name: str
     description: str | None
     company: CompanyType
-    minimum_stock: Decimal
     material_type: MaterialType
     unit_type: UnitType
     components: list[CreateMaterialComponentDTO] = field(
     default_factory=list
 )
+
+    inventories: list[CreateInventoryCommand] = field(
+        default_factory=list
+    )
 
 @dataclass(slots=True)
 class MaterialFilters:
@@ -276,7 +279,7 @@ class MaterialFilters:
 
     is_active: bool | None = None
 
-    availability_status: MaterialAvailabilityStatus | None = None
+    availability_status: AvailabilityStatus | None = None
 
     @property
     def to_dict(self) -> dict:

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from fastapi import Form
 from datetime import datetime
 from decimal import Decimal
@@ -7,13 +7,18 @@ import orjson
 from app.shared.decimal import PositiveDecimal
 from app.features.media.schema import ReadImage
 from app.shared.pagination.schema import PaginatedResponseSchema
-from app.features.material.types import CompanyType, MaterialAvailabilityStatus, UnitType, MaterialType, FiberType
+from app.features.material.types import UnitType, MaterialType, FiberType
+from app.shared.types import CompanyType
+from app.features.inventory.types.inventory import AvailabilityStatus
+from app.features.inventory.schemas.inventory_schema import CreateInventorySchema
 
 class MaterialComponentSchema(BaseModel):
     id: int
     material_id: int
     fiber_type: FiberType
     percentage: PositiveDecimal
+
+    model_config = ConfigDict(from_attributes=True)
 
 class CreateMaterialComponentSchema(BaseModel):
     fiber_type: FiberType
@@ -29,7 +34,7 @@ class GetMaterialsQuerySchema(BaseModel):
     is_active: bool | None = None
 
     availability_status: (
-        MaterialAvailabilityStatus | None
+        AvailabilityStatus | None
     ) = None
 
 class MaterialResponseSchema(BaseModel):
@@ -47,7 +52,7 @@ class MaterialResponseSchema(BaseModel):
 
     is_active: bool
 
-    availability_status: MaterialAvailabilityStatus
+    availability_status: AvailabilityStatus
 
     image: ReadImage | None = None
 
@@ -71,7 +76,7 @@ class MaterialCatalogResponseSchema(BaseModel):
 
     is_active: bool
 
-    availability_status: MaterialAvailabilityStatus
+    availability_status: AvailabilityStatus
 
     image: ReadImage | None = None
 
@@ -98,11 +103,13 @@ class CreateSupplyRequest(BaseModel):
 
     unit_type: UnitType
 
-    minimum_stock: PositiveDecimal
-
     components: list[CreateMaterialComponentSchema] = Field(
         default_factory=list
     )
+
+    inventories: list[CreateInventorySchema] = Field(
+            default_factory=list
+        )
 
     @classmethod
     def as_form(
@@ -112,24 +119,32 @@ class CreateSupplyRequest(BaseModel):
         company: CompanyType = Form(...),
         material_type: MaterialType = Form(...),
         unit_type: UnitType = Form(...),
-        minimum_stock: PositiveDecimal = Form(...),
-        components: str | None = Form(None)
+        components: str | None = Form(None),
+        inventories: str | None = Form(None)
     ):
         parsed_components = []
+        parsed_inventories = []
 
         if components:
             parsed_components = [
                 CreateMaterialComponentSchema.model_validate(item)
                 for item in orjson.loads(components)
             ]
+
+        if inventories:
+            parsed_inventories = [
+                CreateInventorySchema.model_validate(item)
+                for item in orjson.loads(inventories)
+            ]
+
         return cls(
             name=name,
             description=description,
             company=company,
             material_type=material_type,
             unit_type=unit_type,
-            minimum_stock=minimum_stock,
-            components=parsed_components
+            components=parsed_components,
+            inventories=parsed_inventories
         )
 
 
@@ -151,8 +166,6 @@ class UpdateMaterialRequest(BaseModel):
 
     unit_type: UnitType | None = Field(None)
 
-    minimum_stock: PositiveDecimal | None = None
-
     delete_image: bool = False
 
     components: list[CreateMaterialComponentSchema] | None = None
@@ -165,7 +178,6 @@ class UpdateMaterialRequest(BaseModel):
         company: CompanyType | None = Form(None),
         material_type: MaterialType | None = Form(None),
         unit_type: UnitType | None = Form(None),
-        minimum_stock: PositiveDecimal | None = Form(None),
         delete_image: bool = Form(False),
         components: str | None = Form(None)
     ):
@@ -183,7 +195,6 @@ class UpdateMaterialRequest(BaseModel):
             company=company,
             material_type=material_type,
             unit_type=unit_type,
-            minimum_stock=minimum_stock,
             delete_image=delete_image,
             components=parsed_components
         )

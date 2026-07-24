@@ -1,11 +1,9 @@
 from app.features.material.types import (
-    CompanyType,
-    MaterialAvailabilityStatus,
     MaterialType, 
     UnitType
 )
+from app.shared.types import CompanyType
 from datetime import datetime, timezone
-from decimal import Decimal
 
 from app.features.material.entities.material_component import MaterialComponent
 
@@ -19,9 +17,7 @@ class Material:
         description: str | None,
         material_type: MaterialType,
         unit_type: UnitType,
-        minimum_stock: Decimal,
         is_active: bool,
-        stock: Decimal | None = None,
         company: CompanyType = CompanyType.OLD_DENIM,
         created_at: datetime | None = None,
         updated_at: datetime | None = None,
@@ -32,27 +28,12 @@ class Material:
         self.name = name
         self.description = description
         self.company = company
-        self.stock = stock if stock is not None else Decimal("0")
         self.material_type = material_type
         self.unit_type = unit_type
-        self.minimum_stock = minimum_stock
         self.is_active = is_active
         self.created_at = created_at or datetime.now(timezone.utc)
         self.updated_at = updated_at or datetime.now(timezone.utc)
         self.components = components or []
-
-    @property
-    def availability_status(
-        self
-    ) -> MaterialAvailabilityStatus:
-
-        if self.stock == Decimal("0"):
-            return MaterialAvailabilityStatus.OUT_OF_STOCK
-
-        if self.stock <= self.minimum_stock:
-            return MaterialAvailabilityStatus.CRITICAL
-
-        return MaterialAvailabilityStatus.AVAILABLE
 
     def update_information(
         self,
@@ -62,7 +43,6 @@ class Material:
         company: CompanyType | None = None,
         material_type: MaterialType | None = None,
         unit_type: UnitType | None = None,
-        minimum_stock: Decimal | None = None
     ) -> None:
 
         updated = False
@@ -85,10 +65,6 @@ class Material:
 
         if unit_type is not None and unit_type != self.unit_type:
             self.unit_type = unit_type
-            updated = True
-
-        if minimum_stock is not None and minimum_stock != self.minimum_stock:
-            self.minimum_stock = minimum_stock
             updated = True
 
         if updated:

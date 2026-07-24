@@ -13,11 +13,14 @@ from app.infra.db.uow.dependency import get_uow
 from app.shared.pagination.pagination_service import PaginationService, get_pagination_service
 
 from app.features.material.use_cases.create_material import CreateMaterialUseCase
-from app.features.material.use_cases.get_materials import GetMaterialsUseCase
 from app.features.material.use_cases.deactivate_material import DeactivateMaterialUseCase
 from app.features.material.use_cases.activate_material import ActivateMaterialUseCase
 from app.features.material.use_cases.get_material_by_id import GetMaterialByIdUseCase
 from app.features.material.use_cases.update_material import UpdateMaterialUseCase
+
+from app.features.inventory.dependencies.services import get_inventory_service, get_inventory_movement_service
+from app.features.inventory.services.inventory_service import InventoryService
+from app.features.inventory.services.inventory_movement_service import InventoryMovementService
 
 
 def get_material_service(
@@ -35,30 +38,15 @@ def get_create_material_case(
         material_service: MaterialService = Depends(get_material_service),
         media_service: MediaService = Depends(get_media_service),
         saga_service: SagaService = Depends(get_saga_service),
-        cache_service: RedisService = Depends(get_cache_service)
+        inventory_service: InventoryService = Depends(get_inventory_service),
+        inventory_movement_service: InventoryMovementService = Depends(get_inventory_movement_service)
 ) -> CreateMaterialUseCase:
     return CreateMaterialUseCase(
         material_service=material_service,
         media_service=media_service,
         saga_service=saga_service,
-        cache_service=cache_service
-    )
-
-def get_materials_case(
-    material_service: MaterialService = Depends(
-        get_material_service
-    ),
-    media_service: MediaService = Depends(
-        get_media_service
-    ),
-    cache_service: RedisService = Depends(
-        get_cache_service
-    )
-) -> GetMaterialsUseCase:
-    return GetMaterialsUseCase(
-        material_service=material_service,
-        media_service=media_service,
-        cache_service=cache_service
+        inventory_service=inventory_service,
+        inventory_movement_service=inventory_movement_service
     )
 
 def get_activate_material_case(
