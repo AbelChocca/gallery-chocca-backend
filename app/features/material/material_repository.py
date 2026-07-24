@@ -1,12 +1,11 @@
 from sqlmodel import select, col
-from sqlalchemy import or_, Select, func, and_, case, update, delete
+from sqlalchemy import or_, Select, func, case, update, delete
 from sqlalchemy.orm import selectinload
 
 from app.features.material.entities.material import Material
 from app.features.material.models.model_material import MaterialTable, MaterialComponentTable
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.features.material.dto.material import MaterialFilters
-from app.features.inventory.types.inventory import AvailabilityStatus
 
 from app.core.exceptions import ValueNotFound
 from decimal import Decimal
