@@ -11,7 +11,7 @@ from app.features.pricing.schema import (
 from app.shared.pagination.schema import PaginationSchema
 from app.features.products.schema import FilterSchema
 from app.features.products.parsers import filter_dep
-from app.features.products.schema_mapper import InputSchemaMapper
+from app.features.products.mappers.schema_mapper import InputSchemaMapper
 
 
 @router.get(

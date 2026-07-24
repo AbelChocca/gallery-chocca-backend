@@ -6,8 +6,8 @@ from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import
     ProductPricingRepository
 )
 
-from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
-from app.features.products.dto.product_dto import FilterProductCommand
+from app.infra.db.repositories.product_repository import PostgresProductRepository
+from app.features.products.product_dto import FilterProductCommand
 
 from app.features.pricing.entities.pricing_rule import PricingRule
 from app.features.pricing.entities.product_applied_pricing_rule import ProductAppliedPricingRule
