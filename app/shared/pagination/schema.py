@@ -17,6 +17,8 @@ class PaginationResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class PaginatedResponseSchema(BaseModel, Generic[T]):
+    model_config = ConfigDict(from_attributes=True)
+    
     items: list[T]
 
     total_items: int
