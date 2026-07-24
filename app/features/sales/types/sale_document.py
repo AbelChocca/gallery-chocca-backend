@@ -1,0 +1,36 @@
+from enum import Enum
+
+class CurrencyType(str, Enum):
+    PEN = "PEN"
+    USD = "USD"
+    EUR = "EUR"
+    GBP = "GBP"
+
+class ElectronicInvoiceProvider(str, Enum):
+    NUBEFACT = "NUBEFACT"
+
+class SunatTransactionType(str, Enum):
+    INTERNAL_SALE = "INTERNAL_SALE"
+    EXPORT = "EXPORT"
+    INTERNAL_ADVANCE = "INTERNAL_ADVANCE"
+    NON_DOMICILED_SALE = "NON_DOMICILED_SALE"
+    DETRACTION = "DETRACTION"
+    PASSENGER_TRANSPORT_DETRACTION = "PASSENGER_TRANSPORT_DETRACTION"
+    CARGO_TRANSPORT_DETRACTION = "CARGO_TRANSPORT_DETRACTION"
+    HYDROBIOLOGICAL_DETRACTION = "HYDROBIOLOGICAL_DETRACTION"
+    PERCEPTION = "PERCEPTION"
+    TAX_FREE = "TAX_FREE"
+
+
+class SaleDocumentStatus(str, Enum):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
+    ERROR = "ERROR"
+
+
+class SaleDocumentType(str, Enum):
+    FACTURA = "FACTURA"
+    BOLETA = "BOLETA"
+    CREDIT_NOTE = "CREDIT_NOTE"
+    DEBIT_NOTE = "DEBIT_NOTE"
