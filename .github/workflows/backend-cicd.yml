@@ -92,7 +92,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest tests/integration test/unit
+          uv run pytest tests/integration tests/unit
 
   deploy:
     name: Build and Deploy
