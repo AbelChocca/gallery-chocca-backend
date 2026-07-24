@@ -1,0 +1,824 @@
+Enum inventory_location_type {
+  WORKSHOP
+  STORE
+  WAREHOUSE
+}
+
+Enum production_order_status {
+    CREATED
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+}
+
+Enum currency_type {
+  PEN
+  USD
+  EUR
+  GBP
+}
+
+Enum electronic_invoice_provider {
+  NUBEFACT
+}
+
+Enum sunat_transaction_type {
+  INTERNAL_SALE
+  EXPORT
+  INTERNAL_ADVANCE
+  NON_DOMICILED_SALE
+  DETRACTION
+  PASSENGER_TRANSPORT_DETRACTION
+  CARGO_TRANSPORT_DETRACTION
+  HYDROBIOLOGICAL_DETRACTION
+  PERCEPTION
+  TAX_FREE
+}
+
+Enum sale_document_status {
+  PENDING
+  ACCEPTED
+  REJECTED
+  ERROR
+}
+
+Enum production_order_reason {
+    LOW_STOCK
+    CUSTOMER_ORDER
+    NEW_COLLECTION
+}
+
+Enum stock_transfer_status {
+
+CREATED
+
+SENT
+
+RECEIVED
+
+CANCELLED
+
+}
+
+Enum sale_status {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+Enum sale_channel {
+  POS
+  ECOMMERCE
+}
+
+Enum payment_method {
+
+  CASH
+
+  CARD
+
+  YAPE
+
+  PLIN
+
+  BANK_TRANSFER
+
+}
+
+Enum payment_status {
+
+  PENDING
+
+  COMPLETED
+
+  FAILED
+
+  REFUNDED
+
+}
+
+Enum sale_document_type {
+  FACTURA
+  BOLETA
+  CREDIT_NOTE
+  DEBIT_NOTE
+}
+
+Enum customer_document_type {
+  DNI
+  RUC
+  PASSPORT
+  FOREIGNER_CARD
+  DIPLOMATIC_ID
+  FOREIGN_RESIDENCE_ID
+  NO_DOMICILED
+  SAFE_CONDUCT
+  OTHER
+}
+
+Enum inventory_reference_type {
+  SALE
+  PURCHASE
+  STOCK_TRANSFER
+  PRODUCTION
+  INVENTORY_ADJUSTMENT
+}
+
+Enum "cart_status_type" {
+  "ACTIVE"
+  "ABANDONED"
+  "CONVERTED"
+}
+
+Enum "company_type" {
+  "OLD_DENIM"
+  "CHOCCA"
+}
+
+Enum inventory_owner_type {
+  PRODUCT
+  MATERIAL
+}
+
+Enum brand_type {
+  BGOO
+  AMD
+}
+
+Enum unit_type {
+  UNIT
+  METER
+  KILOGRAM
+}
+
+Enum material_type {
+  FABRIC
+  ACCESSORY
+}
+
+Enum fiber_type {
+  COTTON
+  SPANDEX
+  POLYESTER
+  LINEN
+  NYLON
+  VISCOSE
+}
+
+Enum fit_type {
+  SKINNY
+  SLIM
+  REGULAR
+  STRAIGHT
+  RELAXED
+  LOOSE
+  MOM_FIT
+  BOOTCUT
+}
+
+Enum product_category {
+  PANTS
+  SHORTS
+  SHIRTS
+  JACKETS
+}
+
+Enum "image_owner_type" {
+  "variant"
+  "slide"
+}
+
+Enum "image_type" {
+  "variant"
+  "slide"
+}
+
+Enum "imagetype" {
+  "variant"
+  "slide"
+}
+
+Enum "inventory_movement_type" {
+  "RESTOCK"
+  "MANUAL_ADJUSTMENT"
+  "SALE"
+  "RETURN"
+}
+
+Enum "pricingruletype" {
+  "PERCENTAGE"
+  "FIXED"
+  "FINAL_PRICE"
+}
+
+Table "alembic_version" {
+  "version_num" "character varying(32)" [pk, not null]
+}
+
+Table "cart_items" {
+  "id" integer [pk, not null]
+  "cart_id" integer [not null]
+  "product_id" integer [not null]
+  "variant_id" integer [not null]
+  "variant_size_id" integer [not null]
+  "quantity" integer [not null]
+  "created_at" timestamp
+  "updated_at" timestamp
+
+  Indexes {
+    (cart_id, product_id, variant_id, variant_size_id) [unique, name: "uq_cart_item_unique_line"]
+    cart_id [type: btree, name: "ix_cart_items_cart_id"]
+    product_id [type: btree, name: "ix_cart_items_product_id"]
+    variant_id [type: btree, name: "ix_cart_items_variant_id"]
+    variant_size_id [type: btree, name: "ix_cart_items_variant_size_id"]
+  }
+}
+
+Table "carts" {
+  "id" integer [pk, not null]
+  "user_id" integer [unique]
+  "session_id" "character varying" [unique]
+  "status" cart_status_type [not null]
+  "created_at" timestamp
+  "updated_at" timestamp
+  "expires_at" timestamp
+
+  Checks {
+    `(((user_id IS NOT NULL) AND (session_id IS NULL)) OR ((user_id IS NULL) AND (session_id IS NOT NULL)))` [name: 'ck_cart_user_or_session']
+  }
+
+  Indexes {
+    session_id [type: btree, name: "ix_carts_session_id"]
+    status [type: btree, name: "ix_carts_status"]
+    user_id [type: btree, name: "ix_carts_user_id"]
+  }
+}
+
+Table "favorites" {
+  "id" integer [pk, not null]
+  "session_id" "character varying"
+  "user_id" integer
+  "product_id" integer [not null]
+  "created_at" timestamp [not null]
+
+  Checks {
+    `(((user_id IS NOT NULL) AND (session_id IS NULL)) OR ((user_id IS NULL) AND (session_id IS NOT NULL)))` [name: 'ck_favorites_user_or_session']
+  }
+
+  Indexes {
+    (session_id, product_id) [unique, name: "uq_favorites_session_product"]
+    (user_id, product_id) [unique, name: "uq_favorites_user_product"]
+    product_id [type: btree, name: "ix_favorites_product_id"]
+    session_id [type: btree, name: "ix_favorites_session_id"]
+    user_id [type: btree, name: "ix_favorites_user_id"]
+  }
+}
+
+Table "image" {
+  "id" integer [pk, not null]
+  "image_url" "character varying" [not null]
+  "alt_text" "character varying"
+  "owner_type" image_owner_type [not null]
+  "owner_id" integer [not null]
+  "public_id" "character varying" [not null]
+  "is_primary" boolean
+
+  Indexes {
+    (owner_type, owner_id, public_id) [unique, name: "uq_image_owner_type_owner_id_public_id"]
+    (owner_type, owner_id) [type: btree, unique, name: "uq_only_one_primary_per_owner"]
+  }
+}
+
+Table inventory_movement {
+  id integer [pk]
+
+  owner_type inventory_owner_type [not null]
+
+  owner_id integer [not null]
+
+  location_id integer [not null]
+
+  type inventory_movement_type [not null]
+
+  reference_type inventory_reference_type
+
+  reference_id integer
+
+  performed_by integer
+
+  quantity numeric(12,2) [not null]
+
+  previous_stock numeric(12,2) [not null]
+
+  new_stock numeric(12,2) [not null]
+
+  reason varchar(255)
+
+  created_at timestamp
+
+  Checks {
+    `(quantity <> 0)` [name: 'ck_inventory_movement_quantity_non_zero']
+    `(previous_stock >= 0)` [name: 'ck_inventory_movement_previous_positive']
+    `(new_stock >= 0)` [name: 'ck_inventory_movement_new_positive']
+  }
+}
+
+Table "pricing_rules" {
+  "id" integer [pk, not null]
+  "name" "character varying(255)" [not null]
+  "description" text
+  "type" pricingruletype [not null]
+  "value" numeric(10,2) [not null]
+  "is_active" boolean [not null]
+  "is_stackable" boolean [not null]
+  "priority" integer [not null]
+  "starts_at" timestamp
+  "ends_at" timestamp
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+
+  Checks {
+    `(priority >= 0)` [name: 'ck_pricing_rule_priority_positive']
+    `((ends_at IS NULL) OR (starts_at IS NULL) OR (ends_at > starts_at))` [name: 'ck_pricing_rule_valid_dates']
+    `(value >= (0)::numeric)` [name: 'ck_pricing_rule_value_positive']
+  }
+
+  Indexes {
+    name [type: btree, name: "ix_pricing_rules_name"]
+  }
+}
+
+Table "product" {
+  "id" integer [pk, not null]
+  "nombre" "character varying" [unique, not null]
+  "descripcion" "character varying" [not null]
+  brand brand_type [not null]
+  category product_category [not null]
+  "slug" "character varying"
+  fit fit_type
+  "base_price" numeric(10,2) [not null, default: 0.00]
+  "is_active" boolean [default: true]
+
+  Indexes {
+    category [type: btree, name: "ix_product_category"]
+    nombre [type: gin, name: "ix_product_nombre_trgm"]
+  }
+}
+
+Table "product_pricing_rules" {
+  "product_id" integer [not null]
+  "pricing_rule_id" integer [not null]
+  "assigned_at" timestamp [not null]
+
+  Indexes {
+    (product_id, pricing_rule_id) [pk, name: "product_pricing_rules_pkey"]
+  }
+}
+
+Table "slide" {
+  "id" integer [pk, not null]
+  "activo" boolean [not null]
+  "orden" integer [unique, not null]
+  "button_href" "character varying"
+  "fecha_creada" timestamp
+  "fecha_actualizada" timestamp
+
+  Indexes {
+    activo [type: btree, name: "ix_slide_activo"]
+  }
+}
+
+Table "material" {
+  "id" integer [pk, not null]
+  "code" "character varying(20)" [unique, not null]
+  "name" "character varying(100)" [not null]
+  "description" "character varying(255)"
+  material_type material_type [not null]
+  unit_type unit_type [not null]
+  "company" company_type [not null]
+  "stock" integer [not null]
+  "minimum_stock" integer [not null]
+  "is_active" boolean [not null]
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+}
+
+Table material_component {
+  id integer [pk, not null]
+
+  material_id integer [not null]
+
+  fiber_type fiber_type [not null]
+
+  percentage numeric(5,2) [not null]
+
+  Indexes {
+    (material_id, fiber_type) [unique, name: "uq_material_component"]
+  }
+}
+
+Table "usertable" {
+  "id" integer [pk, not null]
+  "nombre" "character varying(50)" [unique, not null]
+  "email" "character varying" [not null]
+  "role" "character varying(20)" [not null]
+  "hashed_password" "character varying" [not null]
+  "created_at" timestamp [not null, default: `now()`]
+  "is_active" boolean [not null, default: true]
+
+  Indexes {
+    nombre [type: gin, name: "ix_user_nombre_trgm"]
+    email [type: btree, unique, name: "ix_usertable_email"]
+    role [type: btree, name: "ix_usertable_role"]
+  }
+}
+
+Table "variant" {
+  "id" integer [pk, not null]
+  "product_id" integer
+  "color" "character varying" [not null]
+
+  Indexes {
+    (product_id, color) [unique, name: "uq_variant_product_color"]
+  }
+}
+
+Table "variant_size" {
+  "id" integer [pk, not null]
+
+  "variant_id" integer [not null]
+
+  "size" "character varying" [not null]
+
+  barcode varchar
+
+  "sku" "character varying" [not null]
+
+  is_active boolean [default: true]
+
+  Indexes {
+    (variant_id, size) [unique, name: "uq_variant_size"]
+    sku [unique]
+    barcode [unique]
+  }
+}
+
+Table variant_size_material {
+  id integer [pk]
+
+  variant_size_id integer [not null]
+
+  material_id integer [not null]
+
+  quantity numeric(12,2) [not null]
+
+  Indexes {
+    (variant_size_id, material_id) [unique, name: "uq_variant_size_material"]
+  }
+}
+
+Table inventory_location {
+
+  id integer [pk]
+
+  name varchar(100) [not null]
+
+  type inventory_location_type [not null]
+
+  address varchar(255)
+
+  is_active boolean
+
+  created_at timestamp
+}
+
+Table inventory {
+
+  id integer [pk]
+
+  variant_size_id integer [not null]
+
+  location_id integer [not null]
+
+  quantity numeric(12,2) [not null]
+
+  reserved_quantity numeric(12,2) [default: 0]
+
+  last_movement_at timestamp
+
+  Checks {
+    `(quantity >= 0)` [name: 'ck_inventory_quantity_positive']
+    `(reserved_quantity >= 0)` [name: 'ck_inventory_reserved_positive']
+    `(reserved_quantity <= quantity)` [name: 'ck_inventory_reserved_not_greater']
+  }
+
+  Indexes {
+
+  (variant_size_id, location_id) [unique]
+
+  }
+}
+
+Table customer {
+
+  id integer [pk]
+
+  document_type customer_document_type
+
+  document_number varchar(20)
+
+  name varchar(150) [not null]
+
+  email varchar(100)
+
+  phone varchar(20)
+
+  address varchar(255)
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  Checks {
+    `(
+      (document_type IS NULL AND document_number IS NULL)
+      OR
+      (document_type IS NOT NULL AND document_number IS NOT NULL)
+    )` [name: 'ck_customer_document_pair']
+  }
+
+  Indexes {
+  document_number [unique]
+}
+
+}
+
+Table sale {
+
+  id integer [pk]
+
+  customer_id integer
+
+  seller_id integer [not null]
+
+  location_id integer [not null]
+
+  channel sale_channel [not null]
+
+  status sale_status [not null]
+
+  subtotal numeric(10,2) [not null]
+
+  discount numeric(10,2) [not null, default: 0]
+
+  tax numeric(10,2) [not null]
+
+  total numeric(10,2) [not null]
+
+  code varchar(25)
+
+  notes varchar(255)
+
+  created_at timestamp
+
+}
+
+Table sale_item {
+
+  id integer [pk]
+
+  sale_id integer [not null]
+
+  variant_size_id integer [not null]
+
+  quantity integer [not null]
+
+  unit_price numeric(10,2) [not null]
+
+  discount numeric(10,2) [not null, default: 0]
+
+  subtotal numeric(10,2) [not null]
+
+  cost numeric(10,2)
+
+  Checks {
+    `(quantity > 0)` [name: 'ck_sale_item_quantity_positive']
+    `(unit_price >= 0)` [name: 'ck_sale_item_unit_price_positive']
+    `(discount >= 0)` [name: 'ck_sale_item_discount_positive']
+    `(subtotal >= 0)` [name: 'ck_sale_item_subtotal_positive']
+  }
+}
+
+Table payment {
+
+  id integer [pk]
+
+  sale_id integer [not null]
+
+  method payment_method [not null]
+
+  status payment_status [not null]
+
+  amount numeric(10,2) [not null]
+
+  created_at timestamp
+
+  Checks {
+    `(amount > 0)` [name: 'ck_payment_amount_positive']
+  }
+
+}
+
+Table sale_document {
+
+  id integer [pk]
+
+  sale_id integer [not null]
+
+  provider electronic_invoice_provider [not null]
+
+  document_type sale_document_type [not null]
+
+  currency currency_type [not null]
+
+  sunat_transaction sunat_transaction_type [not null]
+
+  sunat_status sale_document_status [not null]
+
+  series varchar(4) [not null]
+
+  number integer [not null]
+
+  external_url varchar(500)
+
+  pdf_url varchar(500)
+
+  xml_url varchar(500)
+
+  cdr_url varchar(500)
+
+  qr_text text
+
+  hash varchar(255)
+
+  sunat_response_code varchar(20)
+
+  sunat_description text
+
+  sunat_note text
+
+  sunat_soap_error text
+
+  created_at timestamp
+
+  Indexes {
+    (document_type, series, number) [unique]
+  }
+}
+
+Table stock_transfer {
+
+  id integer [pk]
+
+
+  from_location_id integer [not null]
+
+  to_location_id integer [not null]
+
+  status stock_transfer_status
+
+  created_by integer [not null]
+
+  created_at timestamp
+
+  received_at timestamp
+}
+
+Table stock_transfer_item {
+
+
+  id integer [pk]
+
+
+  transfer_id integer [not null]
+
+
+  variant_size_id integer [not null]
+
+
+  quantity numeric(12,2) [not null]
+
+  Indexes {
+    (transfer_id, variant_size_id) [unique, name: "uq_stock_transfer_item"]
+  }
+
+}
+
+Table production_order {
+
+  id integer [pk]
+
+
+  production_location_id integer [not null]
+  // donde se fabrica:
+  // Taller Chocca
+
+  status production_order_status
+
+  reason production_order_reason
+
+  started_at timestamp
+
+  finished_at timestamp
+
+
+  created_by integer
+
+  created_at timestamp
+
+}
+
+Table production_order_destination {
+  id integer [pk]
+
+  production_order_id integer [not null]
+
+  location_id integer [not null]
+
+  planned_quantity numeric(12, 2)
+
+  Indexes {
+    (production_order_id, location_id) [unique, name: "uq_production_order_destination"]
+  }
+}
+
+Table production_order_item {
+
+  id integer [pk]
+
+
+  production_order_id integer [not null]
+
+
+  variant_size_id integer [not null]
+
+
+  planned_quantity numeric(12,2)
+
+
+  produced_quantity numeric(12,2) [default:0]
+
+  Indexes {
+    (production_order_id, variant_size_id) [unique, name: "uq_production_order_item"]
+  }
+
+}
+
+Ref: payment.sale_id > sale.id
+
+Ref: sale_item.sale_id > sale.id
+
+Ref: sale_item.variant_size_id > variant_size.id
+
+Ref: sale.customer_id > customer.id
+
+Ref: sale.seller_id > usertable.id
+
+Ref: sale.location_id > inventory_location.id
+
+Ref: variant_size_material.variant_size_id > variant_size.id
+Ref: variant_size_material.material_id > material.id
+
+Ref: material_component.material_id > material.id
+
+Ref "cart_items_cart_id_fkey":"carts"."id" < "cart_items"."cart_id" [delete: cascade]
+
+Ref "product_pricing_rules_pricing_rule_id_fkey":"pricing_rules"."id" < "product_pricing_rules"."pricing_rule_id" [delete: cascade]
+
+Ref "product_pricing_rules_product_id_fkey":"product"."id" < "product_pricing_rules"."product_id" [delete: cascade]
+
+Ref "variant_product_id_fkey":"product"."id" < "variant"."product_id"
+
+Ref "variant_size_variant_id_fkey":"variant"."id" < "variant_size"."variant_id"
+
+Ref: inventory.variant_size_id > variant_size.id
+Ref: inventory.location_id > inventory_location.id
+
+Ref: stock_transfer.from_location_id > inventory_location.id
+Ref: stock_transfer.to_location_id > inventory_location.id
+
+Ref: stock_transfer.created_by > usertable.id
+
+Ref: stock_transfer_item.transfer_id > stock_transfer.id
+Ref: stock_transfer_item.variant_size_id > variant_size.id
+
+Ref: production_order.production_location_id > inventory_location.id
+
+Ref: production_order.created_by > usertable.id
+
+Ref: production_order_item.production_order_id > production_order.id
+
+Ref: production_order_item.variant_size_id > variant_size.id
+Ref: sale_document.sale_id > sale.id
+
+Ref: inventory_movement.performed_by > usertable.id
