@@ -1,42 +1,15 @@
-from app.features.products.entities.product import Product
-from app.features.products.entities.product_variant import ProductVariant
-from app.features.products.entities.variant_size import VariantSize
+from app.features.products.product import Product
 
 from app.infra.db.mappers.base_mapper import BaseMapper
+from app.features.products.models.model_product import ProductTable
 
-from app.infra.db.models.model_product import (
-    ProductTable,
-    VariantTable,
-    VariantSizeTable
-)
+from .variant_mapper import VariantMapper
+
 
 class ProductMapper(BaseMapper[Product, ProductTable]):
-    # ==========================================================
-    #                 DB → ENTITY
-    # ==========================================================
+
     @staticmethod
     def to_entity(model: ProductTable) -> Product:
-        variants = []
-
-        for variant in (model.variants or []):
-
-            variants.append(
-                ProductVariant(
-                    id=variant.id,
-                    product_id=variant.product_id,
-                    color=variant.color,
-                    sizes=[
-                        VariantSize(
-                            size=variant_size.size,
-                            id=variant_size.id,
-                            variant_id=variant_size.variant_id,
-                            stock=variant_size.stock,
-                            sku=variant_size.sku
-                        )
-                        for variant_size in (variant.sizes or [])
-                    ]
-                )
-            )
 
         return Product(
             id=model.id,
@@ -48,17 +21,20 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
             is_active=model.is_active,
             brand=model.brand,
             slug=model.slug,
-            variants=variants
+            variants=[
+                VariantMapper.to_entity(v)
+                for v in (model.variants or [])
+            ],
         )
 
-
     @staticmethod
-    def to_db_model(entity: Product, existing_model: ProductTable | None = None) -> ProductTable:
+    def to_db_model(
+        entity: Product,
+        existing_model: ProductTable | None = None,
+    ) -> ProductTable:
 
-        # =====================================================
-        #           MODO UPDATE 
-        # =====================================================
         if existing_model:
+
             existing_model.nombre = entity.nombre
             existing_model.descripcion = entity.descripcion
             existing_model.category = entity.category
@@ -68,67 +44,37 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
             existing_model.is_active = entity.is_active
             existing_model.base_price = entity.base_price
 
-            new_variants = []
-            existing_variants_map = {
-                v.id: v for v in existing_model.variants if v.id is not None
+            existing_variants = {
+                variant.id: variant
+                for variant in existing_model.variants
+                if variant.id is not None
             }
 
-            for variant in (entity.variants or []):
-                if variant.id is not None and variant.id in existing_variants_map:
-                    variant_db = existing_variants_map[variant.id]
+            new_variants = []
 
-                    variant_db.color = variant.color
+            for variant_entity in entity.variants:
 
-                    existing_sizes_map = {s.id: s for s in variant_db.sizes}
-                    new_sizes = []
+                if (
+                    variant_entity.id is not None
+                    and variant_entity.id in existing_variants
+                ):
 
-                    for size_entity in variant.sizes:
-                        if size_entity.id in existing_sizes_map:
-                            new_sizes.append(existing_sizes_map[size_entity.id])
-                        else:
-                            new_sizes.append(
-                                VariantSizeTable(
-                                    size=size_entity.size,
-                                    stock=size_entity.stock,
-                                    sku=size_entity.sku
-                                )
-                            )
-                    variant_db.sizes = new_sizes
-                    
-                    new_variants.append(variant_db)
-                else:
-                    variant_db = VariantTable(
-                        color=variant.color,
-                        sizes=[
-                            VariantSizeTable(
-                                size=variant_size.size,
-                                stock=variant_size.stock,
-                                sku=variant_size.sku
-                            )
-                            for variant_size in (variant.sizes or [])
-                        ],
+                    new_variants.append(
+                        VariantMapper.to_db_model(
+                            variant_entity,
+                            existing_variants[variant_entity.id],
+                        )
                     )
 
-                    new_variants.append(variant_db)
+                else:
+
+                    new_variants.append(
+                        VariantMapper.to_db_model(variant_entity)
+                    )
 
             existing_model.variants = new_variants
+
             return existing_model
-
-        product_variants = []
-
-        for variant in (entity.variants or []):
-
-            variant_db = VariantTable(
-                color=variant.color,
-                sizes=[
-                    VariantSizeTable(
-                        size=variant_size.size
-                    )
-                    for variant_size in (variant.sizes or [])
-                ]
-            )
-
-            product_variants.append(variant_db)
 
         return ProductTable(
             nombre=entity.nombre,
@@ -139,5 +85,8 @@ class ProductMapper(BaseMapper[Product, ProductTable]):
             is_active=entity.is_active,
             fit=entity.fit,
             slug=entity.slug,
-            variants=product_variants
+            variants=[
+                VariantMapper.to_db_model(v)
+                for v in (entity.variants or [])
+            ],
         )
