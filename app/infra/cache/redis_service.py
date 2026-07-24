@@ -1,6 +1,6 @@
 from redis.asyncio import Redis
 from redis import RedisError
-from typing import Dict, Any, List, Callable, Awaitable
+from typing import Dict, Any, List, Callable, Awaitable, TypeVar
 import orjson
 import asyncio
 import random
@@ -9,6 +9,8 @@ from app.core.log.protocole import LoggerProtocol
 from app.infra.cache.protocole import CacheProtocol
 from app.shared.cache_strategy.cache_strategy_service import CacheStrategyService
 from app.infra.cache.exceptions import InternalCacheException
+
+T = TypeVar("T")
 
 class RedisService(CacheProtocol):
     def __init__(
@@ -95,16 +97,16 @@ class RedisService(CacheProtocol):
             ) from e
         
     async def get_or_set_with_lock_v2(
-            self,
-            *,
-            tag: str,
-            callback: Callable[..., Awaitable[Any] | Any],
-            kwargs: dict,
-            key_args: dict,
-            serializer: Callable[[Any], dict],
-            deserializer: Callable[[dict], Any],
-            lock_ttl: int = 5,
-    ) -> Any:
+        self,
+        *,
+        tag: str,
+        callback: Callable[..., Awaitable[T] | T],
+        kwargs: dict,
+        key_args: dict,
+        serializer: Callable[[T], dict],
+        deserializer: Callable[[dict], T],
+        lock_ttl: int = 5,
+    ) -> T:
         args = self._cache_strategy.operation_list(tag, key_args)
         key = self._cache_strategy.generate_key(args)
         ttl = self._cache_strategy.determinate_ttl(args)
