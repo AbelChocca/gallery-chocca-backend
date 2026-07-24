@@ -15,7 +15,6 @@ def build_material(**overrides) -> Material:
         "name": "Material",
         "description": "Material de prueba",
         "company": CompanyType.OLD_DENIM,
-        "minimum_stock": 20,
         "material_type": MaterialType.FABRIC,
         "unit_type": UnitType.METER,
         "is_active": True,
