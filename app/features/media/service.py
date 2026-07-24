@@ -5,7 +5,6 @@ from app.core.app_exception import AppException
 from app.infra.saga.saga_service import SagaService
 from app.features.media.types import ImageType
 from app.features.media.entities.image import ImageEntity
-from app.features.media.types import ImageType
 
 from app.features.media.dto import MediaImageDTO
 
