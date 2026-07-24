@@ -1,6 +1,7 @@
 from fastapi import Depends, Request
 from dataclasses import dataclass
 from app.api.security.resolvers.sessions import get_user_id
+from app.core.exceptions import ValidationError
 
 @dataclass(frozen=True)
 class OwnerSession:
@@ -22,9 +23,19 @@ def get_session_owner(
     request: Request,
     user_id: int = Depends(get_user_id)
 ) -> OwnerSession:
+
     if user_id is not None:
-        return OwnerSession(user_id=user_id)
+        return OwnerSession(
+            user_id=user_id
+        )
+
+    session_id = get_anon_id(request)
+
+    if session_id is None:
+        raise ValidationError(
+            "Owner session is required"
+        )
 
     return OwnerSession(
-        session_id=get_anon_id(request)
-        )
+        session_id=session_id
+    )

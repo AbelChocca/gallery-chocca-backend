@@ -42,3 +42,9 @@ class Permission(StrEnum):
     PRICING_CREATE = "pricing:create"
     PRICING_UPDATE = "pricing:update"
     PRICING_DELETE = "pricing:delete"
+
+    # Ubicaciones de inventario
+    INVENTORY_LOCATION_READ = "inventory_location:read"
+    INVENTORY_LOCATION_CREATE = "inventory_location:create"
+    INVENTORY_LOCATION_UPDATE = "inventory_location:update"
+    INVENTORY_LOCATION_DELETE = "inventory_location:delete"
