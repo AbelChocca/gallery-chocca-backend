@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
 from app.features.inventory.dtos.inventory_movements import InventoryMovementType, InventoryOwnerType
-from app.features.inventory.types.inventory_reference import InventoryReferenceType
 from app.shared.pagination.schema import PaginatedResponseSchema
 from datetime import datetime, date
 from decimal import Decimal

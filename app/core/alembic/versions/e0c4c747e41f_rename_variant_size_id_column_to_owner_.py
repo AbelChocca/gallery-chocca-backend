@@ -10,14 +10,14 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
+from app.features.inventory.types.inventory_movement import InventoryOwnerType
+
 
 # revision identifiers, used by Alembic.
 revision: str = 'e0c4c747e41f'
 down_revision: Union[str, Sequence[str], None] = '6d265912742e'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
-from app.features.inventory.types.inventory_movement import InventoryOwnerType
 
 inventory_owner_type = sa.Enum(
     InventoryOwnerType,

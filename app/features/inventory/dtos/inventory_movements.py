@@ -2,7 +2,6 @@ from app.features.inventory.types.inventory_movement import (
     InventoryMovementType, 
     InventoryOwnerType
 )
-from app.features.inventory.types.inventory_reference import InventoryReferenceType
 from app.features.inventory.inventory_movement_entity import InventoryMovement
 from app.shared.pagination.dto import PaginatedDTO, PaginationDTO
 
