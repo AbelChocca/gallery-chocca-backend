@@ -5,8 +5,7 @@ from app.features.products.product import Product
 from app.features.products.product_dto import (
     UpdateProductCommand, 
     FilterProductCommand, 
-    CountProductPerCategoryDTO, 
-    CatalogProductDTO,
+    CountProductPerCategoryDTO,
 )
 from app.core.exceptions import ValidationError
 

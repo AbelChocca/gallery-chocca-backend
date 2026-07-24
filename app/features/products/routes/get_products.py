@@ -1,6 +1,6 @@
 from app.features.products.product_route import router
 from app.features.products.schema import FilterSchema, GetGridProductsResponse
-from app.features.products.mappers.schema_mapper import InputSchemaMapper, OutputSchemaMapper
+from app.features.products.mappers.schema_mapper import InputSchemaMapper
 from app.shared.pagination.schema import PaginationSchema
 from app.features.products.parsers import filter_dep
 from app.features.products.dependency import get_products_use_case

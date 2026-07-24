@@ -1,6 +1,5 @@
 from app.features.products.service import ProductService
 from app.infra.cache.redis_service import RedisService
-from app.features.products.product import Product
 from app.features.products.constants import PRODUCT_CACHE_KEY_TAG
 from app.shared.enrichers.product_enricher import ProductEnricher
 from app.features.products.mappers.dto_mapper import ProductMapper

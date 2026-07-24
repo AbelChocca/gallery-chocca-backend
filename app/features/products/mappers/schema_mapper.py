@@ -2,11 +2,6 @@ from app.features.products.variant_size.variant_size_dto import PublishVariantSi
 from app.features.inventory.dtos.inventory import CreateInventoryCommand
 from app.core.constants.color_families import COLOR_FAMILY_MAP
 
-from app.features.products.schema import (
-    ProductRead,
-    GridProductRead,
-    GetGridProductsResponse,
-)
 from app.features.products.product_dto import (
     CatalogProductDTO,
     GridProductDTO,
