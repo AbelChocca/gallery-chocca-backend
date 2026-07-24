@@ -1,5 +1,5 @@
 from app.features.material.entities.material_component import MaterialComponent
-from app.infra.db.models.model_material import MaterialComponentTable
+from app.features.material.models.model_material import MaterialComponentTable
 
 class MaterialComponentMapper:
 

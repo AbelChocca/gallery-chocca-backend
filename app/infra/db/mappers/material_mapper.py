@@ -3,7 +3,7 @@ from typing import Optional
 from app.features.material.entities.material import Material
 
 from app.infra.db.mappers.base_mapper import BaseMapper
-from app.infra.db.models.model_material import MaterialTable
+from app.features.material.models.model_material import MaterialTable
 from app.infra.db.mappers.material_component_mapper import MaterialComponentMapper
 
 
@@ -25,8 +25,6 @@ class MaterialMapper(
                 description=entity.description,
                 company=entity.company,
                 material_type=entity.material_type,
-                stock=entity.stock,
-                minimum_stock=entity.minimum_stock,
                 unit_type=entity.unit_type,
                 is_active=entity.is_active,
                 created_at=entity.created_at,
@@ -41,8 +39,6 @@ class MaterialMapper(
         existing_model.name = entity.name
         existing_model.description = entity.description
         existing_model.company = entity.company
-        existing_model.stock = entity.stock
-        existing_model.minimum_stock = entity.minimum_stock
         existing_model.material_type = entity.material_type
         existing_model.unit_type = entity.unit_type
         existing_model.is_active = entity.is_active
@@ -64,8 +60,6 @@ class MaterialMapper(
             name=model.name,
             description=model.description,
             company=model.company,
-            stock=model.stock,
-            minimum_stock=model.minimum_stock,
             material_type=model.material_type,
             unit_type=model.unit_type,
             is_active=model.is_active,
