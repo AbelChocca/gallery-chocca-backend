@@ -1,70 +1,60 @@
-from app.features.inventory.inventory_service import InventoryService
+from app.features.inventory.services.inventory_movement_service import InventoryMovementService
 
-from app.features.inventory.dto import (
+from app.features.inventory.dtos.inventory_movements import (
     CreateBulkMovementCommand
 )
 
-from app.features.inventory.types import (
-    InventoryOwnerType
-)
-
-from app.infra.cache.redis_service import RedisService
-
-from app.features.inventory.resolvers.base import InventoryOwnerResolver
-from app.features.inventory.constants import INVENTORY_MOVEMENTS_CACHE_KEY_TAG
+from app.features.inventory.types.inventory_reference import InventoryReferenceType
+from app.features.inventory.services.inventory_service import InventoryService
 
 
 class CreateBulkMovementUseCase:
     def __init__(
         self,
         inventory_service: InventoryService,
-        owner_resolvers: dict[
-            InventoryOwnerType,
-            InventoryOwnerResolver
-        ],
-        cache_service: RedisService
+        inventory_movement_service: InventoryMovementService,
     ):
-        self._owner_resolvers = owner_resolvers
         self._inventory_service = inventory_service
-        self._cache_service = cache_service
+        self._inventory_movement_service = inventory_movement_service
 
     async def execute(
         self,
-        command: CreateBulkMovementCommand
+        command: CreateBulkMovementCommand,
+        user_id: int
     ) -> dict:
-        resolver = self._owner_resolvers.get(
-            command.owner_type
+         
+        stock_results = await self._inventory_service.update_stock_many(
+            owner_type=command.owner_type,
+            movement_type=command.type,
+            movement_items=command.items,
         )
-        
-        result = await resolver.update_stock_many(command)
 
-        quantities = command.get_quantities_by_owner_id()
+        results_by_owner = {
+            result.owner_id: result
+            for result in stock_results
+        }
 
-        for item in result:
-            quantity = quantities[item.owner_id]
+        for item in command.items:
 
-            await self._inventory_service.create_movement(
+            stock_result = results_by_owner[item.owner_id]
+
+            await self._inventory_movement_service.create_movement(
                 owner_type=command.owner_type,
                 owner_id=item.owner_id,
                 owner_code=item.owner_code,
+                location_id=command.location_id,
                 owner_name=item.owner_name,
                 movement_type=command.type,
-                quantity=abs(quantity),
-                prev_stock=item.previous_stock,
-                new_stock=item.new_stock,
+                quantity=item.quantity,
+                prev_stock=stock_result.previous_stock,
+                new_stock=stock_result.current_stock,
+                reference_type=InventoryReferenceType.MANUAL_ADJUSTMENT,
+                performed_by=user_id,
                 reason=command.reason
             )
 
-        await self._cache_service.invalidate_entities(
-            resolver.cache_tag
-        )
-
-        await self._cache_service.invalidate_entities(
-            INVENTORY_MOVEMENTS_CACHE_KEY_TAG
-        )
-
         return {
             "message": (
-                "Materials updated successfully."
+                "Inventories updated successfully."
             )
         }

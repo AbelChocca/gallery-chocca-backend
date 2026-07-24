@@ -1,4 +1,4 @@
-from app.features.inventory.types import (
+from app.features.inventory.types.inventory_movement import (
     InventoryMovementType
 )
 
