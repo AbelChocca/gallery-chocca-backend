@@ -2,8 +2,9 @@ from app.features.products.product_route import router
 from app.api.security.rate_limiter.ratelimiter import limiter
 from app.features.products.schema import GridProductRead
 from app.shared.pagination.schema import ProductRelatedPaginationSchema
-from app.features.products.service import ProductService
-from app.features.products.dependency import get_product_service
+from app.features.products.mappers.schema_mapper import OutputSchemaMapper
+from app.features.products.dependency import get_related_products_use_case
+from app.features.products.use_cases.search_product import GetRelatedProductsUseCase
 
 from fastapi import Depends, status, Query
 from typing import List, Annotated
@@ -17,11 +18,13 @@ from typing import List, Annotated
 )
 async def search_product(
     query: Annotated[str, Query(min_length=2, title="Related title of Product's name")],
-    service: Annotated[ProductService, Depends(get_product_service)],
+    use_case: Annotated[GetRelatedProductsUseCase, Depends(get_related_products_use_case)],
     pagination: Annotated[ProductRelatedPaginationSchema, Depends()]
 ) -> List[GridProductRead]:
-    res = await service.get_products_related(query, pagination.limit)
+    
+    products = await use_case.execute(query, pagination.limit)
+
     return [
-       GridProductRead(**product)
-        for product in res
+        OutputSchemaMapper.to_grid_product_read(product)
+        for product in products
     ]

@@ -1,8 +1,8 @@
 from app.features.products.product_route import router
-from app.features.products.service import ProductService
-from app.features.products.dependency import get_product_service
 from app.core.authorization.dependencies import require_permission
 from app.core.authorization.permissions import Permission
+from app.features.products.dependency import get_delete_product_use_case
+from app.features.products.use_cases.delete_product import DeleteProductUseCase
 
 from fastapi import status, Depends, Path
 from typing import Dict, Annotated
@@ -17,7 +17,7 @@ from typing import Dict, Annotated
 )
 async def delete_product(
     product_id: Annotated[int, Path(title="ID of the product to delete")],
-    service: Annotated[ProductService, Depends(get_product_service)]
+    use_case: Annotated[DeleteProductUseCase, Depends(get_delete_product_use_case)]
 ) -> Dict[str, str]:
-    await service.delete_product(product_id)
+    await use_case.execute(product_id)
     return {"message": "Product was deleted successfully"}

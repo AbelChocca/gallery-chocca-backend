@@ -1,10 +1,10 @@
 from app.features.products.product_route import router
 from app.features.products.schema import FilterSchema, GetGridProductsResponse
-from app.features.products.schema_mapper import InputSchemaMapper
+from app.features.products.mappers.schema_mapper import InputSchemaMapper, OutputSchemaMapper
 from app.shared.pagination.schema import PaginationSchema
 from app.features.products.parsers import filter_dep
-from app.features.products.service import ProductService
-from app.features.products.dependency import get_product_service
+from app.features.products.dependency import get_products_use_case
+from app.features.products.use_cases.get_products import GetProductsUseCase
 
 from fastapi import status, Depends
 from typing import Annotated
@@ -17,15 +17,18 @@ from typing import Annotated
 )
 async def get_products(
     filter_schema: Annotated[FilterSchema, Depends(filter_dep)],
-    service: Annotated[ProductService, Depends(get_product_service)],
+    use_case: Annotated[GetProductsUseCase, Depends(get_products_use_case)],
     pagination: Annotated[PaginationSchema, Depends()]
 ) -> GetGridProductsResponse:
+    
     filter_command = InputSchemaMapper.to_filter_command(filter_schema)
-    res = await service.get_products(
-        filter_command, 
-        pagination.page, 
+
+    res = await use_case.execute(
+        filter_command,
+        pagination.page,
         pagination.limit
-        )
-    return GetGridProductsResponse(**res)
+    )
+
+    return GetGridProductsResponse.model_validate(res)
     
     

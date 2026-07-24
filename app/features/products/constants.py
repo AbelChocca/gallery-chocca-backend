@@ -1,1 +1,1 @@
-CACHE_KEY='product'
+PRODUCT_CACHE_KEY_TAG='product'
