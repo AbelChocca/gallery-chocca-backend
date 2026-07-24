@@ -1,7 +1,7 @@
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.features.cart.entities.cart import Cart, CartItem
 from app.infra.db.models.model_cart import CartTable, CartItemTable
-from app.infra.db.models.model_product import ProductTable, VariantSizeTable, VariantTable
+from app.features.products.models.model_product import ProductTable, VariantSizeTable, VariantTable
 from app.infra.db.models.model_media import MediaImageTable
 from app.features.cart.types import CartItemRow, CartStatus
 from app.core.exceptions import ValueNotFound
@@ -12,6 +12,31 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import col
 
 class CartRepository(BaseRepository[Cart, CartTable]):   
+
+    async def delete_product_from_carts(
+        self,
+        product_id: int,
+    ) -> None:
+        try:
+            stmt = (
+                delete(CartItemTable)
+                .where(
+                    CartItemTable.product_id == product_id
+                )
+            )
+
+            await self._db_session.execute(stmt)
+
+        except SQLAlchemyError as s:
+            raise DatabaseException(
+                "Postgres delete failed",
+                {
+                    "event": "delete_product_from_carts",
+                    "repository": "postgres_cart",
+                    "product_id": product_id,
+                }
+        ) from s
+        
     async def update_item(
         self,
         item: CartItem

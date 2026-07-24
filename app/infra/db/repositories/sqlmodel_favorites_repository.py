@@ -1,9 +1,9 @@
 from app.features.favorites.favorite_entity import FavoriteEntity
 from app.features.favorites.dto import FavoritesFilterDto
-from app.features.products.entities.product import Product
+from app.features.products.product import Product
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.infra.db.models.model_favorites import FavoritesTable
-from app.infra.db.models.model_product import ProductTable, VariantTable
+from app.features.products.models.model_product import ProductTable, VariantTable
 from app.infra.db.exceptions import DatabaseException
 from app.infra.db.mappers.product_mapper import ProductMapper
 from app.shared.dtos import OrderByEnum

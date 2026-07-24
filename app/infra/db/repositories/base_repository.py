@@ -20,11 +20,14 @@ class BaseRepository(Generic[E, M]):
         self._base_model: Type[M] = base_model
         self._base_mapper: BaseMapper[E, M] = base_mapper
 
-    async def _get_model_by_id_non_raise(self, model_id: int) -> M | None:
+    async def _get_model_by_id_non_raise(self, model_id: int, with_lock: bool = False) -> M | None:
         statement = (
             select(self._base_model)
             .where(self._base_model.id == model_id)
         )
+
+        if with_lock:
+            stmt = stmt.with_for_update()
         
         result = await self._db_session.execute(statement)
         model: M | None = result.scalar_one_or_none()
@@ -94,9 +97,9 @@ class BaseRepository(Generic[E, M]):
                 }
             ) from s
         
-    async def get_by_id(self, model_id: int, raises: bool = True) -> E | None:
+    async def get_by_id(self, model_id: int, raises: bool = True, with_lock: bool = False) -> E | None:
         try:
-            model_db = await self._get_model_by_id_non_raise(model_id)
+            model_db = await self._get_model_by_id_non_raise(model_id, with_lock)
             if not model_db:
                 if not raises:
                     return None

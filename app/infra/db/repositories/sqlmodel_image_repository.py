@@ -141,23 +141,36 @@ class PostgresImageRepository(BaseRepository[ImageEntity, MediaImageTable]):
                 }
             ) from s
         
-    async def get_first_image_of_owner_ids(self, owner_ids: list[int]) -> dict[int, list[ImageEntity]]:
-        stmt = (
-            select(MediaImageTable.owner_id, MediaImageTable)
-            .distinct(MediaImageTable.owner_id)
-            .where(col(MediaImageTable.owner_id).in_(owner_ids))
-            .order_by(MediaImageTable.owner_id)
+    async def get_first_image_by_owner_ids(
+        self,
+        *,
+        owner_type: ImageType,
+        owner_ids: list[int],
+    ) -> dict[int, ImageEntity]:
+
+        statement = (
+            select(
+                MediaImageTable.owner_id,
+                MediaImageTable,
+            )
+            .where(
+                MediaImageTable.owner_type == owner_type,
+                col(MediaImageTable.owner_id).in_(owner_ids),
+            )
+            .distinct(
+                MediaImageTable.owner_id
+            )
+            .order_by(
+                MediaImageTable.owner_id,
+            )
         )
 
-        res = await self._db_session.execute(stmt)
-        rows = res.all()
+        result = await self._db_session.execute(statement)
 
-        image_by_owner_id = {
-            owner_id: [self._base_mapper.to_entity(media_image)]
-            for owner_id, media_image in rows
+        return {
+            owner_id: self._base_mapper.to_entity(image)
+            for owner_id, image in result.all()
         }
-
-        return image_by_owner_id
     
     async def get_first_by_owner(
         self,

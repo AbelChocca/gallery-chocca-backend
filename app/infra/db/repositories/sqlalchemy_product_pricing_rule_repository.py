@@ -2,7 +2,7 @@ from sqlalchemy import select, delete, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
-from app.infra.db.models.model_product import ProductTable, VariantTable
+from app.features.products.models.model_product import ProductTable, VariantTable
 from app.infra.db.models.model_product_pricing_rule import (
     ProductPricingRuleTable
 )
