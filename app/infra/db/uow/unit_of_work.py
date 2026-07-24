@@ -1,10 +1,10 @@
-from app.infra.db.repositories.sqlalchemy_inventory_movement_repo import PostgresInventoryMovementReposity
+from app.features.inventory.repositories.sqlalchemy_inventory_movement_repo import PostgresInventoryMovementReposity
 from app.infra.db.mappers.inventory_movement_mapper import InventoryMovementMapper
-from app.infra.db.models.model_inventory_movement import InventoryMovementTable
+from app.features.inventory.models.inventory_movement import InventoryMovementTable
 
-from app.infra.db.repositories.sqlmodel_product_repository import PostgresProductRepository
+from app.infra.db.repositories.product_repository import PostgresProductRepository
 from app.infra.db.mappers.product_mapper import ProductMapper
-from app.infra.db.models.model_product import ProductTable
+from app.features.products.models.model_product import ProductTable
 
 from app.infra.db.repositories.sqlmodel_slide_repository import PostgresSlideRepository
 from app.infra.db.mappers.slide_mapper import SlideMapper
@@ -32,9 +32,35 @@ from app.infra.db.models.model_pricing_rule import PricingRuleTable
 
 from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import ProductPricingRepository
 
-from app.infra.db.repositories.material_repository import PostgresMaterialRepository
+from app.features.material.material_repository import PostgresMaterialRepository
 from app.infra.db.mappers.material_mapper import MaterialMapper
-from app.infra.db.models.model_material import MaterialTable
+from app.features.material.models.model_material import MaterialTable
+
+from app.infra.db.repositories.variant_repository import VariantRepository
+from app.infra.db.repositories.variant_size_repository import VariantSizeRepository
+
+from app.infra.db.mappers.variant_mapper import VariantMapper
+from app.infra.db.mappers.variant_size_mapper import VariantSizeMapper
+
+from app.features.inventory.repositories.inventory_repository import InventoryRepository
+from app.features.inventory.models.inventory import InventoryTable
+from app.features.inventory.mappers.inventory_mapper import InventoryMapper
+
+from app.features.inventory.mappers.inventory_location import (
+    InventoryLocationMapper,
+)
+from app.features.inventory.repositories.inventory_location_repository import (
+    InventoryLocationRepository,
+)
+from app.features.inventory.models.inventory_location import (
+    InventoryLocationTable,
+)
+
+from app.features.products.models.model_product import (
+    ProductTable,
+    VariantTable,
+    VariantSizeTable,
+)
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import AbstractAsyncContextManager
@@ -78,14 +104,26 @@ class UnitOfWork(AbstractAsyncContextManager):
             )
         )
 
-
     @property
     def inventory(
+        self
+    ) -> InventoryRepository:
+        return self._get_or_create(
+            "inventory",
+            lambda: InventoryRepository(
+                self.session,
+                InventoryMapper,
+                InventoryTable
+            )
+        )
+
+    @property
+    def inventory_movements(
         self
     ) -> PostgresInventoryMovementReposity:
 
         return self._get_or_create(
-            "inventory",
+            "inventory_movements",
             lambda: PostgresInventoryMovementReposity(
                 self.session,
                 InventoryMovementMapper,
@@ -108,6 +146,19 @@ class UnitOfWork(AbstractAsyncContextManager):
             )
         )
 
+    @property
+    def inventory_locations(
+        self,
+    ) -> InventoryLocationRepository:
+
+        return self._get_or_create(
+            "inventory_locations",
+            lambda: InventoryLocationRepository(
+                self.session,
+                InventoryLocationMapper,
+                InventoryLocationTable,
+            ),
+        )
 
     @property
     def pricing_rules(
@@ -163,6 +214,34 @@ class UnitOfWork(AbstractAsyncContextManager):
                 ProductMapper,
                 ProductTable
             )
+        )
+    
+    @property
+    def variants(
+        self,
+    ) -> VariantRepository:
+
+        return self._get_or_create(
+            "variants",
+            lambda: VariantRepository(
+                self.session,
+                VariantMapper,
+                VariantTable,
+            ),
+        )
+
+    @property
+    def variant_sizes(
+        self,
+    ) -> VariantSizeRepository:
+
+        return self._get_or_create(
+            "variant_sizes",
+            lambda: VariantSizeRepository(
+                self.session,
+                VariantSizeMapper,
+                VariantSizeTable,
+            ),
         )
     
     @property

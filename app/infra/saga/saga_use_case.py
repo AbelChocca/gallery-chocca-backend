@@ -1,4 +1,5 @@
 from app.infra.saga.saga_service import SagaService
+from app.core.exceptions import AppException
 
 class UseCaseSaga:
     def __init__(
@@ -14,6 +15,12 @@ class UseCaseSaga:
         try:
             return await operation()
 
-        except Exception:
-            await self._saga.compensate_all()
-            raise
+        except AppException as ae:
+
+                await self._saga.compensate_all()
+
+                ae.context["compensation_errors"] = (
+                    self._saga.compensation_errors
+                )
+
+                raise

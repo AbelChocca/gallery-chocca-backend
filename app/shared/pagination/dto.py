@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import TypeVar, Generic
 
 T = TypeVar("T")
@@ -7,6 +7,14 @@ T = TypeVar("T")
 class PaginationDTO:
     current_page: int
     total_pages: int
+
+    @property
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "PaginationDTO":
+        return cls(**data)
 
 @dataclass(slots=True)
 class PaginatedDTO(Generic[T]):
