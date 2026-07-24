@@ -1,6 +1,6 @@
 from app.infra.db.uow.unit_of_work import UnitOfWork
 from app.infra.db.config import async_session_factory
-from app.infra.db.models.model_product import ProductTable, VariantTable
+from app.features.products.models.model_product import ProductTable, VariantTable
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 import asyncio
