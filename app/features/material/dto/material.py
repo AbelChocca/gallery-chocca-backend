@@ -279,8 +279,6 @@ class MaterialFilters:
 
     is_active: bool | None = None
 
-    availability_status: AvailabilityStatus | None = None
-
     @property
     def to_dict(self) -> dict:
         return {
@@ -288,5 +286,4 @@ class MaterialFilters:
             "company": self.company,
             "material_type": self.material_type,
             "is_active": self.is_active,
-            "availability_status": self.availability_status,
         }

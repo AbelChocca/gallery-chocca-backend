@@ -284,32 +284,4 @@ class PostgresMaterialRepository(
                 MaterialTable.is_active == filters.is_active
             )
 
-        if (
-            filters.availability_status ==
-            AvailabilityStatus.OUT_OF_STOCK
-        ):
-            statement = statement.where(
-                MaterialTable.stock == 0
-            )
-
-        elif (
-            filters.availability_status ==
-            AvailabilityStatus.CRITICAL
-        ):
-            statement = statement.where(
-                and_(
-                    MaterialTable.stock > 0,
-                    MaterialTable.stock <= MaterialTable.minimum_stock
-                )
-            )
-
-        elif (
-            filters.availability_status ==
-            AvailabilityStatus.AVAILABLE
-        ):
-            statement = statement.where(
-                MaterialTable.stock >
-                MaterialTable.minimum_stock
-            )
-
         return statement
