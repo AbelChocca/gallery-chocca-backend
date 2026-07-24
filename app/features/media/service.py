@@ -5,10 +5,12 @@ from app.core.app_exception import AppException
 from app.infra.saga.saga_service import SagaService
 from app.features.media.types import ImageType
 from app.features.media.entities.image import ImageEntity
+from app.features.media.types import ImageType
 
 from app.features.media.dto import MediaImageDTO
 
 from typing import BinaryIO, List
+from collections import defaultdict
 
 class MediaService:
     def __init__(
@@ -36,6 +38,18 @@ class MediaService:
         return await self._image_repo.get_by_owners(
             owner_type=owner_type,
             owner_ids=owner_ids
+        )
+    
+    async def get_first_images_by_owner_ids(
+        self,
+        *,
+        owner_type: ImageType,
+        owner_ids: list[int],
+    ) -> dict[int, ImageEntity]:
+
+        return await self._image_repo.get_first_image_by_owner_ids(
+            owner_type=owner_type,
+            owner_ids=owner_ids,
         )
     
     async def get_first_image_by_owner(
@@ -181,13 +195,40 @@ class MediaService:
             }
 
             raise ae
+        
+    async def create_image_batch(
+        self,
+        *,
+        uploads: list[MediaImageDTO],
+        owner_id: int,
+        owner_type: str,
+    ) -> list[ImageEntity]:
+
+        images: list[ImageEntity] = []
+
+        for upload in uploads:
+            image = ImageEntity(
+                image_url=upload.url,
+                public_id=upload.public_id,
+                owner_id=owner_id,
+                owner_type=owner_type,
+            )
+
+            await self._image_repo.save_many(
+                image,
+                flush=False
+            )
+
+            images.append(image)
+
+        return images
 
     async def upload_images_batch(self, images_resource: List[BinaryIO], folder: str) -> List[MediaImageDTO]:
         semaphore = self._async_service.create_semaphore(3)
         tasks = [
             self._async_service.run_in_semaphore(
                 semaphore,
-                self._cloudinary_service.upload_image,
+                self._storage_service.upload_image,
                 file,
                 folder=folder
             )
@@ -209,24 +250,7 @@ class MediaService:
                 }
             )
 
-        return uploaded
-    
-    async def create_image_batch(
-            self,
-            image_resources: list[BinaryIO],
-            folder: str,
-            owner_id: int,
-            owner_type: str,
-            saga_service: SagaService
-    ) -> None:
-        for image in image_resources:
-            await self.create_image(
-                image_resource=image,
-                folder=folder,
-                owner_id=owner_id,
-                owner_type=owner_type,
-                saga_service=saga_service
-            )
+        return uploaded 
     
     # LEGACY
     async def create_image(
@@ -309,7 +333,28 @@ class MediaService:
             image.is_primary = is_primary
 
         return await self._image_repo.update(image)
+    
+    async def get_by_owners(
+        self,
+        owner_type: ImageType,
+        owner_ids: list[int],
+    ) -> list[ImageEntity]:
+        return await self._image_repo.get_by_owners(
+            owner_type=owner_type,
+            owner_ids=owner_ids,
+        )
 
+    def group_images_by_owner(
+        self,
+        images: list[ImageEntity],
+    ) -> dict[int, list[ImageEntity]]:
+        images_by_owner: dict[int, list[ImageEntity]] = defaultdict(list)
+
+        for image in images:
+            images_by_owner[image.owner_id].append(image)
+
+        return images_by_owner
+    
     def _trash_public_id(self, public_id: str) -> str:
         filename = public_id.rsplit("/", 1)[-1]
         return f"trash/{filename}"

@@ -5,4 +5,9 @@ class ImageType(str, Enum):
     slide = "slide"
     material = "material"
 
+class StorageFolder(str, Enum):
+    MATERIALS = "materials"
+    PRODUCTS = "products"
+    SLIDES = "slides"
+
 MAX_IMAGE_SIZE = 5 * 1024 * 1024

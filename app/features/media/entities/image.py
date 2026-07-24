@@ -83,6 +83,20 @@ class ImageEntity:
             "owner_id": self.owner_id,
             "owner_type": self.owner_type
         }
+    
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict[str, Any],
+    ) -> "ImageEntity":
+        return cls(
+            id=data["id"],
+            image_url=data["image_url"],
+            public_id=data["public_id"],
+            alt_text=data["alt_text"],
+            owner_id=data["owner_id"],
+            owner_type=ImageType(data["owner_type"]),
+        )
 
     def set_alt_text(self, args: Dict[str, str]) -> None:
         if not isinstance(args, dict):
