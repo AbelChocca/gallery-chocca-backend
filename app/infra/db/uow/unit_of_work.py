@@ -4,7 +4,7 @@ from app.features.inventory.models.inventory_movement import InventoryMovementTa
 
 from app.infra.db.repositories.product_repository import PostgresProductRepository
 from app.infra.db.mappers.product_mapper import ProductMapper
-from app.features.products.models.model_product import ProductTable
+from app.features.products.models.model_product import ProductTable, VariantSizeTable, VariantTable
 
 from app.infra.db.repositories.sqlmodel_slide_repository import PostgresSlideRepository
 from app.infra.db.mappers.slide_mapper import SlideMapper
@@ -54,12 +54,6 @@ from app.features.inventory.repositories.inventory_location_repository import (
 )
 from app.features.inventory.models.inventory_location import (
     InventoryLocationTable,
-)
-
-from app.features.products.models.model_product import (
-    ProductTable,
-    VariantTable,
-    VariantSizeTable,
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -27,7 +27,7 @@ class BaseRepository(Generic[E, M]):
         )
 
         if with_lock:
-            stmt = stmt.with_for_update()
+            statement = statement.with_for_update()
         
         result = await self._db_session.execute(statement)
         model: M | None = result.scalar_one_or_none()
