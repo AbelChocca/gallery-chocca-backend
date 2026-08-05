@@ -46,7 +46,8 @@ ROLE_PERMISSIONS = {
 
         Permission.REPORT_VIEW,
         Permission.REPORT_EXPORT,
-         Permission.DASHBOARD_READ
+         Permission.DASHBOARD_READ,
+        Permission.INVENTORY_LOCATION_READ
     ],
 
     UserRole.SELLER: [
