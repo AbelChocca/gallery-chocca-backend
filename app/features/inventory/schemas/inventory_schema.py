@@ -1,5 +1,5 @@
 from decimal import Decimal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class UpdateInventoryLocationSchema(BaseModel):
     location_id: int
@@ -17,3 +17,11 @@ class CreateInventorySchema(BaseModel):
         default=None,
         ge=0,
     )
+
+    @field_validator("initial_stock", mode="before")
+    @classmethod
+    def empty_string_to_none(cls, value):
+        if value == "":
+            return None
+
+        return value

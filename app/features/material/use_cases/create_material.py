@@ -85,15 +85,22 @@ class CreateMaterialUseCase(UseCaseSaga):
 
         for inventory in command.inventories:
 
-            await self._inventory_service.create_inventory_with_stock(
-                owner_type=InventoryOwnerType.MATERIAL,
-                owner_id=material.id,
-                location_id=inventory.location_id,
-                quantity=inventory.initial_stock,
-                minimum_stock=inventory.minimum_stock,
-            )
+            if inventory.initial_stock is not None:
+                await self._inventory_service.create_inventory_with_stock(
+                    owner_type=InventoryOwnerType.MATERIAL,
+                    owner_id=material.id,
+                    location_id=inventory.location_id,
+                    quantity=inventory.initial_stock,
+                    minimum_stock=inventory.minimum_stock,
+                )
+            else:
+                await self._inventory_service.create_inventory(
+                    owner_id=material.id,
+                    owner_type=InventoryOwnerType.MATERIAL,
+                    location_id=inventory.location_id,
+                    minimum_stock=inventory.minimum_stock
+                )
 
-            if inventory.initial_stock is None:
                 continue
 
             await self._inventory_movement_service.create_movement(

@@ -1,5 +1,5 @@
 from sqlmodel import select, col
-from sqlalchemy import or_, Select, func, case, update, delete
+from sqlalchemy import or_, Select, func, delete
 from sqlalchemy.orm import selectinload
 
 from app.features.material.entities.material import Material
@@ -8,7 +8,6 @@ from app.infra.db.repositories.base_repository import BaseRepository
 from app.features.material.dto.material import MaterialFilters
 
 from app.core.exceptions import ValueNotFound
-from decimal import Decimal
 
 
 class PostgresMaterialRepository(
@@ -134,40 +133,6 @@ class PostgresMaterialRepository(
             self._base_mapper.to_entity(material)
             for material in materials_db
         ]
-    
-    async def update_stock(
-        self,
-        material_id: int,
-        new_stock: Decimal
-    ) -> None:
-
-        await self._db_session.execute(
-            update(MaterialTable)
-            .where(
-                MaterialTable.id == material_id
-            )
-            .values(
-                stock=new_stock
-            )
-        )
-    
-    async def update_stock_many(
-        self,
-        stock_updates: dict[int, Decimal]
-    ) -> None:
-
-        await self._db_session.execute(
-            update(MaterialTable)
-            .where(
-                col(MaterialTable.id).in_(stock_updates.keys())
-            )
-            .values(
-                stock=case(
-                    stock_updates,
-                    value=MaterialTable.id
-                )
-            )
-        )
 
     async def exists_by_code(
         self,
