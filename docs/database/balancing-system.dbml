@@ -1,0 +1,217 @@
+Enum balance_snapshot_status {
+  DRAFT
+  CLOSED
+  CANCELLED
+}
+
+Enum accounts_receivable_status {
+  PENDING
+  PARTIALLY_COLLECTED
+  COLLECTED
+  CANCELLED
+}
+
+Enum accounts_payable_status {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+Enum financial_debt_status {
+  ACTIVE
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+Enum other_current_liability_status {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+Enum other_current_liability_category {
+  TAX
+  ESSALUD
+  AFP
+  PAYROLL
+  OTHER
+}
+
+Enum inventory_valuation_category {
+  RAW_MATERIAL
+  WORK_IN_PROGRESS
+  FINISHED_GOODS
+}
+
+Enum inventory_valuation_subcategory {
+  CUTTING
+  SEWING
+  LAUNDRY
+  WAREHOUSE
+  STORE
+  SELLER
+}
+
+
+
+Table balance_snapshot {
+
+  id integer [pk]
+
+  period_start date [not null]
+
+  period_end date [not null]
+
+  status balance_snapshot_status [not null]
+
+  created_at timestamp
+
+  Indexes {
+    (period_start, period_end) [unique]
+  }
+
+}
+
+
+Table accounts_receivable {
+
+  id integer [pk]
+
+  balance_snapshot_id integer [not null]
+
+  brand varchar(50) [not null]
+
+  entity_name varchar(255) [not null]
+
+  location varchar(255)
+
+  amount decimal(14,2) [not null]
+
+  status accounts_receivable_status [not null]
+
+  created_at timestamp
+
+  Indexes {
+    balance_snapshot_id
+    status
+  }
+
+}
+
+
+Table inventory_valuation {
+
+  id integer [pk]
+
+  balance_snapshot_id integer [not null]
+
+  category inventory_valuation_category [not null]
+
+  subcategory inventory_valuation_subcategory
+
+  description varchar(255) [not null]
+
+  brand varchar(50)
+
+  location varchar(255)
+
+  quantity decimal(14,3) [not null]
+
+  unit_value decimal(14,2) [not null]
+
+  created_at timestamp
+
+  Indexes {
+    balance_snapshot_id
+    category
+  }
+
+}
+
+
+Table accounts_payable {
+
+  id integer [pk]
+
+  balance_snapshot_id integer [not null]
+
+  brand varchar(50) [not null]
+
+  entity_name varchar(255) [not null]
+
+  cost_center varchar(50)
+
+  amount decimal(14,2) [not null]
+
+  status accounts_payable_status [not null]
+
+  created_at timestamp
+
+  Indexes {
+    balance_snapshot_id
+    status
+    cost_center
+  }
+
+}
+
+
+Table financial_debt {
+
+  id integer [pk]
+
+  balance_snapshot_id integer [not null]
+
+  bank_name varchar(100) [not null]
+
+  amount decimal(14,2) [not null]
+
+  status financial_debt_status [not null]
+
+  created_at timestamp
+
+  Indexes {
+    balance_snapshot_id
+    status
+  }
+
+}
+
+
+Table other_current_liability {
+
+  id integer [pk]
+
+  balance_snapshot_id integer [not null]
+
+  category other_current_liability_category [not null]
+
+  description varchar(255) [not null]
+
+  amount decimal(14,2) [not null]
+
+  status other_current_liability_status [not null]
+
+  created_at timestamp
+
+  Indexes {
+    balance_snapshot_id
+    category
+    status
+  }
+
+}
+
+
+Ref: accounts_receivable.balance_snapshot_id > balance_snapshot.id
+
+Ref: inventory_valuation.balance_snapshot_id > balance_snapshot.id
+
+Ref: accounts_payable.balance_snapshot_id > balance_snapshot.id
+
+Ref: financial_debt.balance_snapshot_id > balance_snapshot.id
+
+Ref: other_current_liability.balance_snapshot_id > balance_snapshot.id

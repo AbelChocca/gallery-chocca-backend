@@ -19,9 +19,14 @@ from app.features.dashboard import dashboard_route
 from app.features.inventory import inventory_route
 from app.features.auth import auth_route
 from app.features.cart import cart_route
-from app.features.pricing import pricing_route
 from app.features.material import material_route
 from app.features.reports import reports_route
+from app.features.balancing.routes.balance_snapshots import balance_snapshot_router
+from app.features.balancing.routes.other_current_liability import other_current_liability_router
+from app.features.balancing.routes.inventory_valuation import inventory_valuation_router
+from app.features.balancing.routes.accounts_receivables import account_receivable_router
+from app.features.balancing.routes.accounts_payables import account_payable_router
+from app.features.balancing.routes.financial_debts import financial_debt_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -89,6 +94,11 @@ app.include_router(favorites_router.router)
 app.include_router(dashboard_route.router)
 app.include_router(inventory_route.router)
 app.include_router(cart_route.router)
-app.include_router(pricing_route.router)
 app.include_router(material_route.router)
 app.include_router(reports_route.router)
+app.include_router(balance_snapshot_router.balance_router)
+app.include_router(account_payable_router.accounts_payable_router)
+app.include_router(account_receivable_router.accounts_receivable_router)
+app.include_router(inventory_valuation_router.inventory_valuation_router)
+app.include_router(financial_debt_router.financial_debt_router)
+app.include_router(other_current_liability_router.other_current_liability_router)
