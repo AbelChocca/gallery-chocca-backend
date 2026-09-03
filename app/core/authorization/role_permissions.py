@@ -27,7 +27,11 @@ ROLE_PERMISSIONS = {
         Permission.PRICING_UPDATE,
 
         Permission.REPORT_VIEW,
-        Permission.DASHBOARD_READ
+        Permission.DASHBOARD_READ,
+        Permission.BALANCE_READ,
+        Permission.BALANCE_CREATE,
+        Permission.BALANCE_UPDATE,
+        Permission.BALANCE_DELETE,
     ],
 
     UserRole.INVENTORY: [
