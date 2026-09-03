@@ -51,7 +51,7 @@ async def test_should_not_create_material_when_name_already_exists(
     duplicate_dto = CreateMaterialDTO(
         name="Tela Blanca",
         description="Otro producto",
-        company=CompanyType.CHOCCA,
+        company=CompanyType.CREATOR,
         material_type=MaterialType.ACCESSORY,
         unit_type=UnitType.UNIT
     )
@@ -107,7 +107,7 @@ async def test_should_update_material_information(
         UpdateMaterialDTO(
             name="Tela Premium",
             description="Tela premium importada",
-            company=CompanyType.CHOCCA,
+            company=CompanyType.CREATOR,
         )
     )
 
@@ -117,7 +117,7 @@ async def test_should_update_material_information(
 
     assert updated_material.name == "Tela Premium"
     assert updated_material.description == "Tela premium importada"
-    assert updated_material.company == CompanyType.CHOCCA
+    assert updated_material.company == CompanyType.CREATOR
     assert not updated_material.code.startswith("TBX")
 
 async def test_should_regenerate_code_prefix_when_name_changes(
