@@ -2,10 +2,8 @@ from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infra.db.exceptions import DatabaseException
-from app.infra.db.mappers.base_mapper import BaseMapper
 from app.infra.db.repositories.base_repository import BaseRepository
 
 from app.features.balancing.entities.financial_debt import FinancialDebt

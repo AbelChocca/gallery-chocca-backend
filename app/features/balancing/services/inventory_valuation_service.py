@@ -12,7 +12,7 @@ from app.features.balancing.types.inventory_valuation_types import (
 )
 from app.core.exceptions import ValueNotFound
 
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone
 
 
 class InventoryValuationService:

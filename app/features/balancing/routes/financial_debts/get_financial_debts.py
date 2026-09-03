@@ -1,4 +1,4 @@
-from fastapi import Depends, status
+from fastapi import Depends
 
 from app.features.balancing.schemas.financial_debt_schema import FinancialDebtFilterSchema, FinancialDebtResponseSchema
 from app.features.balancing.services.financial_debt_service import FinancialDebtService

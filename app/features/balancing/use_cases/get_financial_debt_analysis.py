@@ -31,9 +31,6 @@ class GetFinancialDebtAnalysisUseCase:
         if not snapshot:
             raise ValueNotFound(
                 "No se encontró la instantánea del saldo.",
-                {
-                    "snapshot_id": snapshot_id
-                }
             )
 
         snapshot_id = snapshot.id

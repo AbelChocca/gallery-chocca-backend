@@ -14,12 +14,6 @@ from app.infra.db.uow.dependency import get_uow
 
 from app.shared.pagination.pagination_service import PaginationService, get_pagination_service
 
-from fastapi import Depends
-
-from app.infra.db.uow.unit_of_work import UnitOfWork
-from app.infra.db.uow.dependency import get_uow
-
-
 def get_balance_snapshot_repository(
     uow: UnitOfWork = Depends(get_uow),
 ) -> BalanceSnapshotRepository:

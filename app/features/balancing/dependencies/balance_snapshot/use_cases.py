@@ -46,8 +46,6 @@ from app.features.balancing.use_cases.get_balance_snapshot import (
     GetBalanceSnapshotUseCase,
 )
 
-from fastapi import Depends
-
 from app.features.balancing.dependencies.balance_snapshot.service import get_balance_snapshot_service
 
 def get_compare_balance_snapshots_use_case(
