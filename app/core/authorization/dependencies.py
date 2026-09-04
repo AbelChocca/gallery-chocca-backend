@@ -2,7 +2,7 @@ from typing import Callable
 
 from fastapi import Depends
 
-from app.api.security.resolvers.sessions import get_user_session
+from app.api.security.resolvers.sessions import require_authenticated_user
 from app.core.authorization.permissions import Permission
 from app.core.authorization.resolver import has_permission
 from app.api.security.exceptions import SecurityException
@@ -10,7 +10,7 @@ from app.features.auth.schema import ReadSessionSchema
 
 def require_permission(permission: Permission):
     def dependency(
-        current_user: ReadSessionSchema = Depends(get_user_session),
+        current_user: ReadSessionSchema = Depends(require_authenticated_user),
     ):
         if not has_permission(
             current_user.role,
@@ -34,7 +34,7 @@ def require_any_permission(
     *permissions: Permission,
 ) -> Callable:
     def dependency(
-        current_user: ReadSessionSchema = Depends(get_user_session),
+        current_user: ReadSessionSchema = Depends(require_authenticated_user),
     ):
         if not any(
             has_permission(
@@ -62,7 +62,7 @@ def require_all_permissions(
     *permissions: Permission,
 ) -> Callable:
     def dependency(
-        current_user: ReadSessionSchema = Depends(get_user_session),
+        current_user: ReadSessionSchema = Depends(require_authenticated_user),
     ):
         if not all(
             has_permission(

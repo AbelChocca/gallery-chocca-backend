@@ -5,11 +5,15 @@ from app.features.balancing.services.inventory_valuation_service import Inventor
 from app.features.balancing.dependencies.inventory_valuation.service import get_inventory_valuation_service
 from app.features.balancing.routes.inventory_valuation.inventory_valuation_router import inventory_valuation_router
 from app.features.balancing.entities.inventory_valuation import InventoryValuation
+from app.core.authorization.dependencies import require_permission
+from app.core.authorization.permissions import Permission
+
 
 @inventory_valuation_router.post(
     "",
     response_model=InventoryValuationResponseSchema,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[require_permission(Permission.BALANCE_CREATE)]
 )
 async def create_inventory_valuation(
     schema: InventoryValuationCreateSchema,

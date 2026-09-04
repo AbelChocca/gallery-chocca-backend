@@ -5,12 +5,14 @@ from app.features.balancing.services.financial_debt_service import FinancialDebt
 from app.features.balancing.entities.financial_debt import FinancialDebt
 from app.features.balancing.routes.financial_debts.financial_debt_router import financial_debt_router
 from app.features.balancing.dependencies.financial_debt.service import get_financial_debt_service
-
+from app.core.authorization.dependencies import require_permission
+from app.core.authorization.permissions import Permission
 
 @financial_debt_router.post(
     "",
     response_model=FinancialDebtResponseSchema,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[require_permission(Permission.BALANCE_CREATE)]
 )
 async def create_financial_debt(
     schema: FinancialDebtCreateSchema,

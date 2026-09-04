@@ -119,3 +119,18 @@ async def get_user_session(
     auth: SecuritySessions = Depends(get_auth_sessions)
 ) -> ReadSessionSchema | None:
     return await auth.get_user_session()
+
+async def require_authenticated_user(
+    current_user: ReadSessionSchema | None = Depends(get_user_session),
+) -> ReadSessionSchema:
+
+    if current_user is None:
+        raise SecurityException(
+            "Authentication is required.",
+            {
+                "service": "authorization",
+                "event": "require_authenticated_user",
+            },
+        )
+
+    return current_user

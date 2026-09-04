@@ -16,12 +16,15 @@ from app.features.balancing.schemas.accounts_receivable_schema import (
 from app.features.balancing.services.accounts_receivable_service import (
     AccountsReceivableService,
 )
+from app.core.authorization.dependencies import require_permission
+from app.core.authorization.permissions import Permission
 
 
 @accounts_receivable_router.post(
     "",
     response_model=AccountsReceivableResponseSchema,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[require_permission(Permission.BALANCE_CREATE)]
 )
 async def create_accounts_receivable(
     schema: AccountsReceivableCreateSchema,

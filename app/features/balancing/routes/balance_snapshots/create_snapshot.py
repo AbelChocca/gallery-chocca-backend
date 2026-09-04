@@ -12,12 +12,16 @@ from app.features.balancing.services.balance_snapshot_service import (
     BalanceSnapshotService,
 )
 
+from app.core.authorization.dependencies import require_permission
+from app.core.authorization.permissions import Permission
+
 from app.features.balancing.routes.balance_snapshots.balance_snapshot_router import balance_router
 
 @balance_router.post(
     "/snapshots",
     response_model=BalanceSnapshotResponseSchema,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[require_permission(Permission.BALANCE_CREATE)]
 )
 async def create_snapshot(
     schema: BalanceSnapshotCreateSchema,
