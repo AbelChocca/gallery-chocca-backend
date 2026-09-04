@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, pool
 from sqlalchemy.engine import URL
 from sqlmodel import SQLModel
 
-from app.core.settings.pydantic_settings import settings
+from app.core.alembic.alembic_settings import alembic_settings
 
 
 config = context.config
@@ -19,11 +19,11 @@ target_metadata = SQLModel.metadata
 
 database_url = URL.create(
     drivername="postgresql+psycopg2",
-    username=settings.POSTGRES_USER,
-    password=settings.POSTGRES_PASSWORD,
-    host=settings.POSTGRES_HOST,
+    username=alembic_settings.POSTGRES_USER,
+    password=alembic_settings.POSTGRES_PASSWORD,
+    host=alembic_settings.POSTGRES_HOST,
     port=5432,
-    database=settings.POSTGRES_DB,
+    database=alembic_settings.POSTGRES_DB,
 )
 
 
@@ -51,7 +51,7 @@ def run_migrations_online() -> None:
 
     connect_args = {}
 
-    if settings.ENV == "production":
+    if alembic_settings.ENV == "production":
         connect_args = {
             "sslmode": "require"
         }

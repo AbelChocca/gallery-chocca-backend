@@ -1,0 +1,29 @@
+from enum import StrEnum
+
+class DeliveryStatus(StrEnum):
+    PENDING = "PENDING"
+
+    PREPARING = "PREPARING"
+
+    READY_FOR_SHIPMENT = "READY_FOR_SHIPMENT"
+
+    SHIPPED = "SHIPPED"
+
+    IN_TRANSIT = "IN_TRANSIT"
+
+    DELIVERED = "DELIVERED"
+
+    FAILED = "FAILED"
+
+    RETURNED = "RETURNED"
+
+    CANCELLED = "CANCELLED"
+
+class CourierProvider(StrEnum):
+    OLVA = "OLVA"
+    SHALOM = "SHALOM"
+    MARVISUR = "MARVISUR"
+    URBANO = "URBANO"
+    SCHARFF = "SCHARFF"
+    CHAZKI = "CHAZKI"
+    OTHER = "OTHER"
