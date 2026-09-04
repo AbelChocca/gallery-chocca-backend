@@ -94,154 +94,154 @@ jobs:
         run: |
           uv run pytest tests/integration tests/unit
 
-deploy:
-  name: Build and Deploy
-  needs: test
-  if: github.ref == 'refs/heads/main'
-  runs-on: ubuntu-latest
+  deploy:
+    name: Build and Deploy
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
 
-  permissions:
-    contents: read
-    id-token: write
+    permissions:
+      contents: read
+      id-token: write
 
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Login to ACR
-      run: |
-        az acr login --name ${{ secrets.ACR_NAME }}
+      - name: Login to ACR
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
 
-    - name: Set image tag
-      id: vars
-      run: |
-        echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      - name: Set image tag
+        id: vars
+        run: |
+          echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-    - name: Build image
-      run: |
-        docker build \
-          -f Dockerfile.prod \
-          -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }} \
-          -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
-          .
+      - name: Build image
+        run: |
+          docker build \
+            -f Dockerfile.prod \
+            -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }} \
+            -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
+            .
 
-    - name: Push image
-      run: |
-        docker push \
-          ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
+      - name: Push image
+        run: |
+          docker push \
+            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
 
-        docker push \
-          ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+          docker push \
+            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
 
-    # ─────────────────────────────────────────────
-    # DATABASE MIGRATIONS
-    # ─────────────────────────────────────────────
+      # ─────────────────────────────────────────────
+      # DATABASE MIGRATIONS
+      # ─────────────────────────────────────────────
 
-    - name: Update Alembic Job image
-      run: |
-        az containerapp job update \
-          --name ${{ secrets.ALEMBIC_JOB_NAME }} \
-          --resource-group ${{ secrets.RESOURCE_GROUP }} \
-          --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
-
-    - name: Start Alembic Job
-      id: migration
-      run: |
-        EXECUTION_NAME=$(az containerapp job start \
-          --name ${{ secrets.ALEMBIC_JOB_NAME }} \
-          --resource-group ${{ secrets.RESOURCE_GROUP }} \
-          --query name \
-          --output tsv)
-
-        echo "EXECUTION_NAME=$EXECUTION_NAME" >> $GITHUB_OUTPUT
-
-        echo "Started migration execution: $EXECUTION_NAME"
-
-    - name: Wait for Alembic migration
-      run: |
-        EXECUTION_NAME="${{ steps.migration.outputs.EXECUTION_NAME }}"
-
-        echo "Waiting for migration execution: $EXECUTION_NAME"
-
-        for i in {1..60}; do
-          STATUS=$(az containerapp job execution show \
+      - name: Update Alembic Job image
+        run: |
+          az containerapp job update \
             --name ${{ secrets.ALEMBIC_JOB_NAME }} \
             --resource-group ${{ secrets.RESOURCE_GROUP }} \
-            --job-execution-name "$EXECUTION_NAME" \
-            --query properties.status \
+            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
+
+      - name: Start Alembic Job
+        id: migration
+        run: |
+          EXECUTION_NAME=$(az containerapp job start \
+            --name ${{ secrets.ALEMBIC_JOB_NAME }} \
+            --resource-group ${{ secrets.RESOURCE_GROUP }} \
+            --query name \
             --output tsv)
 
-          echo "Migration status: $STATUS"
+          echo "EXECUTION_NAME=$EXECUTION_NAME" >> $GITHUB_OUTPUT
 
-          case "$STATUS" in
-            Succeeded)
-              echo "✅ Alembic migration succeeded."
-              exit 0
-              ;;
+          echo "Started migration execution: $EXECUTION_NAME"
 
-            Failed)
-              echo "❌ Alembic migration failed."
-              exit 1
-              ;;
+      - name: Wait for Alembic migration
+        run: |
+          EXECUTION_NAME="${{ steps.migration.outputs.EXECUTION_NAME }}"
 
-            Running|Pending|Processing|"")
-              echo "⏳ Migration still running..."
-              sleep 5
-              ;;
+          echo "Waiting for migration execution: $EXECUTION_NAME"
 
-            *)
-              echo "⚠️ Unknown migration status: $STATUS"
-              sleep 5
-              ;;
-          esac
-        done
+          for i in {1..60}; do
+            STATUS=$(az containerapp job execution show \
+              --name ${{ secrets.ALEMBIC_JOB_NAME }} \
+              --resource-group ${{ secrets.RESOURCE_GROUP }} \
+              --job-execution-name "$EXECUTION_NAME" \
+              --query properties.status \
+              --output tsv)
 
-        echo "❌ Migration timed out."
-        exit 1
+            echo "Migration status: $STATUS"
 
-    # ─────────────────────────────────────────────
-    # BACKEND DEPLOYMENT
-    # ─────────────────────────────────────────────
+            case "$STATUS" in
+              Succeeded)
+                echo "✅ Alembic migration succeeded."
+                exit 0
+                ;;
 
-    - name: Deploy to Container Apps
-      run: |
-        az containerapp update \
-          --name ${{ secrets.CONTAINER_APP_NAME }} \
-          --resource-group ${{ secrets.RESOURCE_GROUP }} \
-          --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
+              Failed)
+                echo "❌ Alembic migration failed."
+                exit 1
+                ;;
 
-    # ─────────────────────────────────────────────
-    # CLEANUP
-    # ─────────────────────────────────────────────
+              Running|Pending|Processing|"")
+                echo "⏳ Migration still running..."
+                sleep 5
+                ;;
 
-    - name: Cleanup old images
-      run: |
-        TAGS=$(az acr repository show-tags \
-          --name ${{ secrets.ACR_NAME }} \
-          --repository ${{ env.IMAGE_NAME }} \
-          --orderby time_desc \
-          --output tsv)
+              *)
+                echo "⚠️ Unknown migration status: $STATUS"
+                sleep 5
+                ;;
+            esac
+          done
 
-        COUNT=0
+          echo "❌ Migration timed out."
+          exit 1
 
-        for TAG in $TAGS; do
-          if [ "$TAG" = "latest" ]; then
-            continue
-          fi
+      # ─────────────────────────────────────────────
+      # BACKEND DEPLOYMENT
+      # ─────────────────────────────────────────────
 
-          COUNT=$((COUNT + 1))
+      - name: Deploy to Container Apps
+        run: |
+          az containerapp update \
+            --name ${{ secrets.CONTAINER_APP_NAME }} \
+            --resource-group ${{ secrets.RESOURCE_GROUP }} \
+            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
 
-          if [ $COUNT -gt 20 ]; then
-            echo "Deleting tag $TAG"
+      # ─────────────────────────────────────────────
+      # CLEANUP
+      # ─────────────────────────────────────────────
 
-            az acr repository delete \
-              --name ${{ secrets.ACR_NAME }} \
-              --image ${{ env.IMAGE_NAME }}:$TAG \
-              --yes
-          fi
-        done
+      - name: Cleanup old images
+        run: |
+          TAGS=$(az acr repository show-tags \
+            --name ${{ secrets.ACR_NAME }} \
+            --repository ${{ env.IMAGE_NAME }} \
+            --orderby time_desc \
+            --output tsv)
+
+          COUNT=0
+
+          for TAG in $TAGS; do
+            if [ "$TAG" = "latest" ]; then
+              continue
+            fi
+
+            COUNT=$((COUNT + 1))
+
+            if [ $COUNT -gt 20 ]; then
+              echo "Deleting tag $TAG"
+
+              az acr repository delete \
+                --name ${{ secrets.ACR_NAME }} \
+                --image ${{ env.IMAGE_NAME }}:$TAG \
+                --yes
+            fi
+          done
