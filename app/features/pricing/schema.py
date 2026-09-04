@@ -3,7 +3,7 @@ from decimal import Decimal
 from datetime import datetime
 
 from app.shared.pagination.schema import PaginationResponseSchema
-from app.features.pricing.types import PricingRuleType
+from app.features.pricing.types.types import PricingRuleType
 
 class CreatePricingRuleRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)

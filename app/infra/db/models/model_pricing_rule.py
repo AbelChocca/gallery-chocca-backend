@@ -4,7 +4,7 @@ from decimal import Decimal
 from sqlalchemy import Column, DateTime, Numeric, Text, CheckConstraint
 from sqlmodel import SQLModel, Field
 
-from app.features.pricing.types import PricingRuleType
+from app.features.pricing.types.types import PricingRuleType
 
 class PricingRuleTable(SQLModel, table=True):
     __tablename__ = "pricing_rules"

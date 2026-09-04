@@ -1,4 +1,4 @@
-from app.features.pricing.types import PricingRuleType
+from app.features.pricing.types.types import PricingRuleType
 from app.features.pricing.strategy.base import BasePricingStrategy
 
 from app.features.pricing.strategy.percentage import (

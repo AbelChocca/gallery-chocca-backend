@@ -138,12 +138,86 @@ jobs:
           docker push \
             ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
 
+      # ─────────────────────────────────────────────
+      # DATABASE MIGRATIONS
+      # ─────────────────────────────────────────────
+
+      - name: Update Alembic Job image
+        run: |
+          az containerapp job update \
+            --name ${{ secrets.ALEMBIC_JOB_NAME }} \
+            --resource-group ${{ secrets.RESOURCE_GROUP }} \
+            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
+
+      - name: Start Alembic Job
+        id: migration
+        run: |
+          EXECUTION_NAME=$(az containerapp job start \
+            --name ${{ secrets.ALEMBIC_JOB_NAME }} \
+            --resource-group ${{ secrets.RESOURCE_GROUP }} \
+            --query name \
+            --output tsv)
+
+          echo "EXECUTION_NAME=$EXECUTION_NAME" >> $GITHUB_OUTPUT
+
+          echo "Started migration execution: $EXECUTION_NAME"
+
+      - name: Wait for Alembic migration
+        run: |
+          EXECUTION_NAME="${{ steps.migration.outputs.EXECUTION_NAME }}"
+
+          echo "Waiting for migration execution: $EXECUTION_NAME"
+
+          for i in {1..60}; do
+            STATUS=$(az containerapp job execution show \
+              --name ${{ secrets.ALEMBIC_JOB_NAME }} \
+              --resource-group ${{ secrets.RESOURCE_GROUP }} \
+              --job-execution-name "$EXECUTION_NAME" \
+              --query properties.status \
+              --output tsv)
+
+            echo "Migration status: $STATUS"
+
+            case "$STATUS" in
+              Succeeded)
+                echo "✅ Alembic migration succeeded."
+                exit 0
+                ;;
+
+              Failed)
+                echo "❌ Alembic migration failed."
+                exit 1
+                ;;
+
+              Running|Pending|Processing|"")
+                echo "⏳ Migration still running..."
+                sleep 5
+                ;;
+
+              *)
+                echo "⚠️ Unknown migration status: $STATUS"
+                sleep 5
+                ;;
+            esac
+          done
+
+          echo "❌ Migration timed out."
+          exit 1
+
+      # ─────────────────────────────────────────────
+      # BACKEND DEPLOYMENT
+      # ─────────────────────────────────────────────
+
       - name: Deploy to Container Apps
         run: |
           az containerapp update \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.RESOURCE_GROUP }} \
-            --image ${{ secrets.ACR_LOGIN_SERVER }}/backend_jean:${{ steps.vars.outputs.TAG }}
+            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
+
+      # ─────────────────────────────────────────────
+      # CLEANUP
+      # ─────────────────────────────────────────────
 
       - name: Cleanup old images
         run: |

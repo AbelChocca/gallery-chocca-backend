@@ -121,7 +121,7 @@ async def test_should_apply_all_filters(
             build_material(
                 code="TEL-000002",
                 name="Tela Azul",
-                company=CompanyType.CHOCCA,
+                company=CompanyType.CREATOR,
                 is_active=True,
                 created_at=now
             ),
@@ -145,7 +145,7 @@ async def test_should_apply_all_filters(
             build_material(
                 code="TEL-000004",
                 name="Tela Verde",
-                company=CompanyType.CHOCCA,
+                company=CompanyType.CREATOR,
                 is_active=True,
                 created_at=now
             ),

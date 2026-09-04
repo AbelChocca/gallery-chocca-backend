@@ -48,3 +48,9 @@ class Permission(StrEnum):
     INVENTORY_LOCATION_CREATE = "inventory_location:create"
     INVENTORY_LOCATION_UPDATE = "inventory_location:update"
     INVENTORY_LOCATION_DELETE = "inventory_location:delete"
+
+    # Balancing / Balance financiero
+    BALANCE_READ = "balance:read"
+    BALANCE_CREATE = "balance:create"
+    BALANCE_UPDATE = "balance:update"
+    BALANCE_DELETE = "balance:delete"

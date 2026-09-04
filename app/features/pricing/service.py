@@ -12,7 +12,7 @@ from app.features.products.product_dto import FilterProductCommand
 from app.features.pricing.entities.pricing_rule import PricingRule
 from app.features.pricing.entities.product_applied_pricing_rule import ProductAppliedPricingRule
 from app.features.pricing.utils.pricing_calculator import ProductPricingCalculator
-from app.features.pricing.types import PricingRuleType, ProductPricingSummaryTD
+from app.features.pricing.types.types import PricingRuleType, ProductPricingSummaryTD
 
 from app.shared.pagination.pagination_service import PaginationService
 
