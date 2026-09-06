@@ -77,6 +77,8 @@ class MaterialInventoryRowSchema(BaseModel):
     reserved_quantity: Decimal
     minimum_stock: Decimal
 
+    days_without_rotation: int | None
+
     availability_status: AvailabilityStatus
 
     is_active: bool
