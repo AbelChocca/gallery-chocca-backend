@@ -85,9 +85,10 @@ class UpdateInventoryLocationsUseCase:
             inventory = current_by_location[location_id]
             dto = incoming_by_location[location_id]
 
-            await self._inventory_service.update_minimum_stock(
+            await self._inventory_service.update_inventory(
                 inventory_id=inventory.id,
                 minimum_stock=dto.minimum_stock,
+                unit_price=dto.unit_price
             )
 
 
@@ -103,6 +104,7 @@ class UpdateInventoryLocationsUseCase:
                 owner_id=owner_id,
                 owner_type=owner_type,
                 location_id=location_id,
+                unit_price=dto.unit_price,
                 minimum_stock=dto.minimum_stock,
             )
 

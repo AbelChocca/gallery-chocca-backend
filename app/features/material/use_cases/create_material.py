@@ -91,6 +91,7 @@ class CreateMaterialUseCase(UseCaseSaga):
                     owner_id=material.id,
                     location_id=inventory.location_id,
                     quantity=inventory.initial_stock,
+                    unit_price=inventory.unit_price,
                     minimum_stock=inventory.minimum_stock,
                 )
             else:
@@ -98,6 +99,7 @@ class CreateMaterialUseCase(UseCaseSaga):
                     owner_id=material.id,
                     owner_type=InventoryOwnerType.MATERIAL,
                     location_id=inventory.location_id,
+                    unit_price=inventory.unit_price,
                     minimum_stock=inventory.minimum_stock
                 )
 

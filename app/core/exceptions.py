@@ -27,3 +27,11 @@ class ValueNotFound(AppException):
 
     def __init__(self, message: str, context: dict|None = None):
         super().__init__(message, context)
+
+class UnsupportedEntity(AppException):
+    status_code: int = 422
+    log_level: str = "ERROR"
+    error_code: str = "unproccesable_entity"
+
+    def __init__(self, message: str, context: dict|None = None):
+        super().__init__(message, context)

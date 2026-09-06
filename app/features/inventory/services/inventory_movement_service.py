@@ -1,6 +1,6 @@
-from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters, InventoryMovementDTO, InventoryMovementPaginatedDTO
+from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters, InventoryMovementDTO, InventoryMovementPaginatedDTO, InventoryMovementSummaryDTO
 from app.features.inventory.repositories.sqlalchemy_inventory_movement_repo import PostgresInventoryMovementReposity
-from app.features.inventory.inventory_movement_entity import InventoryMovement
+from app.features.inventory.entities.inventory_movement_entity import InventoryMovement
 from app.shared.pagination.pagination_service import PaginationService
 from app.features.inventory.types.inventory_movement import InventoryMovementType, InventoryOwnerType
 from app.features.inventory.types.inventory_reference import InventoryReferenceType
@@ -103,3 +103,35 @@ class InventoryMovementService:
             owner_id: int
     ) -> InventoryMovement:
         return await self._inventory_movement_repo.get_last_material_movement(owner_type, owner_id)
+
+    async def get_last_movements_by_owner_ids(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_ids: list[int],
+    ) -> dict[int, InventoryMovement]:
+
+        return await (
+            self._inventory_movement_repo
+            .get_last_movements_by_owner_ids(
+                owner_type=owner_type,
+                owner_ids=owner_ids,
+            )
+        )
+
+    async def get_movement_summary(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_ids: list[int],
+        location_id: int,
+    ) -> InventoryMovementSummaryDTO:
+
+        return await (
+            self._inventory_movement_repo
+            .get_movement_summary(
+                owner_type=owner_type,
+                owner_ids=owner_ids,
+                location_id=location_id,
+            )
+        )

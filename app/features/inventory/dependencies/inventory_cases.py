@@ -15,10 +15,15 @@ from app.shared.pagination.pagination_service import PaginationService, get_pagi
 from app.features.inventory.use_cases.get_inventory_product_detail import (
     GetInventoryProductDetailUseCase,
 )
-
+from app.features.inventory.use_cases.get_inventory_kpi import (
+    GetInventoryKPIsUseCase,
+)
 from app.features.inventory.use_cases.update_inventory_locations import (
     UpdateInventoryLocationsUseCase,
 )
+from app.features.inventory.use_cases.get_inventory_consumption_chart import GetInventoryConsumptionChartUseCase
+from app.features.inventory.dependencies.resolvers import get_inventory_owner_resolver
+from app.features.inventory.resolvers.inventory_owner_resolver import InventoryOwnerResolverService
 
 from app.features.inventory.dependencies.services import (
     get_inventory_service,
@@ -47,6 +52,17 @@ from app.features.material.service import (
 
 from app.features.material.dependency import (
     get_material_service,
+)
+from app.features.inventory.use_cases.get_inventory_analysis import (
+    GetInventoryAnalysisUseCase,
+)
+
+from app.features.inventory.services.inventory_movement_service import (
+    InventoryMovementService,
+)
+
+from app.features.inventory.dependencies.services import (
+    get_inventory_movement_service,
 )
 
 from fastapi import Depends
@@ -99,6 +115,9 @@ def get_inventory_materials_use_case(
     inventory_service: InventoryService = Depends(
         get_inventory_service,
     ),
+    inventory_movements: InventoryMovementService = Depends(
+        get_inventory_movement_service
+    ),
     media_service: MediaService = Depends(
         get_media_service,
     ),
@@ -110,6 +129,7 @@ def get_inventory_materials_use_case(
     return GetInventoryMaterialsUseCase(
         inventory_service=inventory_service,
         media_service=media_service,
+        inventory_movement_service=inventory_movements,
         pagination_service=pagination_service,
     )
 
@@ -129,4 +149,44 @@ def get_inventory_material_detail_use_case(
         inventory_service=inventory_service,
         material_service=material_service,
         media_service=media_service,
+    )
+
+def get_inventory_analysis_use_case(
+    inventory_service: InventoryService = Depends(
+        get_inventory_service,
+    ),
+    inventory_movement_service: InventoryMovementService = Depends(
+        get_inventory_movement_service,
+    ),
+) -> GetInventoryAnalysisUseCase:
+
+    return GetInventoryAnalysisUseCase(
+        inventory_service=inventory_service,
+        inventory_movement_service=inventory_movement_service,
+    )
+
+def get_inventory_kpis_use_case(
+    inventory_service: InventoryService = Depends(
+        get_inventory_service,
+    ),
+    inventory_movement_service: InventoryMovementService = Depends(
+        get_inventory_movement_service,
+    ),
+) -> GetInventoryKPIsUseCase:
+    return GetInventoryKPIsUseCase(
+        inventory_service=inventory_service,
+        inventory_movement_service=inventory_movement_service,
+    )
+
+def get_inventory_consumption_chart_use_case(
+    inventory_movement_service: InventoryMovementService = Depends(
+        get_inventory_movement_service,
+    ),
+    inventory_owner_resolver: InventoryOwnerResolverService = Depends(
+        get_inventory_owner_resolver,
+    ),
+) -> GetInventoryConsumptionChartUseCase:
+    return GetInventoryConsumptionChartUseCase(
+        inventory_movement_service=inventory_movement_service,
+        inventory_owner_resolver=inventory_owner_resolver,
     )
