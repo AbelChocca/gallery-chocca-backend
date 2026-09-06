@@ -5,7 +5,6 @@ from app.features.inventory.dtos.inventory_movements import InventoryMovementFil
 from app.features.inventory.types.inventory_movement import InventoryOwnerType, InventoryMovementType
 from sqlalchemy import select, func, Select, or_, case
 from sqlmodel import col
-from decimal import Decimal
 
 class PostgresInventoryMovementReposity(BaseRepository[InventoryMovement, InventoryMovementTable]):
     async def get_last_material_movement(
