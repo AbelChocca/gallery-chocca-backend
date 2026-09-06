@@ -24,6 +24,8 @@ class InventoryMapper(BaseMapper[Inventory, InventoryTable]):
         model.reserved_quantity = entity.reserved_quantity
         model.minimum_stock = entity.minimum_stock
 
+        model.unit_price = entity.unit_price
+
         model.last_movement_at = entity.last_movement_at
 
         return model
@@ -44,6 +46,8 @@ class InventoryMapper(BaseMapper[Inventory, InventoryTable]):
             quantity=model.quantity,
             reserved_quantity=model.reserved_quantity,
             minimum_stock=model.minimum_stock,
+
+            unit_price=model.unit_price,
 
             last_movement_at=model.last_movement_at,
         )

@@ -17,6 +17,7 @@ class Inventory:
         reserved_quantity: Decimal = Decimal("0"),
         minimum_stock: Decimal = Decimal("0"),
         last_movement_at: datetime | None = None,
+        unit_price: Decimal = Decimal("0"),
         id: int | None = None,
     ) -> None:
 
@@ -30,6 +31,8 @@ class Inventory:
         self.quantity = quantity
         self.reserved_quantity = reserved_quantity
         self.minimum_stock = minimum_stock
+
+        self.unit_price = unit_price
 
         self.last_movement_at = last_movement_at
 
