@@ -10,6 +10,9 @@ from .inventory import get_inventory_product_detail
 from .inventory import update_inventory_locations
 from .inventory import get_inventory_materials
 from .inventory import get_inventory_material_detail
+from .inventory import get_inventory_owner_analysis
+from .inventory import get_inventory_kpis
+from .inventory import get_inventory_owner_consumption_chart
 
 __all__ = [
     "create_bulk_movements",
@@ -23,5 +26,8 @@ __all__ = [
     "get_inventory_product_detail",
     "update_inventory_locations",
     "get_inventory_materials",
-    "get_inventory_material_detail"
+    "get_inventory_material_detail",
+    "get_inventory_owner_analysis",
+    "get_inventory_kpis",
+    "get_inventory_owner_consumption_chart"
 ]
