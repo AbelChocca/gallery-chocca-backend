@@ -1,9 +1,13 @@
 from app.features.inventory.services.inventory_service import InventoryService
 from app.features.media.service import MediaService
 from app.features.media.types import ImageType
+from app.features.inventory.services.inventory_movement_service import InventoryMovementService
 from app.features.inventory.dtos.inventory import MaterialInventoryRowDTO
 from app.shared.pagination.pagination_service import PaginationService
 from app.shared.pagination.dto import PaginatedDTO
+from app.features.inventory.types.inventory_movement import InventoryOwnerType
+
+from datetime import datetime, timezone
 
 
 class GetInventoryMaterialsUseCase:
@@ -11,10 +15,12 @@ class GetInventoryMaterialsUseCase:
     def __init__(
         self,
         inventory_service: InventoryService,
+        inventory_movement_service: InventoryMovementService,
         media_service: MediaService,
         pagination_service: PaginationService,
     ) -> None:
         self._inventory_service = inventory_service
+        self._inventory_movement_service = inventory_movement_service
         self._media_service = media_service
         self._pagination_service = pagination_service
 
@@ -83,6 +89,15 @@ class GetInventoryMaterialsUseCase:
             )
         )
 
+        last_movements_by_material = await (
+            self._inventory_movement_service
+            .get_last_movements_by_owner_ids(
+                owner_type=InventoryOwnerType.MATERIAL,
+                owner_ids=materials_id,
+            )
+        )
+
+        now = datetime.now(timezone.utc)
 
         for row in inventory_rows:
             image = images_by_material.get(
@@ -91,6 +106,16 @@ class GetInventoryMaterialsUseCase:
 
             if image:
                 row.image_url = image.image_url
+
+            last_movement = last_movements_by_material.get(
+                row.material_id
+            )
+
+            row.days_without_rotation = (
+                (now - last_movement.created_at).days
+                if last_movement
+                else None
+            )
 
 
         total_pages = (

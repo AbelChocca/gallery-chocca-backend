@@ -24,4 +24,7 @@ class InventoryLocationStockDTO:
 
     availability_status: AvailabilityStatus
 
+    valuation: Decimal
+
+    unit_price: Decimal | None = None
     last_movement_at: datetime | None = None

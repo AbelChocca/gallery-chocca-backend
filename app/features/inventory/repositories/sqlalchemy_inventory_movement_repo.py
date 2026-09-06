@@ -1,9 +1,9 @@
 from app.infra.db.repositories.base_repository import BaseRepository
-from app.features.inventory.inventory_movement_entity import InventoryMovement
+from app.features.inventory.entities.inventory_movement_entity import InventoryMovement
 from app.features.inventory.models.inventory_movement import InventoryMovementTable
-from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters
-from app.features.inventory.types.inventory_movement import InventoryOwnerType
-from sqlalchemy import select, func, Select, or_
+from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters, InventoryMovementSummaryDTO
+from app.features.inventory.types.inventory_movement import InventoryOwnerType, InventoryMovementType
+from sqlalchemy import select, func, Select, or_, case
 from sqlmodel import col
 
 class PostgresInventoryMovementReposity(BaseRepository[InventoryMovement, InventoryMovementTable]):
@@ -28,6 +28,40 @@ class PostgresInventoryMovementReposity(BaseRepository[InventoryMovement, Invent
         movement = result.scalars().first()
 
         return movement
+
+    async def get_last_movements_by_owner_ids(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_ids: list[int],
+    ) -> dict[int, InventoryMovement]:
+
+        if not owner_ids:
+            return {}
+
+        stmt = (
+            select(InventoryMovementTable)
+            .where(
+                InventoryMovementTable.owner_type == owner_type,
+                InventoryMovementTable.owner_id.in_(owner_ids),
+            )
+            .distinct(
+                InventoryMovementTable.owner_id,
+            )
+            .order_by(
+                InventoryMovementTable.owner_id,
+                col(InventoryMovementTable.created_at).desc(),
+            )
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        movements = result.scalars().all()
+
+        return {
+            movement.owner_id: movement
+            for movement in movements
+        }
         
     async def count_with_filters(
         self,
@@ -123,3 +157,52 @@ class PostgresInventoryMovementReposity(BaseRepository[InventoryMovement, Invent
             )
 
         return statement
+
+    async def get_movement_summary(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_ids: list[int],
+        location_id: int,
+    ) -> InventoryMovementSummaryDTO:
+        if not owner_ids:
+            return InventoryMovementSummaryDTO(
+                total_entries=0,
+                total_exits=0,
+            )
+
+        stmt = (
+            select(
+                func.count(
+                    case(
+                        (
+                            InventoryMovementTable.type
+                            == InventoryMovementType.ENTRY,
+                            1,
+                        )
+                    )
+                ).label("total_entries"),
+                func.count(
+                    case(
+                        (
+                            InventoryMovementTable.type
+                            == InventoryMovementType.USAGE,
+                            1,
+                        )
+                    )
+                ).label("total_exits"),
+            )
+            .where(
+                InventoryMovementTable.owner_type == owner_type,
+                InventoryMovementTable.owner_id.in_(owner_ids),
+                InventoryMovementTable.location_id == location_id,
+            )
+        )
+
+        result = await self._db_session.execute(stmt)
+        row = result.one()
+
+        return InventoryMovementSummaryDTO(
+            total_entries=row.total_entries,
+            total_exits=row.total_exits,
+        )

@@ -2,7 +2,7 @@ from app.features.inventory.types.inventory_movement import (
     InventoryMovementType, 
     InventoryOwnerType
 )
-from app.features.inventory.inventory_movement_entity import InventoryMovement
+from app.features.inventory.entities.inventory_movement_entity import InventoryMovement
 from app.shared.pagination.dto import PaginatedDTO, PaginationDTO
 
 from dataclasses import dataclass
@@ -299,3 +299,8 @@ class InventoryMovementFilters:
             ),
             "search": self.search,
         }
+
+@dataclass(slots=True)
+class InventoryMovementSummaryDTO:
+    total_entries: Decimal
+    total_exits: Decimal

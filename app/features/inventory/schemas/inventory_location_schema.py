@@ -26,6 +26,10 @@ class InventoryLocationStockSchema(BaseModel):
 
     last_movement_at: datetime | None = None
 
+    valuation: Decimal
+
+    unit_price: Decimal | None = None
+
     model_config = ConfigDict(from_attributes=True)
 
 class InventoryLocationResponseSchema(BaseModel):

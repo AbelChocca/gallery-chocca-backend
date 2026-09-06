@@ -90,6 +90,14 @@ class InventoryTable(SQLModel, table=True):
         )
     )
 
+    unit_price: Decimal | None = Field(
+        default=None,
+        sa_column=Column(
+            Numeric(12, 2),
+            nullable=True,
+        ),
+    )
+
     last_movement_at: datetime | None = Field(
         default=None,
         sa_column=Column(

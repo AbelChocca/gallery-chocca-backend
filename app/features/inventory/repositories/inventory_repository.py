@@ -14,10 +14,70 @@ from app.features.inventory.types.inventory_movement import InventoryOwnerType
 from app.features.material.models.model_material import MaterialTable
 from app.features.material.types import MaterialType
 from app.features.inventory.types.inventory import AvailabilityStatus
+from app.features.inventory.dtos.inventory import InventoryKPIItemDTO
 
 class InventoryRepository(
     BaseRepository[Inventory, InventoryTable],
 ):
+    async def get_inventory_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+        location_id: int,
+    ) -> Inventory | None:
+        stmt = (
+            select(InventoryTable)
+            .where(
+                InventoryTable.owner_type == owner_type,
+                InventoryTable.owner_id == owner_id,
+                InventoryTable.location_id == location_id,
+            )
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        inventory = result.scalar_one_or_none()
+
+        if inventory is None:
+            return None
+
+        return self._base_mapper.to_entity(inventory)
+    
+    async def get_inventory_for_kpis(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        location_id: int,
+    ) -> list[InventoryKPIItemDTO]:
+
+        stmt = (
+            select(
+                InventoryTable.owner_id,
+                InventoryTable.quantity,
+                InventoryTable.reserved_quantity,
+                InventoryTable.minimum_stock,
+                InventoryTable.unit_price,
+            )
+            .where(
+                InventoryTable.owner_type == owner_type,
+                InventoryTable.location_id == location_id,
+            )
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        return [
+            InventoryKPIItemDTO(
+                owner_id=row.owner_id,
+                quantity=row.quantity,
+                reserved_quantity=row.reserved_quantity,
+                minimum_stock=row.minimum_stock,
+                unit_price=row.unit_price,
+            )
+            for row in result.all()
+        ]
+    
     async def get_inventory_material_detail(
         self,
         *,
@@ -145,6 +205,22 @@ class InventoryRepository(
             )
 
         return material
+
+    async def update_inventory(
+        self,
+        *,
+        inventory_id: int,
+        minimum_stock: Decimal,
+        unit_price: Decimal,
+    ) -> None:
+        await self._db_session.execute(
+            update(InventoryTable)
+            .where(InventoryTable.id == inventory_id)
+            .values(
+                minimum_stock=minimum_stock,
+                unit_price=unit_price,
+            )
+        )
     
     async def get_inventory_materials(
         self,
@@ -344,6 +420,7 @@ class InventoryRepository(
             value=InventoryTable.id
         )
 
+        now = datetime.now(timezone.utc)
 
         await self._db_session.execute(
             update(InventoryTable)
@@ -353,7 +430,8 @@ class InventoryRepository(
                 )
             )
             .values(
-                quantity=quantity_case
+                quantity=quantity_case,
+                last_movement_at=now,
             )
         )
 
@@ -437,6 +515,7 @@ class InventoryRepository(
                 InventoryTable.quantity,
                 InventoryTable.reserved_quantity,
                 InventoryTable.minimum_stock,
+                InventoryTable.unit_price,
 
                 InventoryTable.last_movement_at,
 
