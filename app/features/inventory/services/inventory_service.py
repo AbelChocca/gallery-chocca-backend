@@ -6,7 +6,8 @@ from app.features.inventory.dtos.inventory import (
     ProductInventoryDetailDTO,
     InventoryStockUpdateResult,
     MaterialInventoryRowDTO,
-    MaterialInventoryDetailDTO
+    MaterialInventoryDetailDTO,
+    InventoryKPIItemDTO,
 )
 from app.features.inventory.dtos.inventory_movements import MovementItem
 from app.features.inventory.types.inventory_movement import InventoryOwnerType, InventoryMovementType
@@ -35,6 +36,34 @@ class InventoryService:
         inventory_repository: InventoryRepository,
     ) -> None:
         self._inventory_repository = inventory_repository
+
+    async def get_inventory_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+        location_id: int,
+    ) -> Inventory | None:
+        return await self._inventory_repository.get_inventory_by_owner(
+            owner_type=owner_type,
+            owner_id=owner_id,
+            location_id=location_id,
+        )
+
+    async def get_inventory_for_kpis(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        current_location_id: int,
+    ) -> list[InventoryKPIItemDTO]:
+
+        return await (
+            self._inventory_repository
+            .get_inventory_for_kpis(
+                owner_type=owner_type,
+                location_id=current_location_id,
+            )
+        )
 
     async def get_inventory_material_detail(
         self,
@@ -256,6 +285,12 @@ class InventoryService:
                 ),
 
                 minimum_stock=row.minimum_stock,
+                unit_price=row.unit_price,
+
+                valuation=(
+                    (row.unit_price or Decimal("0")) *
+                    row.quantity
+                ),
 
                 address=row.location_address,
 
@@ -286,6 +321,29 @@ class InventoryService:
         await self._inventory_repository.update_minimum_stock(
             inventory_id=inventory_id,
             minimum_stock=minimum_stock,
+        )
+
+    async def update_inventory(
+        self,
+        *,
+        inventory_id: int,
+        minimum_stock: Decimal,
+        unit_price: Decimal,
+    ) -> None:
+        if minimum_stock < Decimal("0"):
+            raise InvalidOperation(
+                "Minimum stock cannot be negative."
+            )
+
+        if unit_price < Decimal("0"):
+            raise InvalidOperation(
+                "Unit price cannot be negative."
+            )
+
+        await self._inventory_repository.update_inventory(
+            inventory_id=inventory_id,
+            minimum_stock=minimum_stock,
+            unit_price=unit_price,
         )
     
     async def delete_inventory(
@@ -324,12 +382,18 @@ class InventoryService:
         owner_type: InventoryOwnerType,
         owner_id: int,
         location_id: int,
+        unit_price: Decimal = Decimal("0"),
         minimum_stock: Decimal = Decimal("0"),
     ) -> Inventory:
 
         if minimum_stock < Decimal("0"):
             raise InvalidOperation(
                 "Minimum stock cannot be negative"
+            )
+
+        if unit_price < Decimal("0"):
+            raise InvalidOperation(
+                "El precio unitario no puede ser negativo."
             )
 
         inventory = Inventory(
@@ -339,6 +403,7 @@ class InventoryService:
             quantity=Decimal("0"),
             reserved_quantity=Decimal("0"),
             minimum_stock=minimum_stock,
+            unit_price=unit_price,
             last_movement_at=None
             )
 
@@ -354,6 +419,7 @@ class InventoryService:
         location_id: int,
         quantity: Decimal,
         minimum_stock: Decimal = Decimal("0"),
+        unit_price: Decimal = Decimal("0"),
         last_movement_at: datetime | None = None,
     ) -> Inventory:
 
@@ -367,6 +433,11 @@ class InventoryService:
                 "Minimum stock cannot be negative"
             )
 
+        if unit_price < Decimal("0"):
+            raise InvalidOperation(
+                "El precio unitario no puede ser negativo."
+            )
+
         inventory = Inventory(
             owner_type=owner_type,
             owner_id=owner_id,
@@ -374,6 +445,7 @@ class InventoryService:
             quantity=quantity,
             reserved_quantity=Decimal("0"),
             minimum_stock=minimum_stock,
+            unit_price=unit_price,
             last_movement_at=(
             last_movement_at
             or datetime.now(timezone.utc)
@@ -431,6 +503,7 @@ class InventoryService:
                 total_quantity=row.total_quantity,
                 reserved_quantity=row.reserved_quantity,
                 available_quantity=row.available_quantity,
+                days_without_rotation=None,
 
                 availability_status=row.availability_status,
             )
