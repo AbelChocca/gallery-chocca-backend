@@ -6,7 +6,6 @@ from app.features.pricing.strategy.registry import PRICING_STRATEGIES
 
 
 class PricingRule:
-
     def __init__(
         self,
         id: int | None = None,
@@ -32,18 +31,18 @@ class PricingRule:
         return PRICING_STRATEGIES[self.type]
 
     def validate(self) -> None:
-        self.strategy.validate(
-            self.parameters
-        )
+        self.strategy.validate(self.parameters)
 
     def apply(
         self,
         *,
         current_price,
         quantity: int = 1,
+        shipping_cost,
     ):
         return self.strategy.apply(
             current_price=current_price,
             quantity=quantity,
             parameters=self.parameters,
+            shipping_cost=shipping_cost,
         )
