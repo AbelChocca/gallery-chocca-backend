@@ -1,4 +1,4 @@
-from app.features.sales.types.customer import CustomerDocumentType
+from app.features.sales.types.customer import CustomerDocumentType, CustomerType
 
 from datetime import datetime, timezone
 
@@ -36,6 +36,17 @@ class Customer(SQLModel, table=True):
                 create_type=False,
             ),
             nullable=True,
+        ),
+    )
+
+    customer_type: CustomerType = Field(
+        default=CustomerType.REGULAR,
+        sa_column=Column(
+            ENUM(
+                CustomerType,
+                name="customer_type",
+            ),
+            nullable=False,
         ),
     )
 

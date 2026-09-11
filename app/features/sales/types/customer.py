@@ -10,3 +10,8 @@ class CustomerDocumentType(str, Enum):
     NO_DOMICILED = "NO_DOMICILED"
     SAFE_CONDUCT = "SAFE_CONDUCT"
     OTHER = "OTHER"
+
+class CustomerType(str, Enum):
+    REGULAR = "REGULAR"
+    WHOLESALE = "WHOLESALE"
+    VIP = "VIP"
