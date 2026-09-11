@@ -7,17 +7,17 @@ from app.features.pricing.strategy.base import (
 )
 
 
-class PercentagePricingStrategy(BasePricingStrategy):
+class FixedAmountPricingStrategy(BasePricingStrategy):
     """
     Parameters:
 
     {
-        "value": "20.00"
+        "value": "15.00"
     }
 
     `value`:
-        Porcentaje de descuento a aplicar.
-        Ejemplo: "20.00" = 20% de descuento.
+        Monto fijo de descuento por unidad.
+        Ejemplo: "15.00" = S/15.00 de descuento por unidad.
     """
 
     def apply(
@@ -30,7 +30,7 @@ class PercentagePricingStrategy(BasePricingStrategy):
     ) -> PricingStrategyResult:
         value = Decimal(str(parameters["value"]))
 
-        discount = current_price * (value / Decimal("100"))
+        discount = min(value, current_price)
         unit_price = current_price - discount
 
         return PricingStrategyResult(
@@ -45,12 +45,12 @@ class PercentagePricingStrategy(BasePricingStrategy):
     ) -> None:
         if "value" not in parameters:
             raise ValueError(
-                "Percentage pricing rule requires 'value'"
+                "Fixed amount pricing rule requires 'value'"
             )
 
         value = Decimal(str(parameters["value"]))
 
-        if value < Decimal("0") or value > Decimal("100"):
+        if value < Decimal("0"):
             raise ValueError(
-                "Percentage value must be between 0 and 100"
+                "Fixed amount value cannot be negative"
             )
