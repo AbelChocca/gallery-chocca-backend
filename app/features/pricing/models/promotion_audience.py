@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     Text,
     UniqueConstraint,
+    Enum as ENUM
 )
 from sqlmodel import Field, SQLModel
 
@@ -61,9 +62,16 @@ class PromotionAudienceTable(SQLModel, table=True):
     )
 
     audience_type: PromotionAudienceType = Field(
-        nullable=False,
-        index=True,
-    )
+            default=PromotionAudienceType.REGULAR,
+            sa_column=Column(
+                ENUM(
+                    PromotionAudienceType,
+                    name="promotion_audience_type",
+                ),
+                nullable=False,
+                index=True
+            ),
+        )
 
     reference_id: int | None = Field(
         default=None,

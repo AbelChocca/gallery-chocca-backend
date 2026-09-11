@@ -6,6 +6,7 @@ from sqlalchemy import (
     ForeignKey,
     Text,
     UniqueConstraint,
+    Enum as ENUM
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
@@ -40,9 +41,17 @@ class PromotionConditionTable(SQLModel, table=True):
         )
     )
 
+
     condition_type: PromotionConditionType = Field(
-        nullable=False,
-        index=True,
+        default=PromotionConditionType.REGULAR,
+        sa_column=Column(
+            ENUM(
+                PromotionConditionType,
+                name="promotion_audience_type",
+            ),
+            nullable=False,
+            index=True
+        ),
     )
 
     parameters: dict = Field(
