@@ -1,6 +1,7 @@
 import pytest_asyncio
 
 from sqlmodel import SQLModel
+from sqlalchemy import text
 from tests.config.db_test import engine
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.infra.db.uow.unit_of_work import UnitOfWork
@@ -11,11 +12,16 @@ from app.features.material.material_repository import PostgresMaterialRepository
 from app.features.material.models.model_material import MaterialTable
 from app.infra.db.mappers.material_mapper import MaterialMapper
 
+from app.infra.db import model_registry  # noqa: F401
+
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def setup_database():
 
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
+
         await conn.run_sync(SQLModel.metadata.drop_all)
+
         await conn.run_sync(SQLModel.metadata.create_all)
 
     yield
