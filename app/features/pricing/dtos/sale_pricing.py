@@ -52,13 +52,13 @@ class SalePricingContext:
 
     sale_channel: SaleChannel
 
+    now: datetime
+
+    shipping_cost: Decimal = Decimal("0.00")
+
     customer_id: int | None = None
     customer_type: CustomerType | None = None
 
     payment_method: PaymentMethod | None = None
 
     coupon_code: str | None = None
-
-    now: datetime
-
-    shipping_cost: Decimal = Decimal("0.00")
