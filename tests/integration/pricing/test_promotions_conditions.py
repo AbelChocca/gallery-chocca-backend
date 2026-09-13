@@ -8,6 +8,7 @@ from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
     SalePricingContext,
 )
+from tests.helpers.create_test_promotion import create_test_promotion
 from app.features.sales.types.customer import CustomerType
 from app.features.pricing.types.pricing_rules_types import PricingRuleType
 from app.features.sales.types.sale import SaleChannel
@@ -24,6 +25,8 @@ from app.features.pricing.types.promotion_types import (
     PromotionStackingMode,
     PromotionTargetType,
 )
+from app.core.exceptions import ValidationError
+
 
 @pytest.mark.asyncio
 async def test_calculate_exclusive_promotion_blocks_stackable_promotion(
@@ -334,3 +337,75 @@ async def test_calculate_applies_oldest_exclusive_promotion_when_priority_is_equ
     assert result.discount_amount == Decimal("20.00")
     assert result.shipping_cost == Decimal("15.00")
     assert result.total == Decimal("95.00")
+
+@pytest.mark.asyncio
+async def test_calculate_rejects_promotion_before_start_date(
+    db_session,
+    sale_pricing_service,
+    pricing_products,
+):
+    product = pricing_products["products"][0]
+    now = datetime.now(timezone.utc)
+
+    await create_test_promotion(
+        db_session,
+        product_id=product.id,
+        starts_at=now + timedelta(days=1),
+        ends_at=None,
+    )
+
+    context = SalePricingContext(
+        items=[
+            PricingItemDTO(
+                product_id=product.id,
+                quantity=2,
+                category=product.category,
+                brand=product.brand,
+                unit_price=Decimal("50.00"),
+            )
+        ],
+        sale_channel=SaleChannel.ECOMMERCE,
+        now=now,
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="La promoción aún no está disponible.",
+    ):
+        await sale_pricing_service.calculate(context=context)
+
+@pytest.mark.asyncio
+async def test_calculate_rejects_expired_promotion(
+    db_session,
+    sale_pricing_service,
+    pricing_products,
+):
+    product = pricing_products["products"][0]
+    now = datetime.now(timezone.utc)
+
+    await create_test_promotion(
+        db_session,
+        product_id=product.id,
+        starts_at=now - timedelta(days=2),
+        ends_at=now - timedelta(days=1),
+    )
+
+    context = SalePricingContext(
+        items=[
+            PricingItemDTO(
+                product_id=product.id,
+                quantity=2,
+                category=product.category,
+                brand=product.brand,
+                unit_price=Decimal("50.00"),
+            )
+        ],
+        sale_channel=SaleChannel.ECOMMERCE,
+        now=now,
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="La promocion ha expirado",
+    ):
+        await sale_pricing_service.calculate(context=context)
