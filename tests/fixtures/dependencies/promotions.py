@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from decimal import Decimal
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 import pytest_asyncio
@@ -50,7 +49,7 @@ async def pricing_promotions(db_session:AsyncSession, pricing_products):
         description="Promocion exclusiva para clientes mayoristas",
         sales_channel=SaleChannel.ECOMMERCE,
         stacking_mode=PromotionStackingMode.EXCLUSIVE,
-        priority=20,
+        priority=10,
         starts_at=now,
         ends_at=None,
         is_active=True,
