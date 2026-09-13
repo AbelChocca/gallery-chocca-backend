@@ -100,7 +100,16 @@ class SalePricingService:
                 criteria=criteria,
             )
 
-            candidates.extend(coupon_candidates)
+            existing = {
+                (candidate.product_id, candidate.promotion.id)
+                for candidate in candidates
+            }
+
+            candidates.extend(
+                candidate
+                for candidate in coupon_candidates
+                if (candidate.product_id, candidate.promotion.id) not in existing
+            )
 
         candidates = self._filter_by_audience(
             candidates=candidates,
