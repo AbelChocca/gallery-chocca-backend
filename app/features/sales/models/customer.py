@@ -33,7 +33,6 @@ class Customer(SQLModel, table=True):
             ENUM(
                 CustomerDocumentType,
                 name="customer_document_type",
-                create_type=False,
             ),
             nullable=True,
         ),

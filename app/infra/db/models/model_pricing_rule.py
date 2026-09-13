@@ -7,7 +7,7 @@ from sqlmodel import SQLModel, Field
 from app.features.pricing.types.types import PricingRuleType
 
 class PricingRuleTable(SQLModel, table=True):
-    __tablename__ = "pricing_rules"
+    __tablename__ = "pricing_rules_legacy"
     __table_args__ = (
         CheckConstraint("value >= 0", name="ck_pricing_rule_value_positive"),
         CheckConstraint("priority >= 0", name="ck_pricing_rule_priority_positive"),
