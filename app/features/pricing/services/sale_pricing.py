@@ -1,4 +1,5 @@
 from app.features.pricing.calculators.pricing_calculator import PricingCalculator
+from datetime import datetime
 
 from app.features.pricing.dtos.promotion_dto import (
     PromotionCandidateCriteria,
@@ -39,6 +40,7 @@ from app.features.pricing.types.promotion_types import (
 from app.features.pricing.repositories.coupon_redemption_repository import (
     CouponRedemptionRepository,
 )
+from app.features.pricing.resolvers.promotion_resolver import PromotionResolver
 
 
 class SalePricingService:
@@ -51,6 +53,7 @@ class SalePricingService:
         coupon_redemption_repository: CouponRedemptionRepository,
         pricing_calculator: PricingCalculator,
         coupon_resolver: CouponResolver,
+        promotion_resolver: PromotionResolver,
         promotion_audience_resolver: PromotionAudienceResolver,
         promotion_condition_resolver: PromotionConditionResolver,
     ) -> None:
@@ -58,6 +61,7 @@ class SalePricingService:
         self._coupon_repository = coupon_repository
         self._coupon_redemption_repository = coupon_redemption_repository
         self._pricing_calculator = pricing_calculator
+        self._promotion_resolver = promotion_resolver
         self._coupon_resolver = coupon_resolver
         self._promotion_audience_resolver = (
             promotion_audience_resolver
@@ -92,6 +96,11 @@ class SalePricingService:
             self._promotion_repository.find_candidates(
                 criteria=criteria,
             )
+        )
+
+        self._validate_promotions(
+            candidates=candidates,
+            now=context.now,
         )
 
         if context.coupon_code:
@@ -329,3 +338,24 @@ class SalePricingService:
                 context=context,
             )
         ]
+
+    def _validate_promotions(
+        self,
+        *,
+        candidates: list[PromotionProductCandidateDTO],
+        now: datetime,
+    ) -> None:
+        validated: set[int] = set()
+
+        for candidate in candidates:
+            promotion = candidate.promotion
+
+            if promotion.id in validated:
+                continue
+
+            self._promotion_resolver.validate(
+                promotion=promotion,
+                now=now,
+            )
+
+            validated.add(promotion.id)
