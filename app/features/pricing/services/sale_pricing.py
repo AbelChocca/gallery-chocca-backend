@@ -36,6 +36,9 @@ from app.features.pricing.types.promotion_types import (
     PromotionStackingMode,
     PromotionTargetType,
 )
+from app.features.pricing.repositories.coupon_redemption_repository import (
+    CouponRedemptionRepository,
+)
 
 
 class SalePricingService:
@@ -45,6 +48,7 @@ class SalePricingService:
         *,
         promotion_repository: PromotionRepository,
         coupon_repository: CouponRepository,
+        coupon_redemption_repository: CouponRedemptionRepository,
         pricing_calculator: PricingCalculator,
         coupon_resolver: CouponResolver,
         promotion_audience_resolver: PromotionAudienceResolver,
@@ -52,6 +56,7 @@ class SalePricingService:
     ) -> None:
         self._promotion_repository = promotion_repository
         self._coupon_repository = coupon_repository
+        self._coupon_redemption_repository = coupon_redemption_repository
         self._pricing_calculator = pricing_calculator
         self._coupon_resolver = coupon_resolver
         self._promotion_audience_resolver = (
@@ -130,8 +135,20 @@ class SalePricingService:
         if coupon is None:
             raise ValueError("Coupon not found.")
 
+        customer_redemptions = 0
+
+        if context.customer_id is not None:
+            customer_redemptions = (
+                await self._coupon_redemption_repository
+                .count_by_coupon_and_customer(
+                    coupon_id=coupon.id,
+                    customer_id=context.customer_id,
+                )
+            )
+
         self._coupon_resolver.validate(
             coupon=coupon,
+            customer_redemptions=customer_redemptions,
             now=context.now,
         )
 
@@ -158,6 +175,7 @@ class SalePricingService:
             )
             for product_id in product_ids
         ]
+
 
     def _resolve_promotion_product_ids(
         self,
