@@ -67,11 +67,11 @@ class PromotionTargetTable(SQLModel, table=True):
 
 
     target_type: PromotionTargetType = Field(
-        default=PromotionTargetType.REGULAR,
+        default=PromotionTargetType.ALL,
         sa_column=Column(
             ENUM(
                 PromotionTargetType,
-                name="promotion_audience_type",
+                name="promotion_target_type",
             ),
             nullable=False,
             index=True

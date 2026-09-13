@@ -62,7 +62,7 @@ class PromotionAudienceTable(SQLModel, table=True):
     )
 
     audience_type: PromotionAudienceType = Field(
-            default=PromotionAudienceType.REGULAR,
+            default=PromotionAudienceType.ALL_CUSTOMERS,
             sa_column=Column(
                 ENUM(
                     PromotionAudienceType,

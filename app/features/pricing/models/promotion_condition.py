@@ -43,11 +43,11 @@ class PromotionConditionTable(SQLModel, table=True):
 
 
     condition_type: PromotionConditionType = Field(
-        default=PromotionConditionType.REGULAR,
+        default=PromotionConditionType.PAYMENT_METHOD,
         sa_column=Column(
             ENUM(
                 PromotionConditionType,
-                name="promotion_audience_type",
+                name="promotion_condition_type",
             ),
             nullable=False,
             index=True
