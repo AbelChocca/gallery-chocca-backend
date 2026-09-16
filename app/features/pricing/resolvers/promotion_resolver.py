@@ -45,7 +45,7 @@ class PromotionResolver:
             and now < promotion.starts_at
         ):
             raise ValidationError(
-                "La promocion ya no se encuetra activo."
+                "La promoción aún no está disponible."
             )
 
     def _validate_end_date(
