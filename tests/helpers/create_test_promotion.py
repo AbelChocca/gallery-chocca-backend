@@ -18,6 +18,7 @@ from app.features.pricing.types.promotion_types import (
     PromotionTargetType,
 )
 from app.features.sales.types.sale import SaleChannel
+from app.features.products.types import CategoryType
 
 async def create_test_promotion(
     db_session,
@@ -75,6 +76,66 @@ async def create_test_promotion(
         target,
         audience,
     ])
+    await db_session.commit()
+
+    return promotion
+
+async def create_category_target_promotion(
+    db_session,
+    *,
+    category: CategoryType,
+    discount: str = "10",
+) -> PromotionTable:
+    promotion = PromotionTable(
+        name=f"Promotion Category {category.value}",
+        description=f"Promoción dirigida a categoría {category.value}",
+        sales_channel=SaleChannel.ECOMMERCE,
+        stacking_mode=PromotionStackingMode.STACKABLE,
+        priority=10,
+        starts_at=None,
+        ends_at=None,
+        is_active=True,
+    )
+
+    db_session.add(promotion)
+    await db_session.commit()
+    await db_session.refresh(promotion)
+
+    rule = PricingRuleTable(
+        name=f"{discount}% OFF {category.value}",
+        description="Descuento porcentual para test de target por categoría",
+        type=PricingRuleType.PERCENTAGE,
+        parameters={"value": discount},
+    )
+
+    db_session.add(rule)
+    await db_session.commit()
+    await db_session.refresh(rule)
+
+    promotion_rule = PromotionPricingRuleTable(
+        promotion_id=promotion.id,
+        pricing_rule_id=rule.id,
+        execution_order=0,
+    )
+
+    target = PromotionTargetTable(
+        promotion_id=promotion.id,
+        target_type=PromotionTargetType.CATEGORY,
+        reference_id=None,
+        reference_value=category.value,
+    )
+
+    audience = PromotionAudienceTable(
+        promotion_id=promotion.id,
+        audience_type=PromotionAudienceType.ALL_CUSTOMERS,
+    )
+
+    db_session.add_all([
+        promotion_rule,
+        target,
+        audience,
+    ])
+
     await db_session.commit()
 
     return promotion
