@@ -1,5 +1,7 @@
 from app.features.pricing.entities.promotion_audience import PromotionAudience
-from app.features.pricing.dtos.sale_pricing import SalePricingContext
+from app.features.pricing.dtos.promotion_audience_dto import (
+    PromotionAudienceContext,
+)
 from app.features.pricing.types.promotion_types import PromotionAudienceType
 
 
@@ -9,7 +11,7 @@ class PromotionAudienceResolver:
         self,
         *,
         audiences: list[PromotionAudience],
-        context: SalePricingContext,
+        context: PromotionAudienceContext,
     ) -> bool:
         if not audiences:
             return False
@@ -26,7 +28,7 @@ class PromotionAudienceResolver:
         self,
         *,
         audience: PromotionAudience,
-        context: SalePricingContext,
+        context: PromotionAudienceContext,
     ) -> bool:
         if audience.audience_type == PromotionAudienceType.ALL_CUSTOMERS:
             return True
