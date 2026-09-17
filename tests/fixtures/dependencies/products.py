@@ -12,6 +12,24 @@ from app.features.products.types import (
 )
 
 @pytest_asyncio.fixture
+async def catalog_short_product(db_session):
+    short = ProductTable(
+        nombre="Short Catalog Test",
+        descripcion="Short para pruebas de pricing en catálogo",
+        brand=BrandType.BGOO,
+        category=CategoryType.SHORT,
+        fit=FitType.REGULAR,
+        slug="catalog-short-test",
+        base_price=Decimal("80.00"),
+    )
+
+    db_session.add(short)
+    await db_session.commit()
+    await db_session.refresh(short)
+
+    return short
+
+@pytest_asyncio.fixture
 async def pricing_products(db_session):
     products = [
         ProductTable(
