@@ -35,7 +35,9 @@ from app.features.pricing.services.sale_pricing import (
     SalePricingService,
 )
 from app.features.pricing.resolvers.promotion_resolver import PromotionResolver
-
+from app.features.pricing.resolvers.promotion_selection_resolver import (
+    PromotionSelectionResolver,
+)
 
 
 @pytest_asyncio.fixture
@@ -66,5 +68,6 @@ def sale_pricing_service(db_session):
         coupon_resolver=CouponResolver(),
         promotion_resolver=PromotionResolver(),
         promotion_audience_resolver=PromotionAudienceResolver(),
+        promotion_selection_resolver=PromotionSelectionResolver(),
         promotion_condition_resolver=PromotionConditionResolver(),
     )
