@@ -10,6 +10,19 @@ from app.features.pricing.types.promotion_types import PromotionConditionType
 
 class PromotionConditionResolver:
 
+    """
+    Expected condition parameters:
+
+    MINIMUM_ORDER_AMOUNT:
+        {"minimum_amount": "100.00"}
+
+    MINIMUM_PRODUCT_QUANTITY:
+        {"minimum_quantity": 2}
+
+    PAYMENT_METHOD:
+        {"payment_method": "YAPE"}
+    """
+
     def matches(
         self,
         *,
