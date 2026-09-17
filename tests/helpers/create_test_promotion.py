@@ -16,8 +16,10 @@ from app.features.pricing.types.promotion_types import (
     PromotionAudienceType,
     PromotionStackingMode,
     PromotionTargetType,
+    PromotionConditionType
 )
 from app.features.sales.types.sale import SaleChannel
+from app.features.pricing.models.promotion_condition import PromotionConditionTable
 from app.features.products.types import CategoryType
 
 async def create_test_promotion(
@@ -136,6 +138,90 @@ async def create_category_target_promotion(
         audience,
     ])
 
+    await db_session.commit()
+
+    return promotion
+
+async def create_category_audience_promotion(
+    db_session,
+    *,
+    category: CategoryType,
+    audience_type: PromotionAudienceType,
+    reference_id: int | None = None,
+    reference_value: str | None = None,
+    discount: str = "10",
+) -> PromotionTable:
+    promotion = PromotionTable(
+        name=f"Catalog Audience Promotion {category.value}",
+        description="Promoción para pruebas de audiencia en catálogo",
+        sales_channel=SaleChannel.ECOMMERCE,
+        stacking_mode=PromotionStackingMode.STACKABLE,
+        priority=10,
+        starts_at=None,
+        ends_at=None,
+        is_active=True,
+    )
+
+    db_session.add(promotion)
+    await db_session.commit()
+    await db_session.refresh(promotion)
+
+    rule = PricingRuleTable(
+        name=f"{discount}% Catalog Audience",
+        description="Descuento de prueba",
+        type=PricingRuleType.PERCENTAGE,
+        parameters={"value": discount},
+    )
+
+    db_session.add(rule)
+    await db_session.commit()
+    await db_session.refresh(rule)
+
+    db_session.add_all([
+        PromotionPricingRuleTable(
+            promotion_id=promotion.id,
+            pricing_rule_id=rule.id,
+            execution_order=0,
+        ),
+        PromotionTargetTable(
+            promotion_id=promotion.id,
+            target_type=PromotionTargetType.CATEGORY,
+            reference_value=category.value,
+        ),
+        PromotionAudienceTable(
+            promotion_id=promotion.id,
+            audience_type=audience_type,
+            reference_id=reference_id,
+            reference_value=reference_value,
+        ),
+    ])
+
+    await db_session.commit()
+
+    return promotion
+
+async def create_catalog_condition_promotion(
+    db_session,
+    *,
+    category: CategoryType,
+    condition_type: PromotionConditionType,
+    parameters: dict,
+) -> PromotionTable:
+
+    promotion = await create_category_target_promotion(
+        db_session,
+        category=category,
+        discount="10",
+    )
+
+    condition = PromotionConditionTable(
+        promotion_id=promotion.id,
+        condition_type=condition_type,
+        parameters=parameters,
+        description="Condition not available in catalog",
+    )
+
+    db_session.add(condition)
     await db_session.commit()
 
     return promotion
