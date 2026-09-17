@@ -41,6 +41,7 @@ from app.features.pricing.repositories.coupon_redemption_repository import (
     CouponRedemptionRepository,
 )
 from app.features.pricing.resolvers.promotion_resolver import PromotionResolver
+from app.features.pricing.dtos.promotion_audience_dto import PromotionAudienceContext
 
 
 class SalePricingService:
@@ -314,12 +315,17 @@ class SalePricingService:
         context: SalePricingContext,
     ) -> list[PromotionProductCandidateDTO]:
 
+        audience_context = PromotionAudienceContext(
+            customer_id=context.customer_id,
+            customer_type=context.customer_type,
+        )
+
         return [
             candidate
             for candidate in candidates
             if self._promotion_audience_resolver.matches_promotion(
                 audiences=candidate.promotion.audiences,
-                context=context,
+                context=audience_context,
             )
         ]
 
