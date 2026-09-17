@@ -42,6 +42,9 @@ from app.features.pricing.repositories.coupon_redemption_repository import (
 )
 from app.features.pricing.resolvers.promotion_resolver import PromotionResolver
 from app.features.pricing.dtos.promotion_audience_dto import PromotionAudienceContext
+from app.features.pricing.resolvers.promotion_selection_resolver import (
+    PromotionSelectionResolver,
+)
 
 
 class SalePricingService:
@@ -56,6 +59,7 @@ class SalePricingService:
         coupon_resolver: CouponResolver,
         promotion_resolver: PromotionResolver,
         promotion_audience_resolver: PromotionAudienceResolver,
+        promotion_selection_resolver: PromotionSelectionResolver,
         promotion_condition_resolver: PromotionConditionResolver,
     ) -> None:
         self._promotion_repository = promotion_repository
@@ -63,6 +67,7 @@ class SalePricingService:
         self._coupon_redemption_repository = coupon_redemption_repository
         self._pricing_calculator = pricing_calculator
         self._promotion_resolver = promotion_resolver
+        self._promotion_selection_resolver = promotion_selection_resolver
         self._coupon_resolver = coupon_resolver
         self._promotion_audience_resolver = (
             promotion_audience_resolver
@@ -131,8 +136,10 @@ class SalePricingService:
             context=context,
         )
 
-        promotions_by_product = self._map_promotions(
-            candidates=candidates,
+        promotions_by_product = (
+            self._promotion_selection_resolver.resolve(
+                candidates=candidates,
+            )
         )
 
         return self._pricing_calculator.calculate(
@@ -234,79 +241,6 @@ class SalePricingService:
 
         return list(dict.fromkeys(product_ids))
 
-    def _map_promotions(
-        self,
-        *,
-        candidates: list[PromotionProductCandidateDTO],
-    ) -> dict[int, list[Promotion]]:
-
-        promotions_by_product: dict[int, list[Promotion]] = {}
-
-        for candidate in candidates:
-            promotions = promotions_by_product.setdefault(
-                candidate.product_id,
-                [],
-            )
-
-            self._resolve_promotion_conflict(
-                promotions=promotions,
-                candidate=candidate.promotion,
-            )
-
-        return promotions_by_product
-
-    def _resolve_promotion_conflict(
-        self,
-        *,
-        promotions: list[Promotion],
-        candidate: Promotion,
-    ) -> None:
-
-        if candidate.stacking_mode == PromotionStackingMode.STACKABLE:
-
-            if any(
-                promotion.stacking_mode
-                == PromotionStackingMode.EXCLUSIVE
-                for promotion in promotions
-            ):
-                return
-
-            promotions.append(candidate)
-            return
-
-        if not promotions:
-            promotions.append(candidate)
-            return
-
-        winner = candidate
-
-        for promotion in promotions:
-            winner = self._resolve_winner(
-                current=promotion,
-                candidate=winner,
-            )
-
-        if winner is candidate:
-            promotions.clear()
-            promotions.append(candidate)
-
-    def _resolve_winner(
-        self,
-        *,
-        current: Promotion,
-        candidate: Promotion,
-    ) -> Promotion:
-
-        if candidate.priority > current.priority:
-            return candidate
-
-        if candidate.priority < current.priority:
-            return current
-
-        if candidate.created_at > current.created_at:
-            return candidate
-
-        return current
 
     def _filter_by_audience(
         self,
