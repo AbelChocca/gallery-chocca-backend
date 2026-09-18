@@ -1,5 +1,3 @@
-from typing import Any
-
 from app.features.pricing.entities.promotion_condition import (
     PromotionCondition,
 )
@@ -69,9 +67,7 @@ class PromotionConditionService:
         ]
 
         for condition in entities:
-            self._validate(
-                condition=condition,
-            )
+            condition.validate()
 
         return await self._promotion_condition_repository.add_all(
             entities=entities,
@@ -97,9 +93,7 @@ class PromotionConditionService:
         ]
 
         for condition in entities:
-            self._validate(
-                condition=condition,
-            )
+            condition.validate()
 
         await self._promotion_condition_repository.delete_by_promotion(
             promotion_id=promotion_id,
@@ -128,36 +122,3 @@ class PromotionConditionService:
         await self._promotion_condition_repository.delete_by_id(
             model_id=condition_id,
         )
-
-    def _validate(
-        self,
-        *,
-        condition: PromotionCondition,
-    ) -> None:
-
-        if (
-            condition.condition_type
-            == PromotionConditionType.MINIMUM_ORDER_AMOUNT
-        ):
-            if "minimum_amount" not in condition.parameters:
-                raise ValueError(
-                    "MINIMUM_ORDER_AMOUNT requires minimum_amount."
-                )
-
-        elif (
-            condition.condition_type
-            == PromotionConditionType.MINIMUM_PRODUCT_QUANTITY
-        ):
-            if "minimum_quantity" not in condition.parameters:
-                raise ValueError(
-                    "MINIMUM_PRODUCT_QUANTITY requires minimum_quantity."
-                )
-
-        elif (
-            condition.condition_type
-            == PromotionConditionType.PAYMENT_METHOD
-        ):
-            if "payment_method" not in condition.parameters:
-                raise ValueError(
-                    "PAYMENT_METHOD requires payment_method."
-                )
