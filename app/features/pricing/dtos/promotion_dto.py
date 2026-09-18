@@ -65,3 +65,13 @@ class AppliedPromotionDTO:
 
     pricing_rules: list[AppliedPricingRuleDTO]  
 
+@dataclass
+class CreatePromotionDTO:
+    name: str
+    description: str | None
+    sales_channel: SaleChannel
+    stacking_mode: PromotionStackingMode
+    priority: int = 0
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool = True
