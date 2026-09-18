@@ -13,9 +13,6 @@ from app.features.pricing.resolvers.promotion_audience_resolver import (
 )
 from app.features.pricing.resolvers.promotion_resolver import PromotionResolver
 
-
-
-
 @pytest_asyncio.fixture
 def catalog_pricing_service(db_session):
 
