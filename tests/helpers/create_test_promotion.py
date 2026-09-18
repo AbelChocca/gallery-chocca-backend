@@ -225,3 +225,29 @@ async def create_catalog_condition_promotion(
     await db_session.commit()
 
     return promotion
+
+async def create_cart_condition_promotion(
+    db_session,
+    *,
+    category: CategoryType,
+    condition_type: PromotionConditionType,
+    parameters: dict,
+    discount: str = "10",
+):
+    promotion = await create_category_target_promotion(
+        db_session,
+        category=category,
+        discount=discount,
+    )
+
+    condition = PromotionConditionTable(
+        promotion_id=promotion.id,
+        condition_type=condition_type,
+        parameters=parameters,
+        description="Cart pricing condition test",
+    )
+
+    db_session.add(condition)
+    await db_session.commit()
+
+    return promotion
