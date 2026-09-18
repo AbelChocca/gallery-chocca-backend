@@ -27,10 +27,6 @@ class PricingRuleTable(SQLModel, table=True):
     )
 
     type: PricingRuleType = Field(
-        nullable=False,
-    )
-
-    type: PricingRuleType = Field(
         default=PricingRuleType.FIXED_AMOUNT,
         sa_column=Column(
             ENUM(
