@@ -28,3 +28,9 @@ class AppliedPromotionConditionDTO:
     type: PromotionConditionType
 
     parameters: PromotionConditionParameters
+
+@dataclass(frozen=True)
+class PromotionConditionAssignment:
+    condition_type: PromotionConditionType
+    parameters: PromotionConditionParameters
+    description: str | None = None
