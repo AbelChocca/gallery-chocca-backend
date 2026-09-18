@@ -8,7 +8,7 @@ from app.features.pricing.entities.promotion_condition import PromotionCondition
 from app.features.pricing.entities.coupon import Coupon
 from app.features.pricing.entities.promotion_target import PromotionTarget
 from app.features.sales.types.sale import SaleChannel
-
+from app.core.exceptions import ValidationError
 
 @dataclass
 class Promotion:
@@ -28,3 +28,23 @@ class Promotion:
     targets: list[PromotionTarget] = field(default_factory=list)
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    def validate(self) -> None:
+        if not self.name.strip():
+            raise ValidationError(
+                "El nombre de la promocion no puede estar vacia."
+            )
+
+        if self.priority < 0:
+            raise ValidationError(
+                "La prioridad de la promocion no puede ser negativa."
+            )
+
+        if (
+            self.starts_at is not None
+            and self.ends_at is not None
+            and self.ends_at <= self.starts_at
+        ):
+            raise ValidationError(
+                "La fecha de fin de la promocion debe ser mayor que su fecha de comienzo."
+            )
