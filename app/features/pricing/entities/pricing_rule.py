@@ -8,20 +8,19 @@ from app.features.pricing.types.pricing_rules_types import (
 from app.features.pricing.strategy.registry import (
     PRICING_STRATEGIES,
 )
+from app.features.pricing.dtos.pricing_rule_dto import PricingRuleParameters
 
 
 @dataclass
 class PricingRule:
+    parameters: PricingRuleParameters
+    
     id: int | None = None
 
     name: str = ""
     description: str | None = None
 
     type: PricingRuleType = PricingRuleType.PERCENTAGE
-
-    parameters: dict[str, Any] = field(
-        default_factory=dict,
-    )
 
     created_at: datetime | None = None
     updated_at: datetime | None = None
