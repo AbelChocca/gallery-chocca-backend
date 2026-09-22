@@ -3,7 +3,6 @@ from app.infra.db.repositories.product_repository import PostgresProductReposito
 from app.core.exceptions import ValueNotFound, ValidationError
 from app.features.cart.entities.cart import Cart
 from app.features.cart.types import CartItemRow
-from app.features.pricing.utils.pricing_calculator import ProductPricingCalculator
 from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import ProductPricingRepository
 
 from collections import defaultdict
@@ -14,11 +13,9 @@ class CartService:
             cart_repository: CartRepository,
             product_repository: PostgresProductRepository,
             product_pricing_repository: ProductPricingRepository,
-            pricing_calculator: ProductPricingCalculator
         ):
         self._cart_repository = cart_repository
         self._product_repository = product_repository
-        self._pricing_calculator = pricing_calculator
         self._product_pricing_repository = product_pricing_repository
 
     async def add_item(
@@ -179,47 +176,7 @@ class CartService:
 
         subtotal = 0
         total = 0
-        
-        for item in cart_items:
-            item: CartItemRow = dict(item)
-
-            product_rules = rules_by_product.get(
-                item["product_id"],
-                []
-            )
-
-            pricing_result = self._pricing_calculator.calculate(
-                base_price=item['base_price'],
-                rules=product_rules
-            )
-
-            item["final_price"] = pricing_result.final_price
-
-            item["available_quantity"] = min(
-                item["stock"],
-                item["quantity"]
-            )
-
-            item["is_available"] = (
-                item["has_stock"] and
-                item["is_product_active"]
-            )
-
-            item["subtotal"] = (
-                item["quantity"] *
-                item["base_price"]
-            )
-
-            item["final_subtotal"] = (
-                item["quantity"] *
-                pricing_result.final_price
-            )
-
-            subtotal += item["subtotal"]
-            total += item["final_subtotal"]
-
-            parsed_items.append(item)
-
+  
         return {
             "cart_id": cart.id,
             "items": parsed_items,
