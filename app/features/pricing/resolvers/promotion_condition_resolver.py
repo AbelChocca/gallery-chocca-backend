@@ -3,6 +3,10 @@ from typing import Any
 
 from app.features.pricing.entities.promotion_condition import (
     PromotionCondition,
+    PromotionConditionParameters,
+    MinimumProductQuantityConditionParameters,
+    MinimumOrderAmountConditionParameters,
+    PaymentMethodConditionParameters
 )
 from app.features.pricing.dtos.sale_pricing import SalePricingContext
 from app.features.pricing.types.promotion_types import PromotionConditionType
@@ -26,33 +30,34 @@ class PromotionConditionResolver:
     def matches(
         self,
         *,
-        condition: PromotionCondition,
+        condition_type: PromotionConditionType,
+        parameters: PromotionConditionParameters,
         context: SalePricingContext,
     ) -> bool:
         if (
-            condition.condition_type
+            condition_type
             == PromotionConditionType.MINIMUM_ORDER_AMOUNT
         ):
             return self._matches_minimum_order_amount(
-                condition=condition,
+                parameters=parameters,
                 context=context,
             )
 
         if (
-            condition.condition_type
+            condition_type
             == PromotionConditionType.MINIMUM_PRODUCT_QUANTITY
         ):
             return self._matches_minimum_product_quantity(
-                condition=condition,
+                parameters=parameters,
                 context=context,
             )
 
         if (
-            condition.condition_type
+            condition_type
             == PromotionConditionType.PAYMENT_METHOD
         ):
             return self._matches_payment_method(
-                condition=condition,
+                parameters=parameters,
                 context=context,
             )
 
@@ -66,7 +71,8 @@ class PromotionConditionResolver:
     ) -> bool:
         return all(
             self.matches(
-                condition=condition,
+                condition_type=condition.condition_type,
+                parameters=condition.parameters,
                 context=context,
             )
             for condition in conditions
@@ -75,12 +81,10 @@ class PromotionConditionResolver:
     def _matches_minimum_order_amount(
         self,
         *,
-        condition: PromotionCondition,
+        parameters: MinimumOrderAmountConditionParameters,
         context: SalePricingContext,
     ) -> bool:
-        minimum_amount = Decimal(
-            str(condition.parameters["minimum_amount"])
-        )
+        minimum_amount = parameters.minimum_amount
 
         order_amount = sum(
             item.unit_price * item.quantity
@@ -92,12 +96,10 @@ class PromotionConditionResolver:
     def _matches_minimum_product_quantity(
         self,
         *,
-        condition: PromotionCondition,
+        parameters: MinimumProductQuantityConditionParameters,
         context: SalePricingContext,
     ) -> bool:
-        minimum_quantity = int(
-            condition.parameters["minimum_quantity"]
-        )
+        minimum_quantity = parameters.minimum_quantity
 
         total_quantity = sum(
             item.quantity
@@ -109,10 +111,10 @@ class PromotionConditionResolver:
     def _matches_payment_method(
         self,
         *,
-        condition: PromotionCondition,
+        parameters: PaymentMethodConditionParameters,
         context: SalePricingContext,
     ) -> bool:
-        expected_payment_method = condition.parameters["payment_method"]
+        expected_payment_method = parameters.payment_method.value
 
         if context.payment_method is None:
             return False
