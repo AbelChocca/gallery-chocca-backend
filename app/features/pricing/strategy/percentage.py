@@ -1,18 +1,27 @@
 from decimal import Decimal
-from typing import Any
 
 from app.features.pricing.strategy.base import (
     BasePricingStrategy,
-    PricingStrategyResult,
 )
 
+from app.features.pricing.dtos.pricing_rule_dto import (
+    PercentageRuleParameters,
+)
 
-class PercentagePricingStrategy(BasePricingStrategy):
+from app.features.pricing.types.pricing_rules_types import (
+    PricingStrategyResult,
+)
+from app.core.exceptions import ValidationError
+
+
+class PercentagePricingStrategy(
+    BasePricingStrategy[PercentageRuleParameters]
+):
     """
     Parameters:
 
     {
-        "value": "20.00"
+        "percentage": "20.00"
     }
 
     `value`:
@@ -20,37 +29,59 @@ class PercentagePricingStrategy(BasePricingStrategy):
         Ejemplo: "20.00" = 20% de descuento.
     """
 
+    def validate(
+        self,
+        parameters: PercentageRuleParameters,
+    ) -> None:
+        if parameters.percentage <= 0:
+            raise ValidationError(
+                "El porcentaje debe ser mayor que cero.",
+                {
+                    "strategy": "PercentagePricingStrategy",
+                    "event": "validate",
+                    "percentage": str(
+                        parameters.percentage
+                    ),
+                },
+            )
+
+        if parameters.percentage > 100:
+            raise ValidationError(
+                "El porcentaje no puede ser mayor a 100.",
+                {
+                    "strategy": "PercentagePricingStrategy",
+                    "event": "validate",
+                    "percentage": str(
+                        parameters.percentage
+                    ),
+                },
+            )
+
     def apply(
         self,
         *,
         current_price: Decimal,
         quantity: int,
-        parameters: dict[str, Any],
+        parameters: PercentageRuleParameters,
         shipping_cost: Decimal,
     ) -> PricingStrategyResult:
-        value = Decimal(str(parameters["value"]))
 
-        discount = current_price * (value / Decimal("100"))
-        unit_price = current_price - discount
-
-        return PricingStrategyResult(
-            unit_price=unit_price,
-            discount_amount=discount * quantity,
-            shipping_cost=shipping_cost,
+        discount_per_unit = (
+            current_price
+            * parameters.percentage
+            / Decimal("100")
         )
 
-    def validate(
-        self,
-        parameters: dict[str, Any],
-    ) -> None:
-        if "value" not in parameters:
-            raise ValueError(
-                "Percentage pricing rule requires 'value'"
-            )
+        final_price = (
+            current_price
+            - discount_per_unit
+        )
 
-        value = Decimal(str(parameters["value"]))
-
-        if value < Decimal("0") or value > Decimal("100"):
-            raise ValueError(
-                "Percentage value must be between 0 and 100"
-            )
+        return PricingStrategyResult(
+            unit_price=final_price,
+            shipping_cost=shipping_cost,
+            discount_amount=(
+                discount_per_unit
+                * quantity
+            ),
+        )

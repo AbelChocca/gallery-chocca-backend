@@ -1,17 +1,34 @@
 from abc import ABC, abstractmethod
 from decimal import Decimal
-from typing import Any
-from app.features.pricing.types.pricing_rules_types import PricingStrategyResult
+from typing import Generic, TypeVar
+
+from app.features.pricing.dtos.pricing_rule_dto import (
+    PricingRuleParameters,
+)
+
+from app.features.pricing.types.pricing_rules_types import (
+    PricingStrategyResult,
+)
 
 
-class BasePricingStrategy(ABC):
+P = TypeVar(
+    "P",
+    bound=PricingRuleParameters,
+)
+
+
+class BasePricingStrategy(
+    ABC,
+    Generic[P],
+):
+
     @abstractmethod
     def apply(
         self,
         *,
         current_price: Decimal,
         quantity: int,
-        parameters: dict[str, Any],
+        parameters: P,
         shipping_cost: Decimal,
     ) -> PricingStrategyResult:
         pass
@@ -19,6 +36,6 @@ class BasePricingStrategy(ABC):
     @abstractmethod
     def validate(
         self,
-        parameters: dict[str, Any],
+        parameters: P,
     ) -> None:
         pass

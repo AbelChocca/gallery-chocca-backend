@@ -1,18 +1,30 @@
 from decimal import Decimal
-from typing import Any
 
 from app.features.pricing.strategy.base import (
     BasePricingStrategy,
     PricingStrategyResult,
 )
 
+from app.features.pricing.strategy.base import (
+    BasePricingStrategy,
+)
 
-class FixedPricePricingStrategy(BasePricingStrategy):
+from app.features.pricing.dtos.pricing_rule_dto import (
+    FixedPriceRuleParameters,
+)
+
+from app.features.pricing.types.pricing_rules_types import (
+    PricingStrategyResult,
+)
+from app.core.exceptions import ValidationError
+
+
+class FixedPricePricingStrategy(BasePricingStrategy[FixedPriceRuleParameters]):
     """
     Parameters:
 
     {
-        "value": "79.90"
+        "price": "79.90"
     }
 
     `value`:
@@ -25,10 +37,10 @@ class FixedPricePricingStrategy(BasePricingStrategy):
         *,
         current_price: Decimal,
         quantity: int,
-        parameters: dict[str, Any],
+        parameters: FixedPriceRuleParameters,
         shipping_cost: Decimal,
     ) -> PricingStrategyResult:
-        unit_price = Decimal(str(parameters["value"]))
+        unit_price = parameters.price
 
         discount = max(
             Decimal("0.00"),
@@ -43,16 +55,16 @@ class FixedPricePricingStrategy(BasePricingStrategy):
 
     def validate(
         self,
-        parameters: dict[str, Any],
+        parameters: FixedPriceRuleParameters,
     ) -> None:
-        if "value" not in parameters:
-            raise ValueError(
-                "Fixed price pricing rule requires 'value'"
+        if not parameters.price:
+            raise ValidationError(
+                "Fixed price pricing rule requires 'price'"
             )
 
-        value = Decimal(str(parameters["value"]))
+        value = parameters.price
 
         if value < Decimal("0"):
-            raise ValueError(
+            raise ValidationError(
                 "Fixed price value cannot be negative"
             )

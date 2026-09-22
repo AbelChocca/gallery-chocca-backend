@@ -1,13 +1,24 @@
 from decimal import Decimal
-from typing import Any
 
 from app.features.pricing.strategy.base import (
     BasePricingStrategy,
     PricingStrategyResult,
 )
+from app.features.pricing.strategy.base import (
+    BasePricingStrategy,
+)
+
+from app.features.pricing.dtos.pricing_rule_dto import (
+    FreeItemRuleParameters,
+)
+
+from app.features.pricing.types.pricing_rules_types import (
+    PricingStrategyResult,
+)
+from app.core.exceptions import ValidationError
 
 
-class FreeItemPricingStrategy(BasePricingStrategy):
+class FreeItemPricingStrategy(BasePricingStrategy[FreeItemRuleParameters]):
     """
     Parameters:
 
@@ -28,11 +39,11 @@ class FreeItemPricingStrategy(BasePricingStrategy):
         *,
         current_price: Decimal,
         quantity: int,
-        parameters: dict[str, Any],
+        parameters: FreeItemRuleParameters,
         shipping_cost: Decimal,
     ) -> PricingStrategyResult:
         free_quantity = min(
-            int(parameters["quantity"]),
+            parameters.quantity,
             quantity,
         )
 
@@ -55,16 +66,14 @@ class FreeItemPricingStrategy(BasePricingStrategy):
 
     def validate(
         self,
-        parameters: dict[str, Any],
+        parameters: FreeItemRuleParameters,
     ) -> None:
-        if "quantity" not in parameters:
-            raise ValueError(
+        if not parameters.quantity:
+            raise ValidationError(
                 "Free item pricing rule requires 'quantity'"
             )
 
-        quantity = int(parameters["quantity"])
-
-        if quantity <= 0:
-            raise ValueError(
+        if parameters.quantity <= 0:
+            raise ValidationError(
                 "Free item quantity must be greater than 0"
             )

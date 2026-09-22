@@ -1,13 +1,17 @@
 from decimal import Decimal
-from typing import Any
 
 from app.features.pricing.strategy.base import (
     BasePricingStrategy,
     PricingStrategyResult,
 )
 
+from app.features.pricing.dtos.pricing_rule_dto import (
+    BuyXGetYRuleParameters,
+)
+from app.core.exceptions import ValidationError
 
-class BuyXGetYPricingStrategy(BasePricingStrategy):
+
+class BuyXGetYPricingStrategy(BasePricingStrategy[BuyXGetYRuleParameters]):
     """
     Parameters:
 
@@ -34,11 +38,11 @@ class BuyXGetYPricingStrategy(BasePricingStrategy):
         *,
         current_price: Decimal,
         quantity: int,
-        parameters: dict[str, Any],
+        parameters: BuyXGetYRuleParameters,
         shipping_cost: Decimal,
     ) -> PricingStrategyResult:
-        buy_quantity = int(parameters["buy_quantity"])
-        free_quantity = int(parameters["free_quantity"])
+        buy_quantity = parameters.buy_quantity
+        free_quantity = parameters.free_quantity
 
         group_size = buy_quantity + free_quantity
 
@@ -71,7 +75,7 @@ class BuyXGetYPricingStrategy(BasePricingStrategy):
 
     def validate(
         self,
-        parameters: dict[str, Any],
+        parameters: BuyXGetYRuleParameters,
     ) -> None:
         required = {
             "buy_quantity",
@@ -85,15 +89,15 @@ class BuyXGetYPricingStrategy(BasePricingStrategy):
                 f"Buy X Get Y pricing rule requires: {missing}"
             )
 
-        buy_quantity = int(parameters["buy_quantity"])
-        free_quantity = int(parameters["free_quantity"])
+        buy_quantity = parameters.buy_quantity
+        free_quantity = parameters.free_quantity
 
         if buy_quantity <= 0:
-            raise ValueError(
+            raise ValidationError(
                 "buy_quantity must be greater than 0"
             )
 
         if free_quantity <= 0:
-            raise ValueError(
+            raise ValidationError(
                 "free_quantity must be greater than 0"
             )

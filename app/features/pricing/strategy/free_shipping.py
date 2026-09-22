@@ -1,13 +1,15 @@
 from decimal import Decimal
-from typing import Any
 
 from app.features.pricing.strategy.base import (
     BasePricingStrategy,
     PricingStrategyResult,
 )
 
+from app.features.pricing.dtos.pricing_rule_dto import (
+    FreeShippingRuleParameters,
+)
 
-class FreeShippingPricingStrategy(BasePricingStrategy):
+class FreeShippingPricingStrategy(BasePricingStrategy[FreeShippingRuleParameters]):
     """
     Parameters:
 
@@ -23,7 +25,7 @@ class FreeShippingPricingStrategy(BasePricingStrategy):
         *,
         current_price: Decimal,
         quantity: int,
-        parameters: dict[str, Any],
+        parameters: FreeShippingRuleParameters,
         shipping_cost: Decimal,
     ) -> PricingStrategyResult:
         return PricingStrategyResult(
@@ -34,6 +36,6 @@ class FreeShippingPricingStrategy(BasePricingStrategy):
 
     def validate(
         self,
-        parameters: dict[str, Any],
+        parameters: FreeShippingRuleParameters,
     ) -> None:
         pass
