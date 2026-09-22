@@ -16,3 +16,9 @@ class PromotionAudienceAssignment:
     audience_type: PromotionAudienceType
     reference_id: int | None = None
     reference_value: str | None = None
+
+@dataclass(slots=True)
+class CreatePromotionAudienceDTO:
+    audience_type: PromotionAudienceType
+    reference_id: int | None = None
+    reference_value: str | None = None
