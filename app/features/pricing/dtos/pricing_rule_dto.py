@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TypeAlias
 
-from app.features.pricing.types.pricing_rules_types import PricingRuleType
-
 @dataclass(slots=True)
 class PercentageRuleParameters:
     percentage: Decimal
@@ -40,20 +38,3 @@ PricingRuleParameters: TypeAlias = (
     | FreeItemRuleParameters
     | FreeShippingRuleParameters
 )
-
-@dataclass(slots=True)
-class AppliedPricingRuleDTO:
-    id: int
-
-    type: PricingRuleType
-
-    parameters: PricingRuleParameters
-
-@dataclass(slots=True)
-class PricingRuleResult:
-
-    unit_price: Decimal
-
-    shipping_cost: Decimal
-
-    discount_amount: Decimal
