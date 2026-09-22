@@ -81,5 +81,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "asgi-lifespan>=2.1.0",
     "ruff>=0.15.21",
 ]
