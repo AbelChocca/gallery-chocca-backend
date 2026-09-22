@@ -6,6 +6,9 @@ from app.features.pricing.models.promotion_condition import (
 )
 from app.infra.db.mappers.base_mapper import BaseMapper
 
+from app.features.pricing.utils.deserialize_dataclass import deserialize_promotion_condition_parameters
+from app.shared.utils.serialize_dataclass import serialize_dataclass
+
 
 class PromotionConditionMapper(
     BaseMapper[PromotionCondition, PromotionConditionTable]
@@ -20,7 +23,7 @@ class PromotionConditionMapper(
 
         model.promotion_id = entity.promotion_id
         model.condition_type = entity.condition_type
-        model.parameters = entity.parameters
+        model.parameters = serialize_dataclass(entity.parameters)
         model.description = entity.description
 
         return model
@@ -33,7 +36,7 @@ class PromotionConditionMapper(
             id=model.id,
             promotion_id=model.promotion_id,
             condition_type=model.condition_type,
-            parameters=model.parameters,
+            parameters=deserialize_promotion_condition_parameters(model.condition_type, model.parameters),
             description=model.description,
             created_at=model.created_at,
         )
