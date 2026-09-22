@@ -74,3 +74,23 @@ class PricingRuleRepository(BaseRepository[PricingRule, PricingRuleTable]):
             self._base_mapper.to_entity(model)
             for model in models
         ]
+
+    async def add_all(
+        self,
+        *,
+        entities: list[PricingRule],
+    ) -> list[PricingRule]:
+
+        models = [
+            self._base_mapper.to_db_model(entity)
+            for entity in entities
+        ]
+
+        self._db_session.add_all(models)
+
+        await self._db_session.flush()
+
+        return [
+            self._base_mapper.to_entity(model)
+            for model in models
+        ]
