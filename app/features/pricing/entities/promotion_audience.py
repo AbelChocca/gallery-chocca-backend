@@ -6,12 +6,12 @@ from app.core.exceptions import ValidationError
 
 @dataclass(slots=True)
 class PromotionAudience:
-    id: int | None
     promotion_id: int
     audience_type: PromotionAudienceType
     reference_id: int | None
     reference_value: str | None
-    created_at: datetime
+    id: int | None = None
+    created_at: datetime | None = None
 
     def validate(self) -> None:
 
