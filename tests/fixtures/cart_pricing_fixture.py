@@ -35,6 +35,7 @@ from app.features.pricing.resolvers.promotion_selection_resolver import (
 from app.features.pricing.services.cart_pricing import (
     CartPricingService,
 )
+from app.features.pricing.calculators.pricing_subtotal_calculator import PricingSubtotalCalculator
 
 
 @pytest_asyncio.fixture
@@ -53,4 +54,5 @@ def cart_pricing_service(db_session):
         promotion_audience_resolver=PromotionAudienceResolver(),
         promotion_condition_resolver=PromotionConditionResolver(),
         pricing_item_calculator=PricingItemCalculator(),
+        pricing_subtotal_calculator=PricingSubtotalCalculator()
     )
