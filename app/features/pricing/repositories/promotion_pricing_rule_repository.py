@@ -16,7 +16,9 @@ from app.features.pricing.mappers.promotion_pricing_rule_mapper import (
 from app.features.pricing.models.promotion_pricing_rule import (
     PromotionPricingRuleTable,
 )
-
+from app.features.pricing.models.model_pricing_rule import PricingRuleTable
+from app.features.pricing.entities.pricing_rule import PricingRule
+from app.features.pricing.mappers.pricing_rule_mapper import PricingRuleMapper
 
 class PromotionPricingRuleRepository:
 
@@ -129,6 +131,38 @@ class PromotionPricingRuleRepository:
 
         return [
             PromotionPricingRuleMapper.to_entity(model)
+            for model in result.scalars().all()
+        ]
+
+    async def get_pricing_rules_by_promotion(
+        self,
+        *,
+        promotion_id: int,
+    ) -> list[PricingRule]:
+
+        statement = (
+            select(PricingRuleTable)
+            .join(
+                PromotionPricingRuleTable,
+                PromotionPricingRuleTable.pricing_rule_id
+                == PricingRuleTable.id,
+            )
+            .where(
+                PromotionPricingRuleTable.promotion_id
+                == promotion_id
+            )
+            .order_by(
+                PromotionPricingRuleTable.execution_order.asc(),
+                PromotionPricingRuleTable.assigned_at.asc(),
+            )
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        return [
+            PricingRuleMapper.to_entity(model)
             for model in result.scalars().all()
         ]
 
