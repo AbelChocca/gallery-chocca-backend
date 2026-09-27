@@ -72,6 +72,8 @@ jobs:
 
       RECAPTCHA_SECRET_KEY: test
 
+      PYTHONPATH: .
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
