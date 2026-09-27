@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 
@@ -9,9 +9,12 @@ from app.features.products.types import CategoryType, BrandType
 
 @dataclass
 class CartPricingItemDTO:
+    item_id: int
+
     product_id: int
     category: CategoryType
     brand: BrandType
+
     quantity: int
     unit_price: Decimal
 
@@ -24,9 +27,17 @@ class CartPricingContext:
     customer_type: CustomerType | None
     now: datetime
 
+@dataclass(frozen=True)
+class AppliedPromotionDTO:
+    promotion_id: int
+    name: str
+    discount_amount: Decimal
+
 
 @dataclass
 class CartPricingItemResultDTO:
+    item_id: int 
+    
     product_id: int
     quantity: int
     original_unit_price: Decimal
@@ -34,6 +45,10 @@ class CartPricingItemResultDTO:
     original_total: Decimal
     final_total: Decimal
     discount_amount: Decimal
+
+    applied_promotions: list[AppliedPromotionDTO] = field(
+        default_factory=list
+    )
 
     @property
     def has_discount(self) -> bool:
@@ -46,3 +61,7 @@ class CartPricingDTO:
     subtotal: Decimal
     discount_amount: Decimal
     total: Decimal
+
+    applied_promotions: list[AppliedPromotionDTO] = field(
+        default_factory=list
+    )
