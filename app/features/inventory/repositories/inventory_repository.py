@@ -19,6 +19,34 @@ from app.features.inventory.dtos.inventory import InventoryKPIItemDTO
 class InventoryRepository(
     BaseRepository[Inventory, InventoryTable],
 ):
+    async def get_available_total_stock_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+    ) -> int:
+        available_stock = func.coalesce(
+            func.sum(
+                InventoryTable.quantity
+                - InventoryTable.reserved_quantity
+            ),
+            Decimal("0"),
+        )
+
+        stmt = (
+            select(available_stock)
+            .where(
+                InventoryTable.owner_type == owner_type,
+                InventoryTable.owner_id == owner_id,
+            )
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        total = result.scalar_one()
+
+        return int(total)
+    
     async def get_inventory_by_owner(
         self,
         *,
