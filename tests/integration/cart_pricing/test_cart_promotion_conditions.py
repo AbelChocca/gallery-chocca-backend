@@ -3,6 +3,10 @@ from decimal import Decimal
 
 import pytest
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.features.sales.types.sale import SaleChannel
 from app.features.sales.types.customer import CustomerType
 from app.features.products.types import CategoryType
@@ -10,13 +14,16 @@ from app.features.pricing.types.promotion_types import PromotionConditionType, P
 from tests.helpers.create_test_promotion import create_cart_condition_promotion, create_category_audience_promotion
 from app.features.pricing.dtos.cart_pricing_dto import CartPricingContext, CartPricingItemDTO
 
-@pytest.mark.asyncio
+
 async def test_cart_pricing_applies_minimum_order_amount_condition(
     db_session,
     cart_pricing_service,
     pricing_products,
 ):
     jean = pricing_products["products"][1]  # S/100
+
+    jean = pricing_products["products"][1]
+    jean_size = pricing_products["variant_sizes"][2]
 
     await create_cart_condition_promotion(
         db_session,
@@ -32,6 +39,7 @@ async def test_cart_pricing_applies_minimum_order_amount_condition(
         return CartPricingContext(
             items=[
                 CartPricingItemDTO(
+                    item_id=jean_size.id,
                     product_id=jean.id,
                     category=jean.category,
                     brand=jean.brand,
@@ -63,7 +71,7 @@ async def test_cart_pricing_applies_minimum_order_amount_condition(
     assert result.discount_amount == Decimal("30.00")
     assert result.total == Decimal("270.00")
 
-@pytest.mark.asyncio
+
 async def test_cart_pricing_respects_customer_audience(
     db_session,
     cart_pricing_service,
@@ -72,6 +80,9 @@ async def test_cart_pricing_respects_customer_audience(
 ):
     pant = pricing_products["products"][0]
     customer = pricing_customer
+
+    pant = pricing_products["products"][0]
+    pant_size = pricing_products["variant_sizes"][0]
 
     await create_category_audience_promotion(
         db_session,
@@ -88,6 +99,7 @@ async def test_cart_pricing_respects_customer_audience(
         return CartPricingContext(
             items=[
                 CartPricingItemDTO(
+                    item_id=pant_size.id,
                     product_id=pant.id,
                     category=pant.category,
                     brand=pant.brand,

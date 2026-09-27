@@ -3,12 +3,16 @@ from decimal import Decimal
 
 import pytest
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.features.sales.types.sale import SaleChannel
 from app.features.products.types import CategoryType
 from tests.helpers.create_test_promotion import create_category_target_promotion
 from app.features.pricing.dtos.cart_pricing_dto import CartPricingContext, CartPricingItemDTO
 
-@pytest.mark.asyncio
+
 async def test_cart_pricing_applies_promotion_only_to_target_products(
     db_session,
     cart_pricing_service,
@@ -16,7 +20,10 @@ async def test_cart_pricing_applies_promotion_only_to_target_products(
     catalog_short_product,
 ):
     pant = pricing_products["products"][0]
-    short = catalog_short_product
+    pant_size = pricing_products["variant_sizes"][0]
+
+    short = catalog_short_product["product"]
+    short_size = catalog_short_product["variant_size"]
 
     await create_category_target_promotion(
         db_session,
@@ -27,19 +34,21 @@ async def test_cart_pricing_applies_promotion_only_to_target_products(
     context = CartPricingContext(
         items=[
             CartPricingItemDTO(
-                product_id=pant.id,
-                category=pant.category,
-                brand=pant.brand,
-                quantity=2,
-                unit_price=pant.base_price,
-            ),
-            CartPricingItemDTO(
-                product_id=short.id,
-                category=short.category,
-                brand=short.brand,
-                quantity=1,
-                unit_price=short.base_price,
-            ),
+            item_id=pant_size.id,
+            product_id=pant.id,
+            category=pant.category,
+            brand=pant.brand,
+            quantity=2,
+            unit_price=pant.base_price,
+        ),
+        CartPricingItemDTO(
+            item_id=short_size.id,
+            product_id=short.id,
+            category=short.category,
+            brand=short.brand,
+            quantity=1,
+            unit_price=short.base_price,
+        ),
         ],
         sale_channel=SaleChannel.ECOMMERCE,
         customer_id=None,
