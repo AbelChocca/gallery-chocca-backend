@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict
+from decimal import Decimal
 
 from app.features.products.variant.variant_dto import PublishProductVariantCommand, GridProductVariantDTO, ProductVariantDTO
 from app.features.products.types import BrandType, CategoryType, FitType
@@ -63,16 +64,36 @@ class GridProductDTO:
     fit: FitType
     slug: str | None
 
-    variants: list[GridProductVariantDTO] = field(default_factory=list)
+    original_price: Decimal = Decimal("0")
+    final_price: Decimal = Decimal("0")
+    discount_amount: Decimal = Decimal("0")
 
-    def to_dict(self):
+    variants: list[GridProductVariantDTO] = field(
+        default_factory=list
+    )
+
+    @property
+    def has_discount(self) -> bool:
+        return self.discount_amount > 0
+
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "nombre": self.nombre,
-            "category": self.category,
-            "brand": self.brand,
-            "fit": self.fit,
+            "category": self.category.value,
+            "brand": self.brand.value,
+            "fit": self.fit.value,
             "slug": self.slug,
+            "original_price": str(
+                self.original_price
+            ),
+            "final_price": str(
+                self.final_price
+            ),
+            "discount_amount": str(
+                self.discount_amount
+            ),
+            "has_discount": self.has_discount,
             "variants": [
                 variant.to_dict()
                 for variant in self.variants
@@ -80,17 +101,37 @@ class GridProductDTO:
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(
+        cls,
+        data: dict,
+    ) -> "GridProductDTO":
         return cls(
             id=data["id"],
             nombre=data["nombre"],
-            category=data["category"],
+            category=CategoryType(
+                data["category"]
+            ),
+            brand=BrandType(
+                data["brand"]
+            ),
+            fit=FitType(
+                data["fit"]
+            ),
             slug=data["slug"],
-            brand=data["brand"],
-            fit=data["fit"],
+            original_price=Decimal(
+                data["original_price"]
+            ),
+            final_price=Decimal(
+                data["final_price"]
+            ),
+            discount_amount=Decimal(
+                data["discount_amount"]
+            ),
             variants=[
-                GridProductVariantDTO.from_dict(v)
-                for v in data["variants"]
+                GridProductVariantDTO.from_dict(
+                    variant
+                )
+                for variant in data["variants"]
             ],
         )
 
@@ -180,3 +221,12 @@ class ProductsOverviewDTO:
     total: int = 0
     per_category: list[CountProductPerCategoryDTO] = field(default_factory=list)
     recent: list[dict] = field(default_factory=list)
+
+@dataclass(frozen=True, slots=True)
+class ProductSearchOptionDTO:
+    id: int
+    name: str
+    description: str
+    brand: BrandType
+    category: CategoryType
+    base_price: Decimal
