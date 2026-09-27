@@ -1,6 +1,7 @@
 from sqlalchemy import select, or_, func, case
 from datetime import datetime, timezone
 
+from app.core.exceptions import ValueNotFound
 from app.features.pricing.entities.promotion import Promotion
 from app.features.pricing.models.model_promotion import PromotionTable
 from app.features.pricing.models.promotion_target import PromotionTargetTable
@@ -13,6 +14,7 @@ from app.features.pricing.models.promotion_target import PromotionTargetTable
 from app.features.pricing.types.promotion_types import PromotionTargetType
 from app.features.pricing.models.model_pricing_rule import PricingRuleTable
 from app.features.pricing.models.promotion_pricing_rule import PromotionPricingRuleTable
+from app.features.pricing.types.promotion_types import PromotionApplicationScope
 from app.features.sales.types.sale import SaleChannel
 from app.features.pricing.entities.pricing_rule import PricingRule
 from app.features.pricing.mappers.pricing_rule_mapper import PricingRuleMapper
@@ -54,6 +56,7 @@ class PromotionRepository(
         limit: int,
         search: str | None = None,
         sales_channel: SaleChannel | None = None,
+        application_scope: PromotionApplicationScope | None = None,
         starts_at: datetime | None = None,
         ends_at: datetime | None = None,
     ) -> tuple[list[PromotionRowDTO], int]:
@@ -75,6 +78,11 @@ class PromotionRepository(
         if sales_channel is not None:
             filters.append(
                 PromotionTable.sales_channel == sales_channel
+            )
+
+        if application_scope is not None:
+            filters.append(
+                PromotionTable.application_scope == application_scope
             )
 
         if starts_at is not None:
@@ -178,6 +186,7 @@ class PromotionRepository(
                 PromotionTable.description,
                 PromotionTable.sales_channel,
                 PromotionTable.stacking_mode,
+                PromotionTable.application_scope,
                 PromotionTable.priority,
                 PromotionTable.starts_at,
                 PromotionTable.ends_at,
@@ -231,6 +240,7 @@ class PromotionRepository(
                 description=row["description"],
                 sales_channel=row["sales_channel"],
                 stacking_mode=row["stacking_mode"],
+                application_scope=row["application_scope"],
                 priority=row["priority"],
                 starts_at=row["starts_at"],
                 ends_at=row["ends_at"],
@@ -624,3 +634,29 @@ class PromotionRepository(
             ).append(condition)
 
         return conditions_by_promotion
+
+    async def toggle_status(
+        self,
+        *,
+        promotion_id: int,
+    ) -> bool:
+
+        promotion = await self._get_model_by_id_non_raise(
+            promotion_id
+        )
+
+        if not promotion:
+            raise ValueNotFound(
+                "Promotion not found.",
+                {
+                    "repository": "postgres_promotion",
+                    "event": "toggle_status",
+                    "promotion_id": promotion_id,
+                },
+            )
+
+        promotion.is_active = not promotion.is_active
+
+        await self._db_session.flush()
+
+        return promotion.is_active
