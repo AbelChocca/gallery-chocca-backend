@@ -32,6 +32,9 @@ from app.features.pricing.calculators.pricing_item_calculator import (
     PricingItemCalculator,
 )
 from app.features.pricing.entities.promotion import Promotion
+from app.features.pricing.types.promotion_types import (
+    PromotionApplicationScope,
+)
 
 
 class CatalogPricingService:
@@ -130,7 +133,11 @@ class CatalogPricingService:
         return [
             candidate
             for candidate in candidates
-            if not candidate.promotion.conditions
+            if (
+                not candidate.promotion.conditions
+                and candidate.promotion.application_scope
+                == PromotionApplicationScope.PER_ITEM
+            )
         ]
 
     def _validate_promotions(
