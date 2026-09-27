@@ -2,11 +2,6 @@ from decimal import Decimal
 
 from app.features.pricing.strategy.base import (
     BasePricingStrategy,
-    PricingStrategyResult,
-)
-
-from app.features.pricing.strategy.base import (
-    BasePricingStrategy,
 )
 
 from app.features.pricing.dtos.pricing_rule_dto import (
