@@ -39,7 +39,7 @@ class PromotionAudienceResolver:
                 and context.customer_id == audience.reference_id
             )
 
-        if audience.audience_type == PromotionAudienceType.CUSTOMER_GROUP:
+        if audience.audience_type == PromotionAudienceType.CUSTOMER_TYPE:
             return (
                 context.customer_type is not None
                 and context.customer_type.value
@@ -47,3 +47,6 @@ class PromotionAudienceResolver:
             )
 
         return False
+
+def get_audience_resolver() -> PromotionAudienceResolver:
+    return PromotionAudienceResolver()

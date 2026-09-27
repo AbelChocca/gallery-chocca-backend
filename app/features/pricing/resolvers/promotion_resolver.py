@@ -61,3 +61,6 @@ class PromotionResolver:
             raise ValidationError(
                 "La promocion ha expirado"
             )
+
+def get_promotion_resolver() -> PromotionResolver:
+    return PromotionResolver()

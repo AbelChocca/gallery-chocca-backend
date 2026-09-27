@@ -120,3 +120,6 @@ class PromotionConditionResolver:
             return False
 
         return context.payment_method.value == expected_payment_method
+
+def get_condition_resolver() -> PromotionConditionResolver:
+    return PromotionConditionResolver()

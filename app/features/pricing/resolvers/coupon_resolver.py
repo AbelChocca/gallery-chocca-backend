@@ -94,3 +94,6 @@ class CouponResolver:
             raise ValidationError(
                 "El cliente alcanzo el maximo numero de canjeos del cupon."
             )
+
+def get_coupon_resolver() -> CouponResolver:
+    return CouponResolver()
