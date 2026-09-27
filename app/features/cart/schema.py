@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from decimal import Decimal
+
+from app.features.pricing.schemas.promotion_schema import AppliedPromotionResponseSchema
 
 class AddCartItemRequest(BaseModel):
     product_id: int
@@ -7,38 +9,57 @@ class AddCartItemRequest(BaseModel):
     variant_size_id: int
     quantity: int = Field(gt=0, default=1)
 
-class CartItemRow(BaseModel):
+class CartItemResponseSchema(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
     cart_item_id: int
 
     product_id: int
     nombre: str
-    base_price: Decimal
-    is_product_active: bool
-    final_price: Decimal
-    final_subtotal: Decimal
-    subtotal: Decimal
 
     variant_id: int
     color: str
 
     variant_size_id: int
     size: str
-    stock: int
     sku: str
 
-    has_stock: bool
-    available_quantity: int
-    is_available: bool
-
-    image_url: str = None
-
     quantity: int
+    stock: int
+    has_stock: bool
+    is_product_active: bool
 
-class CartResponse(BaseModel):
-    cart_id: int | None
+    image_url: str | None
 
-    items: list[CartItemRow]
+    original_price: Decimal
+    final_price: Decimal
+    discount_amount: Decimal
+    has_discount: bool
+
+    original_total: Decimal
+    final_total: Decimal
+
+    applied_promotions: list[
+        AppliedPromotionResponseSchema
+    ]
+
+
+class GetFullCartResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    cart_id: int
+    items: list[CartItemResponseSchema]
 
     subtotal: Decimal
+    discount_amount: Decimal
     total: Decimal
+
     total_items: int
+
+    applied_promotions: list[
+        AppliedPromotionResponseSchema
+    ] 
