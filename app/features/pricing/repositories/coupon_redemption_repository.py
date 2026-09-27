@@ -78,3 +78,49 @@ class CouponRedemptionRepository(
             self._base_mapper.to_entity(model)
             for model in result.scalars().all()
         ]
+
+    async def get_rows_by_coupon(
+        self,
+        *,
+        coupon_id: int,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[CouponRedemption], int]:
+
+        filters = [
+            CouponRedemptionTable.coupon_id == coupon_id
+        ]
+
+        statement = (
+            select(CouponRedemptionTable)
+            .where(*filters)
+            .order_by(
+                CouponRedemptionTable.created_at.desc()
+            )
+            .offset(offset)
+            .limit(limit)
+        )
+
+        count_statement = (
+            select(
+                func.count(CouponRedemptionTable.id)
+            )
+            .where(*filters)
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        count_result = await self._db_session.execute(
+            count_statement
+        )
+
+        items = [
+            self._base_mapper.to_entity(model)
+            for model in result.scalars().all()
+        ]
+
+        total_items = count_result.scalar_one()
+
+        return items, total_items
