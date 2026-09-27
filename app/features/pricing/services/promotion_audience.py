@@ -82,6 +82,32 @@ class PromotionAudienceService:
             promotion_id=promotion_id,
         )
 
+    async def create_many_for_promotion(
+        self,
+        *,
+        promotion_id: int,
+        audiences: list[PromotionAudienceAssignment],
+    ) -> list[PromotionAudience]:
+
+        entities = [
+            PromotionAudience(
+                id=None,
+                promotion_id=promotion_id,
+                audience_type=audience.audience_type,
+                reference_id=audience.reference_id,
+                reference_value=audience.reference_value,
+                created_at=None,
+            )
+            for audience in audiences
+        ]
+
+        for audience in entities:
+            audience.validate()
+
+        return await self._promotion_audience_repository.add_all(
+            entities=entities,
+        )
+
     async def delete(
         self,
         *,
@@ -89,5 +115,5 @@ class PromotionAudienceService:
     ) -> None:
 
         await self._promotion_audience_repository.delete_by_id(
-            audience_id=audience_id,
+            model_id=audience_id,
         )
