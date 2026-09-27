@@ -1,5 +1,9 @@
 import pytest
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.core.exceptions import (
     ValidationError,
     InvalidOperation,

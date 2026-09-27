@@ -1,9 +1,13 @@
+import pytest
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.features.inventory.services.inventory_service import InventoryService
 from app.core.exceptions import InvalidOperation, ValueNotFound
 from app.features.inventory.types.inventory import AvailabilityStatus
 from app.features.inventory.types.inventory_movement import InventoryOwnerType
-
-import pytest
 from decimal import Decimal
 
 
@@ -126,7 +130,7 @@ async def test_delete_inventory_with_stock(
         )
 
 
-def test_calculate_status_available(
+async def test_calculate_status_available(
     inventory_service: InventoryService,
 ):
     assert (
