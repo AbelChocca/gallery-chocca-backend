@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TypeAlias
 
+from app.features.pricing.types.pricing_rules_types import PricingRuleType
+
 @dataclass(slots=True)
 class PercentageRuleParameters:
     percentage: Decimal
@@ -22,7 +24,7 @@ class BuyXGetYRuleParameters:
 
 @dataclass(slots=True)
 class FreeItemRuleParameters:
-    variant_size_id: int
+    product_id: int
 
     quantity: int = 1
 
@@ -38,3 +40,11 @@ PricingRuleParameters: TypeAlias = (
     | FreeItemRuleParameters
     | FreeShippingRuleParameters
 )
+
+@dataclass(frozen=True, slots=True)
+class PricingRuleSearchOptionDTO:
+    id: int
+    name: str
+    description: str | None
+    type: PricingRuleType
+    parameters: dict
