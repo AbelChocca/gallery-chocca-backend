@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TypedDict
+from dataclasses import dataclass
 from decimal import Decimal
 
 class PricingRuleType(str, Enum):
@@ -13,14 +13,8 @@ class PricingRuleType(str, Enum):
 
     FREE_SHIPPING = "FREE_SHIPPING"
 
-class ProductPricingSummaryTD(TypedDict):
-    id: int
-    nombre: str
-    categoria: str
-
-    image_url: str | None
-
-    base_price: Decimal
-    is_active: bool
-
-    final_price: Decimal
+@dataclass
+class PricingStrategyResult:
+    unit_price: Decimal
+    discount_amount: Decimal
+    shipping_cost: Decimal

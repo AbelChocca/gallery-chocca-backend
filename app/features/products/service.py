@@ -1,4 +1,4 @@
-from app.infra.db.repositories.product_repository import PostgresProductRepository
+from app.features.products.product_repository import PostgresProductRepository
 from app.features.products.product_dto import PublishProductCommand
 from app.shared.slug.protocol import SlugProtocol
 from app.features.products.product import Product
@@ -6,6 +6,7 @@ from app.features.products.product_dto import (
     UpdateProductCommand, 
     FilterProductCommand, 
     CountProductPerCategoryDTO,
+    ProductSearchOptionDTO
 )
 from app.core.exceptions import ValidationError
 
@@ -158,3 +159,24 @@ class ProductService:
         command: FilterProductCommand | None = None,
     ) -> int:
         return await self._product_repo.count_filtered_products(command)
+
+    async def search_product_options(
+        self,
+        *,
+        search: str | None,
+        page: int,
+        limit: int,
+    ) -> tuple[list[ProductSearchOptionDTO], int]:
+        offset = (page - 1) * limit
+
+        products = await self._product_repo.search_options(
+            search=search,
+            offset=offset,
+            limit=limit,
+        )
+
+        total = await self._product_repo.count_search_options(
+            search=search,
+        )
+
+        return products, total

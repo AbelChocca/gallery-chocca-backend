@@ -78,7 +78,7 @@ class BaseRepository(Generic[E, M]):
                 raise ValueNotFound(
                     "Model to delete wasn't found.",
                     {
-                        "repository": f"postres_{E.__name__.lower()}",
+                        "repository": f"postgres_{E.__name__.lower()}",
                         "base_model": self._base_model.__name__,
                         "event": "delete_by_id",
                         "model_id": model_id
@@ -86,6 +86,7 @@ class BaseRepository(Generic[E, M]):
                     )
 
             await self._db_session.delete(model)
+            await self._db_session.flush()
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres error while deleting.",

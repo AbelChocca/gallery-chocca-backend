@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Text
+from sqlalchemy import Column, DateTime, Text, Enum as ENUM
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
@@ -27,7 +27,15 @@ class PricingRuleTable(SQLModel, table=True):
     )
 
     type: PricingRuleType = Field(
-        nullable=False,
+        default=PricingRuleType.FIXED_AMOUNT,
+        sa_column=Column(
+            ENUM(
+                PricingRuleType,
+                name="pricing_rule_type",
+            ),
+            nullable=False,
+            index=True
+        ),
     )
 
     parameters: dict = Field(
@@ -36,7 +44,6 @@ class PricingRuleTable(SQLModel, table=True):
             nullable=False,
         )
     )
-
 
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),

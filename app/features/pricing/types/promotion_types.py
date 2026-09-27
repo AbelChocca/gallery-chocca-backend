@@ -4,6 +4,10 @@ class PromotionStackingMode(str, Enum):
     STACKABLE = "STACKABLE"
     EXCLUSIVE = "EXCLUSIVE"
 
+class PromotionApplicationScope(str, Enum):
+    PER_ITEM = "PER_ITEM"
+    ORDER_SUBTOTAL = "ORDER_SUBTOTAL"
+
 class PromotionTargetType(str, Enum):
     PRODUCT = "PRODUCT"
     CATEGORY = "CATEGORY"

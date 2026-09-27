@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
@@ -39,7 +41,14 @@ class Settings(BaseSettings):
     ENV: str
 
     # Configuración del settings
-    model_config = SettingsConfigDict(extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(
+            ".env.test"
+            if os.getenv("ENV") == "test"
+            else ".env"
+        ),
+        extra="ignore",
+    )
 
 @lru_cache
 def get_settings():

@@ -2,7 +2,7 @@ from app.features.inventory.repositories.sqlalchemy_inventory_movement_repo impo
 from app.infra.db.mappers.inventory_movement_mapper import InventoryMovementMapper
 from app.features.inventory.models.inventory_movement import InventoryMovementTable
 
-from app.infra.db.repositories.product_repository import PostgresProductRepository
+from app.features.products.product_repository import PostgresProductRepository
 from app.infra.db.mappers.product_mapper import ProductMapper
 from app.features.products.models.model_product import ProductTable, VariantSizeTable, VariantTable
 
@@ -22,15 +22,9 @@ from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavo
 from app.infra.db.mappers.favorite_mapper import FavoritesMapper
 from app.infra.db.models.model_favorites import FavoritesTable
 
-from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
+from app.features.cart.cart_repository import CartRepository
 from app.infra.db.mappers.cart_mapper import CartMapper
 from app.infra.db.models.model_cart import CartTable
-
-from app.infra.db.repositories.sqlalchemy_pricing_rule_repository import PricingRuleRepository
-from app.infra.db.mappers.pricing_rule_mapper import PricingRuleMapper
-from app.infra.db.models.model_pricing_rule import PricingRuleTable
-
-from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import ProductPricingRepository
 
 from app.features.material.material_repository import PostgresMaterialRepository
 from app.infra.db.mappers.material_mapper import MaterialMapper
@@ -122,13 +116,20 @@ from app.features.balancing.models.other_current_liability import (
     OtherCurrentLiabilityTable,
 )
 
+from app.infra.db.uow.repositories.pricing import PricingRepositoriesMixin
+from app.infra.db.uow.repositories.customer import CustomerRepositoriesMixin
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import AbstractAsyncContextManager
 from typing import Callable, Type, TypeVar
 
 T = TypeVar("T")
 
-class UnitOfWork(AbstractAsyncContextManager):
+class UnitOfWork(
+    PricingRepositoriesMixin,
+    CustomerRepositoriesMixin,
+    AbstractAsyncContextManager
+):
     def __init__(self, session_factory: Callable[[], AsyncSession]):
         self._session_factory = session_factory
         self.session: AsyncSession | None = None
@@ -300,34 +301,6 @@ class UnitOfWork(AbstractAsyncContextManager):
                 InventoryLocationTable,
             ),
         )
-
-    @property
-    def pricing_rules(
-        self
-    ) -> PricingRuleRepository:
-
-        return self._get_or_create(
-            "pricing_rules",
-            lambda: PricingRuleRepository(
-                self.session,
-                PricingRuleMapper,
-                PricingRuleTable
-            )
-        )
-
-
-    @property
-    def product_pricing(
-        self
-    ) -> ProductPricingRepository:
-
-        return self._get_or_create(
-            "product_pricing",
-            lambda: ProductPricingRepository(
-                self.session
-            )
-        )
-
 
     @property
     def materials(

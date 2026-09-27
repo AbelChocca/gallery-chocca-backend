@@ -1,39 +1,21 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from decimal import Decimal
 from app.features.pricing.entities.promotion import Promotion
 
-from app.features.pricing.types.promotion_types import PromotionTargetType, PromotionAudienceType, PromotionStackingMode
-from app.features.pricing.dtos.promotion_condition import AppliedPromotionConditionDTO
+from app.features.pricing.types.promotion_types import PromotionStackingMode, PromotionApplicationScope
 from app.features.sales.types.sale import SaleChannel
 
-from app.features.pricing.dtos.pricing_rule_dto import AppliedPricingRuleDTO
 from app.features.products.types import BrandType, CategoryType
+from app.features.pricing.dtos.promotion_condition import CreatePromotionConditionDTO
+from app.features.pricing.dtos.promotion_audience_dto import CreatePromotionAudienceDTO
+from app.features.pricing.dtos.promotion_target import CreatePromotionTargetDTO
+from app.features.pricing.dtos.promotion_pricing_rule_dto import PromotionPricingRuleDTO
 
 @dataclass(slots=True)
 class PromotionProductCandidateDTO:
     product_id: int
     promotion: Promotion
 
-@dataclass(slots=True)
-class PricingProduct:
-    product_id: int
-    quantity: int
-    unit_price: Decimal
-    
-    promotions: list[Promotion]
-
-@dataclass(slots=True)
-class AppliedPromotionTargetDTO:
-    type: PromotionTargetType
-
-    ids: list[int]
-
-@dataclass(slots=True)
-class AppliedPromotionAudienceDTO:
-    type: PromotionAudienceType
-
-    ids: list[int] | None = None
 
 @dataclass(slots=True)
 class PromotionCandidateCriteria:
@@ -42,26 +24,60 @@ class PromotionCandidateCriteria:
     categories: dict[int, CategoryType]
     brands: dict[int, BrandType]
 
-    sale_channel: SaleChannel
-
+    sale_channel: SaleChannel 
 
 @dataclass(slots=True)
-class AppliedPromotionDTO:
-    id: int
+class CreatePromotionDTO:
+    name: str
+    description: str | None
+    sales_channel: SaleChannel
+    stacking_mode: PromotionStackingMode
+    application_scope: PromotionApplicationScope
+    priority: int = 0
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool = True
 
+    pricing_rules: list[
+        PromotionPricingRuleDTO
+    ] = field(default_factory=list)
+
+    audiences: list[CreatePromotionAudienceDTO] = field(
+        default_factory=list
+    )
+
+    targets: list[CreatePromotionTargetDTO] = field(
+        default_factory=list
+    )
+
+    conditions: list[CreatePromotionConditionDTO] = field(
+        default_factory=list
+    )
+
+@dataclass(slots=True)
+class PromotionRowDTO:
+    id: int
+    name: str
+    description: str | None
+
+    sales_channel: SaleChannel
+    stacking_mode: PromotionStackingMode
+    application_scope: PromotionApplicationScope
     priority: int
 
-    stacking_mode: PromotionStackingMode
-
-    starts_at: datetime
-
+    starts_at: datetime | None
     ends_at: datetime | None
+    is_active: bool
 
-    target: AppliedPromotionTargetDTO
+    status: str
 
-    audience: AppliedPromotionAudienceDTO
+    pricing_rules_count: int
+    audiences_count: int
+    targets_count: int
+    conditions_count: int
+    coupons_count: int
 
-    conditions: list[AppliedPromotionConditionDTO]
+    has_coupon: bool
 
-    pricing_rules: list[AppliedPricingRuleDTO]  
-
+    created_at: datetime | None
+    updated_at: datetime | None

@@ -24,7 +24,7 @@ class BuyXGetYRuleParameters:
 
 @dataclass(slots=True)
 class FreeItemRuleParameters:
-    variant_size_id: int
+    product_id: int
 
     quantity: int = 1
 
@@ -41,19 +41,10 @@ PricingRuleParameters: TypeAlias = (
     | FreeShippingRuleParameters
 )
 
-@dataclass(slots=True)
-class AppliedPricingRuleDTO:
+@dataclass(frozen=True, slots=True)
+class PricingRuleSearchOptionDTO:
     id: int
-
+    name: str
+    description: str | None
     type: PricingRuleType
-
-    parameters: PricingRuleParameters
-
-@dataclass(slots=True)
-class PricingRuleResult:
-
-    unit_price: Decimal
-
-    shipping_cost: Decimal
-
-    discount_amount: Decimal
+    parameters: dict

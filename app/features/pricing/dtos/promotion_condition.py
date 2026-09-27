@@ -23,8 +23,14 @@ PromotionConditionParameters: TypeAlias = (
     | PaymentMethodConditionParameters
 )
 
-@dataclass(slots=True)
-class AppliedPromotionConditionDTO:
-    type: PromotionConditionType
-
+@dataclass(frozen=True)
+class PromotionConditionAssignment:
+    condition_type: PromotionConditionType
     parameters: PromotionConditionParameters
+    description: str | None = None
+
+@dataclass(slots=True)
+class CreatePromotionConditionDTO:
+    condition_type: PromotionConditionType
+    parameters: PromotionConditionParameters
+    description: str | None = None

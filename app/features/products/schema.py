@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
+from decimal import Decimal
 
 from app.features.media.schema import ReadImage
 from app.shared.pagination.schema import PaginationResponseSchema
@@ -52,6 +53,11 @@ class GridProductRead(BaseModel):
     slug: str | None
 
     variants: List[GridProductVariantRead]
+
+    original_price: Decimal = Decimal("0")
+    final_price: Decimal = Decimal("0")
+    has_discount: bool = False
+    discount_amount: Decimal = Decimal("0")
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -130,3 +136,15 @@ class CreateProductResponse(BaseModel):
     slug: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class ProductSearchOptionResponseSchema(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    id: int
+    name: str
+    description: str
+    brand: BrandType
+    category: CategoryType
+    base_price: Decimal

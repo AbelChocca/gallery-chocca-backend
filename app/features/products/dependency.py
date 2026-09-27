@@ -5,6 +5,7 @@ from app.features.products.use_cases.update_product import UpdateProductUseCase
 from app.features.products.use_cases.get_products import GetProductsUseCase
 from app.features.products.use_cases.get_product_by_id import GetProductByIdUseCase
 from app.features.products.use_cases.search_product import GetRelatedProductsUseCase
+from app.features.pricing.dependencies.services.catalog_pricing_service import get_catalog_pricing_service, CatalogPricingService
 
 from app.features.inventory.dependencies.services import (
     get_inventory_service,
@@ -119,6 +120,7 @@ def get_products_use_case(
     cache_service: RedisService = Depends(get_cache_service),
     pagination_service: PaginationService = Depends(get_pagination_service),
     product_enricher: ProductEnricher = Depends(get_product_enricher),
+    catalog_pricing_service: CatalogPricingService = Depends(get_catalog_pricing_service)
 ) -> GetProductsUseCase:
 
     return GetProductsUseCase(
@@ -126,6 +128,7 @@ def get_products_use_case(
         cache_service=cache_service,
         pagination_service=pagination_service,
         product_enricher=product_enricher,
+        catalog_pricing_service=catalog_pricing_service
     )
 
 def get_product_by_id_use_case(

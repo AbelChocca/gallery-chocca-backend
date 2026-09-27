@@ -1,91 +1,112 @@
-from pydantic import BaseModel, Field
-from decimal import Decimal
+from pydantic import BaseModel, ConfigDict
+from typing import Union
 from datetime import datetime
-
-from app.shared.pagination.schema import PaginationResponseSchema
+from decimal import Decimal
 from app.features.pricing.types.pricing_rules_types import PricingRuleType
 
-class CreatePricingRuleRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100)
-    description: str | None = Field(None, max_length=255)
-    type: PricingRuleType = Field(..., description="Tipo de regla de pricing (discount, markup, etc.)")
-    value: Decimal = Field(..., gt=0)
-    priority: int = Field(default=0, ge=0)
+class PercentageRuleParametersSchema(BaseModel):
+    percentage: Decimal
 
-    is_active: bool = True
-    is_stackable: bool = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
-class PricingRuleResponse(BaseModel):
-    id: int
+
+class FixedAmountRuleParametersSchema(BaseModel):
+    amount: Decimal
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class FixedPriceRuleParametersSchema(BaseModel):
+    price: Decimal
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class BuyXGetYRuleParametersSchema(BaseModel):
+    buy_quantity: int
+    free_quantity: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class FreeItemRuleParametersSchema(BaseModel):
+    product_id: int
+    quantity: int = 1
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class FreeShippingRuleParametersSchema(BaseModel):
+    applies: bool = True
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+PricingRuleParametersSchema = Union[
+    PercentageRuleParametersSchema,
+    FixedAmountRuleParametersSchema,
+    FixedPriceRuleParametersSchema,
+    BuyXGetYRuleParametersSchema,
+    FreeItemRuleParametersSchema,
+    FreeShippingRuleParametersSchema,
+]
+
+class ExistingPromotionPricingRuleSchema(BaseModel):
+
+    pricing_rule_id: int
+    execution_order: int = 0
+
+
+class NewPromotionPricingRuleSchema(BaseModel):
+
     name: str
     description: str | None = None
     type: PricingRuleType
-    value: Decimal
+    parameters: PricingRuleParametersSchema
 
-    is_active: bool
-    is_stackable: bool
-    priority: int
+    execution_order: int = 0
 
-    starts_at: datetime | None = None
-    ends_at: datetime | None = None
 
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+PromotionPricingRuleInputSchema = Union[
+    ExistingPromotionPricingRuleSchema
+    | NewPromotionPricingRuleSchema,
+]
 
-class PricingRuleFilterSchema(BaseModel):
-    is_active: bool | None = None
-    type: str | None = None
+class PricingRuleResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    priority_min: int | None = Field(default=None, ge=0)
-    priority_max: int | None = Field(default=None, ge=0)
-
-    search: str | None = Field(default=None, max_length=100)
-
-class PricingRuleListResponse(BaseModel):
-    total: int
-    items: list[PricingRuleResponse]
-    pagination: PaginationResponseSchema
-
-class ProductRuleBatchRequest(BaseModel):
-    product_ids: list[int] = Field(..., min_length=1)
-    rule_id: int = Field(..., gt=0)
-
-# PRODUCT PRICING
-
-class ProductPricingSummarySchema(BaseModel):
     id: int
-    nombre: str
-    categoria: str
-    image_url: str | None
-    base_price: Decimal
-    is_active: bool
-    final_price: Decimal
-    latest_applied_rule: PricingRuleResponse | None
+    name: str
+    description: str | None
+    type: PricingRuleType
+    parameters: PricingRuleParametersSchema
+    created_at: datetime | None
+    updated_at: datetime | None
 
-class ProductAppliedPricingRuleResponse(BaseModel):
-    product_id: int
-    assigned_at: datetime
+class ReplacePromotionPricingRulesSchema(BaseModel):
+    pricing_rules: list[
+        ExistingPromotionPricingRuleSchema
+    ]
 
-    pricing_rule: PricingRuleResponse
+class PricingRuleSearchOptionResponseSchema(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
-class ProductPricingDetailResponse(BaseModel):
     id: int
-    nombre: str
-    categoria: str
-    base_price: Decimal
-    is_active: bool
-    image_url: str | None = None
-
-    applied_rules: list[ProductAppliedPricingRuleResponse]
-
-    final_price: Decimal
-
-class ProductsPricingSummaryResponse(BaseModel):
-    total_items: int
-    items: list[ProductPricingSummarySchema]
-    pagination: PaginationResponseSchema
-
-class ProductsPricingRulesResponse(BaseModel):
-    total_items: int
-    items: list[ProductAppliedPricingRuleResponse]
-    pagination: PaginationResponseSchema
+    name: str
+    description: str | None
+    type: PricingRuleType
+    parameters: PricingRuleParametersSchema

@@ -40,10 +40,9 @@ class PricingCalculator:
 
                 for rule in promotion.pricing_rules:
 
-                    result = rule.strategy.apply(
+                    result = rule.apply(
                         current_price=current_unit_price,
                         quantity=item.quantity,
-                        parameters=rule.parameters,
                         shipping_cost=shipping_cost,
                     )
 

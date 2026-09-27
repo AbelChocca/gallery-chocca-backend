@@ -3,6 +3,8 @@ from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, AsyncSession
 from app.core.settings.pydantic_settings import settings
 
+from app.infra.db import model_registry  # noqa: F401
+
 def get_db_url():
     ssl_mode = {}
 

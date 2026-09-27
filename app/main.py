@@ -18,7 +18,7 @@ from app.features.favorites import favorites_router
 from app.features.dashboard import dashboard_route
 from app.features.inventory import inventory_route
 from app.features.auth import auth_route
-from app.features.cart import cart_route
+# from app.features.cart import cart_route
 from app.features.material import material_route
 from app.features.reports import reports_route
 from app.features.balancing.routes.balance_snapshots import balance_snapshot_router
@@ -27,12 +27,15 @@ from app.features.balancing.routes.inventory_valuation import inventory_valuatio
 from app.features.balancing.routes.accounts_receivables import account_receivable_router
 from app.features.balancing.routes.accounts_payables import account_payable_router
 from app.features.balancing.routes.financial_debts import financial_debt_router
+from app.features.pricing import pricing_route
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger_service.info('🚀 Iniciandoo App')
     try:
-        await init_db()
+        if settings.ENV != "test":
+            await init_db()
+            
         redis = from_url(
             settings.REDIS_URL,
             encoding="utf-8",
@@ -63,7 +66,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    await redis.close()
+    await redis.aclose()
 
     logger_service.info("🛑 Cerrando aplicación y liberando recursos...")
 
@@ -93,7 +96,7 @@ app.include_router(auth_route.router)
 app.include_router(favorites_router.router)
 app.include_router(dashboard_route.router)
 app.include_router(inventory_route.router)
-app.include_router(cart_route.router)
+#app.include_router(cart_route.router)
 app.include_router(material_route.router)
 app.include_router(reports_route.router)
 app.include_router(balance_snapshot_router.balance_router)
@@ -102,3 +105,4 @@ app.include_router(account_receivable_router.accounts_receivable_router)
 app.include_router(inventory_valuation_router.inventory_valuation_router)
 app.include_router(financial_debt_router.financial_debt_router)
 app.include_router(other_current_liability_router.other_current_liability_router)
+app.include_router(pricing_route.router)

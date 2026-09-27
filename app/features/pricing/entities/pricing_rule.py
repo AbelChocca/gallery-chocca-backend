@@ -1,30 +1,31 @@
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from app.features.pricing.types.types import PricingRuleType
-from app.features.pricing.strategy.registry import PRICING_STRATEGIES
+from app.features.pricing.types.pricing_rules_types import (
+    PricingRuleType,
+)
+from app.features.pricing.strategy.registry import (
+    PRICING_STRATEGIES,
+)
+from app.features.pricing.dtos.pricing_rule_dto import PricingRuleParameters
 
 
+@dataclass
 class PricingRule:
+    parameters: PricingRuleParameters
+    
+    id: int | None = None
 
-    def __init__(
-        self,
-        id: int | None = None,
-        name: str = "",
-        description: str | None = None,
-        type: PricingRuleType = PricingRuleType.PERCENTAGE,
-        parameters: dict[str, Any] | None = None,
-        created_at: datetime | None = None,
-        updated_at: datetime | None = None,
-    ):
-        self.id = id
-        self.name = name
-        self.description = description
-        self.type = type
-        self.parameters = parameters or {}
-        self.created_at = created_at
-        self.updated_at = updated_at
+    name: str = ""
+    description: str | None = None
 
+    type: PricingRuleType = PricingRuleType.PERCENTAGE
+
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    def __post_init__(self) -> None:
         self.validate()
 
     @property
@@ -33,7 +34,7 @@ class PricingRule:
 
     def validate(self) -> None:
         self.strategy.validate(
-            self.parameters
+            self.parameters,
         )
 
     def apply(
@@ -41,9 +42,11 @@ class PricingRule:
         *,
         current_price,
         quantity: int = 1,
+        shipping_cost,
     ):
         return self.strategy.apply(
             current_price=current_price,
             quantity=quantity,
             parameters=self.parameters,
+            shipping_cost=shipping_cost,
         )

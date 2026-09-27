@@ -3,11 +3,8 @@
 dev-up:
 	docker compose -f docker-compose.dev.yml up -d --build
 
-test-down:
-	docker compose -f docker-compose.dev.yml down
-
 test-up:
-	docker compose -f docker-compose.test.yml up -d --build
+	docker compose -f docker-compose.test.yml -p chocca-test up -d --build
 
 test-down:
 	docker compose -f docker-compose.test.yml down
