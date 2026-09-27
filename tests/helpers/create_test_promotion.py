@@ -49,7 +49,7 @@ async def create_test_promotion(
         name="Promotion Condition Test - 10 Percent",
         description="Descuento porcentual del 10%",
         type=PricingRuleType.PERCENTAGE,
-        parameters={"value": "10"},
+        parameters={"percentage": "10"},
     )
 
     db_session.add(rule)
@@ -107,7 +107,7 @@ async def create_category_target_promotion(
         name=f"{discount}% OFF {category.value}",
         description="Descuento porcentual para test de target por categoría",
         type=PricingRuleType.PERCENTAGE,
-        parameters={"value": discount},
+        parameters={"percentage": discount},
     )
 
     db_session.add(rule)
@@ -170,7 +170,7 @@ async def create_category_audience_promotion(
         name=f"{discount}% Catalog Audience",
         description="Descuento de prueba",
         type=PricingRuleType.PERCENTAGE,
-        parameters={"value": discount},
+        parameters={"percentage": discount},
     )
 
     db_session.add(rule)
