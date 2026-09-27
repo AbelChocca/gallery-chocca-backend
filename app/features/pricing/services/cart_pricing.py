@@ -9,6 +9,7 @@ from app.features.pricing.dtos.cart_pricing_dto import (
     CartPricingContext,
     CartPricingDTO,
     CartPricingItemResultDTO,
+    AppliedPromotionDTO
 )
 
 from app.features.pricing.dtos.promotion_dto import (
@@ -24,6 +25,7 @@ from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
     SalePricingContext,
 )
+from app.features.pricing.types.promotion_types import PromotionApplicationScope
 
 from app.features.pricing.entities.promotion import Promotion
 
@@ -50,6 +52,7 @@ from app.features.pricing.resolvers.promotion_selection_resolver import (
 from app.features.pricing.types.promotion_types import (
     PromotionConditionType,
 )
+from app.features.pricing.calculators.pricing_subtotal_calculator import PricingSubtotalCalculator
 
 
 class CartPricingService:
@@ -63,6 +66,7 @@ class CartPricingService:
         promotion_audience_resolver: PromotionAudienceResolver,
         promotion_condition_resolver: PromotionConditionResolver,
         pricing_item_calculator: PricingItemCalculator,
+        pricing_subtotal_calculator: PricingSubtotalCalculator
     ) -> None:
         self._promotion_repository = promotion_repository
         self._promotion_resolver = promotion_resolver
@@ -78,6 +82,7 @@ class CartPricingService:
         self._pricing_item_calculator = (
             pricing_item_calculator
         )
+        self._pricing_subtotal_calculator = pricing_subtotal_calculator
 
     async def calculate(
         self,
@@ -222,7 +227,11 @@ class CartPricingService:
         results: list[CartPricingItemResultDTO] = []
 
         subtotal = Decimal("0.00")
-        discount_amount = Decimal("0.00")
+        item_discount_amount = Decimal("0.00")
+
+        promotion_totals: dict[int, AppliedPromotionDTO] = {}
+
+        order_subtotal_promotions: dict[int, Promotion] = {}
 
         for item in context.items:
 
@@ -231,17 +240,32 @@ class CartPricingService:
                 [],
             )
 
+            per_item_promotions = [
+                promotion
+                for promotion in promotions
+                if promotion.application_scope
+                == PromotionApplicationScope.PER_ITEM
+            ]
+
+            for promotion in promotions:
+                if (
+                    promotion.application_scope
+                    == PromotionApplicationScope.ORDER_SUBTOTAL
+                ):
+                    order_subtotal_promotions[promotion.id] = promotion
+
             calculation = self._pricing_item_calculator.calculate(
                 unit_price=item.unit_price,
                 quantity=item.quantity,
-                promotions=promotions,
+                promotions=per_item_promotions,
             )
 
             subtotal += calculation.original_total
-            discount_amount += calculation.discount_amount
+            item_discount_amount += calculation.discount_amount
 
             results.append(
                 CartPricingItemResultDTO(
+                    item_id=item.item_id,
                     product_id=item.product_id,
                     quantity=item.quantity,
                     original_unit_price=calculation.original_unit_price,
@@ -249,14 +273,66 @@ class CartPricingService:
                     original_total=calculation.original_total,
                     final_total=calculation.final_total,
                     discount_amount=calculation.discount_amount,
+                    applied_promotions=calculation.applied_promotions,
                 )
             )
+
+            for promotion in calculation.applied_promotions:
+                existing = promotion_totals.get(
+                    promotion.promotion_id
+                )
+
+                if existing is None:
+                    promotion_totals[promotion.promotion_id] = promotion
+                    continue
+
+                promotion_totals[promotion.promotion_id] = (
+                    AppliedPromotionDTO(
+                        promotion_id=promotion.promotion_id,
+                        name=promotion.name,
+                        discount_amount=(
+                            existing.discount_amount
+                            + promotion.discount_amount
+                        ),
+                    )
+                )
+
+        current_subtotal = sum(
+            item.final_total
+            for item in results
+        )
+
+        resolved_order_promotions = (
+            self._promotion_selection_resolver.resolve_promotions(
+                promotions=list(
+                    order_subtotal_promotions.values()
+                ),
+            )
+        )
+
+        subtotal_calculation = (
+            self._pricing_subtotal_calculator.calculate(
+                subtotal=current_subtotal,
+                promotions=resolved_order_promotions,
+            )
+        )
+
+        discount_amount = (
+            item_discount_amount
+            + subtotal_calculation.discount_amount
+        )
+
+        for promotion in subtotal_calculation.applied_promotions:
+            promotion_totals[promotion.promotion_id] = promotion
 
         return CartPricingDTO(
             items=results,
             subtotal=subtotal,
             discount_amount=discount_amount,
-            total=subtotal - discount_amount,
+            total=subtotal_calculation.final_subtotal,
+            applied_promotions=list(
+                promotion_totals.values()
+            ),
         )
 
     def _validate_promotions(
