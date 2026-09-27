@@ -1,3 +1,9 @@
+import pytest
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.features.material.entities.material import Material
 from app.features.material.dto.material import MaterialFilters
 from app.features.material.types import (
@@ -12,8 +18,6 @@ from app.shared.types import CompanyType
 from app.infra.db.uow.unit_of_work import UnitOfWork
 
 from datetime import datetime, timezone
-
-import pytest
 
 def build_material(
     **overrides
@@ -39,7 +43,7 @@ def build_material(
 
     return Material(**defaults)
 
-@pytest.mark.asyncio
+
 async def test_should_filter_materials_by_search_text(
     uow_factory
 ):
@@ -84,7 +88,7 @@ async def test_should_filter_materials_by_search_text(
         )
 
 
-@pytest.mark.asyncio
+
 async def test_should_apply_all_filters(
     uow_factory
 ):
@@ -169,7 +173,7 @@ async def test_should_apply_all_filters(
         assert material.code == "TEL-000001"
         assert material.name == "Tela Blanca"
 
-@pytest.mark.asyncio
+
 async def test_should_get_material_by_code(
     uow_factory
 ):
@@ -194,7 +198,7 @@ async def test_should_get_material_by_code(
         assert material.code == "TEL-000001"
         assert material.name == "Tela Blanca"
 
-@pytest.mark.asyncio
+
 async def test_should_raise_error_when_material_code_does_not_exist(
     uow_factory
 ):
@@ -210,7 +214,7 @@ async def test_should_raise_error_when_material_code_does_not_exist(
                 "NOT-FOUND"
             )
 
-@pytest.mark.asyncio
+
 async def test_should_get_materials_by_ids(
     uow_factory
 ):
@@ -264,7 +268,7 @@ async def test_should_get_materials_by_ids(
         assert material_1.id in ids
         assert material_3.id in ids
 
-@pytest.mark.asyncio
+
 async def test_should_return_empty_list_when_ids_are_empty(
     uow_factory
 ):

@@ -1,4 +1,9 @@
 import pytest
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from decimal import Decimal
 
 from app.features.material.service import MaterialService
@@ -13,7 +18,7 @@ from app.features.material.types import (
 )
 from app.shared.types import CompanyType
 
-@pytest.mark.asyncio
+
 async def test_should_create_material_with_components(
     material_service: MaterialService
 ):
@@ -61,7 +66,7 @@ async def test_should_create_material_with_components(
         == Decimal("20")
     )
 
-@pytest.mark.asyncio
+
 async def test_should_remove_all_components_when_updating_with_empty_list(
     material_service: MaterialService
 ):
@@ -94,7 +99,7 @@ async def test_should_remove_all_components_when_updating_with_empty_list(
 
     assert updated_material.components == []
 
-@pytest.mark.asyncio
+
 async def test_should_replace_existing_components(
     material_service: MaterialService
 ):
@@ -156,7 +161,7 @@ async def test_should_replace_existing_components(
     assert Decimal("60") in percentages
     assert Decimal("40") in percentages
 
-@pytest.mark.asyncio
+
 async def test_should_not_create_components_for_non_fabric_material(
     material_service: MaterialService
 ):
@@ -179,7 +184,7 @@ async def test_should_not_create_components_for_non_fabric_material(
 
     assert "no pueden asociarse" in str(exc.value)
 
-@pytest.mark.asyncio
+
 async def test_should_not_create_component_with_non_positive_percentage(
     material_service: MaterialService
 ):
@@ -202,7 +207,7 @@ async def test_should_not_create_component_with_non_positive_percentage(
 
     assert "mayor a 0" in str(exc.value)
 
-@pytest.mark.asyncio
+
 async def test_should_not_create_components_when_total_percentage_is_not_100(
     material_service: MaterialService
 ):
@@ -229,7 +234,7 @@ async def test_should_not_create_components_when_total_percentage_is_not_100(
 
     assert "exactamente 100" in str(exc.value)
 
-@pytest.mark.asyncio
+
 async def test_should_not_create_components_with_duplicate_fiber_types(
     material_service: MaterialService
 ):
@@ -256,7 +261,7 @@ async def test_should_not_create_components_with_duplicate_fiber_types(
 
     assert "No se pueden repetir" in str(exc.value)
 
-@pytest.mark.asyncio
+
 async def test_should_get_material_with_components_mapped(
     material_service: MaterialService
 ):
@@ -299,7 +304,7 @@ async def test_should_get_material_with_components_mapped(
         FiberType.POLYESTER: Decimal("30"),
     }
 
-@pytest.mark.asyncio
+
 async def test_should_remove_components_when_material_changes_to_non_fabric(
     material_service: MaterialService
 ):
