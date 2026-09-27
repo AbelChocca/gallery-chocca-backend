@@ -3,7 +3,7 @@ from datetime import datetime
 
 from app.features.pricing.entities.pricing_rule import PricingRule
 from app.features.pricing.entities.promotion_audience import PromotionAudience
-from app.features.pricing.types.promotion_types import PromotionStackingMode
+from app.features.pricing.types.promotion_types import PromotionStackingMode, PromotionApplicationScope
 from app.features.pricing.entities.promotion_condition import PromotionCondition
 from app.features.pricing.entities.coupon import Coupon
 from app.features.pricing.entities.promotion_target import PromotionTarget
@@ -17,6 +17,7 @@ class Promotion:
     description: str | None
     sales_channel: SaleChannel
     stacking_mode: PromotionStackingMode
+    application_scope: PromotionApplicationScope
     priority: int
     starts_at: datetime | None
     ends_at: datetime | None

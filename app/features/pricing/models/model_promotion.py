@@ -10,7 +10,7 @@ from sqlalchemy import (
 
 from sqlmodel import Field, SQLModel
 from app.features.sales.types.sale import SaleChannel
-from app.features.pricing.types.promotion_types import PromotionStackingMode
+from app.features.pricing.types.promotion_types import PromotionStackingMode, PromotionApplicationScope
 
 
 class PromotionTable(SQLModel, table=True):
@@ -68,6 +68,21 @@ class PromotionTable(SQLModel, table=True):
             ),
             nullable=False,
         )
+    )
+
+    application_scope: PromotionApplicationScope = Field(
+        default=PromotionApplicationScope.PER_ITEM,
+        sa_column=Column(
+            SQLEnum(
+                PromotionApplicationScope,
+                values_callable=lambda enum: [e.value for e in enum],
+                native_enum=False,
+                create_constraint=True,
+                name="promotion_application_scope",
+            ),
+            nullable=False,
+            server_default=PromotionApplicationScope.PER_ITEM.value,
+        ),
     )
 
     priority: int = Field(

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from app.features.pricing.entities.promotion import Promotion
 
-from app.features.pricing.types.promotion_types import PromotionStackingMode
+from app.features.pricing.types.promotion_types import PromotionStackingMode, PromotionApplicationScope
 from app.features.sales.types.sale import SaleChannel
 
 from app.features.products.types import BrandType, CategoryType
@@ -32,6 +32,7 @@ class CreatePromotionDTO:
     description: str | None
     sales_channel: SaleChannel
     stacking_mode: PromotionStackingMode
+    application_scope: PromotionApplicationScope
     priority: int = 0
     starts_at: datetime | None = None
     ends_at: datetime | None = None
@@ -61,6 +62,7 @@ class PromotionRowDTO:
 
     sales_channel: SaleChannel
     stacking_mode: PromotionStackingMode
+    application_scope: PromotionApplicationScope
     priority: int
 
     starts_at: datetime | None

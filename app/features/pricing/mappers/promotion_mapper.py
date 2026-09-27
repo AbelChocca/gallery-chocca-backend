@@ -19,6 +19,7 @@ class PromotionMapper(BaseMapper[Promotion, PromotionTable]):
         model.priority = entity.priority
         model.starts_at = entity.starts_at
         model.ends_at = entity.ends_at
+        model.application_scope = entity.application_scope
         model.is_active = entity.is_active
 
         return model
@@ -34,6 +35,7 @@ class PromotionMapper(BaseMapper[Promotion, PromotionTable]):
             description=model.description,
             sales_channel=model.sales_channel,
             stacking_mode=model.stacking_mode,
+            application_scope=model.application_scope,
             priority=model.priority,
             starts_at=model.starts_at,
             ends_at=model.ends_at,
