@@ -3,6 +3,10 @@ from decimal import Decimal
 
 import pytest
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.features.pricing.models.coupon import CouponTable
 from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
@@ -15,7 +19,7 @@ from app.features.products.models.model_product import ProductTable
 from tests.helpers.create_test_promotion import create_category_target_promotion
 
 
-@pytest.mark.asyncio
+
 async def test_calculate_applies_coupon_promotion_to_customer_cart(
     db_session,
     sale_pricing_service,
@@ -118,7 +122,7 @@ async def test_calculate_applies_coupon_promotion_to_customer_cart(
     assert result.shipping_cost == Decimal("15.00")
     assert result.total == Decimal("205.00")
 
-@pytest.mark.asyncio
+
 async def test_calculate_applies_category_promotion_only_to_target_category(
     db_session,
     sale_pricing_service,

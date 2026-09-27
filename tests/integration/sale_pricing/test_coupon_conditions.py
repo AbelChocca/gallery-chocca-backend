@@ -3,6 +3,10 @@ from decimal import Decimal
 
 import pytest
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
     SalePricingContext,
@@ -12,7 +16,7 @@ from app.core.exceptions import ValidationError
 from app.features.pricing.models.coupon import CouponTable
 from app.features.pricing.models.coupon_redemption import CouponRedemptionTable
 
-@pytest.mark.asyncio
+
 async def test_calculate_rejects_inactive_coupon(
     db_session,
     sale_pricing_service,
@@ -61,7 +65,7 @@ async def test_calculate_rejects_inactive_coupon(
     ):
         await sale_pricing_service.calculate(context=context)
 
-@pytest.mark.asyncio
+
 async def test_calculate_rejects_coupon_before_start_date(
     db_session,
     sale_pricing_service,
@@ -112,7 +116,7 @@ async def test_calculate_rejects_coupon_before_start_date(
     ):
         await sale_pricing_service.calculate(context=context)
 
-@pytest.mark.asyncio
+
 async def test_calculate_rejects_expired_coupon(
     db_session,
     sale_pricing_service,
@@ -163,7 +167,7 @@ async def test_calculate_rejects_expired_coupon(
     ):
         await sale_pricing_service.calculate(context=context)
 
-@pytest.mark.asyncio
+
 async def test_calculate_rejects_exhausted_coupon(
     db_session,
     sale_pricing_service,
@@ -212,7 +216,7 @@ async def test_calculate_rejects_exhausted_coupon(
     ):
         await sale_pricing_service.calculate(context=context)
 
-@pytest.mark.asyncio
+
 async def test_calculate_rejects_customer_coupon_redemption_limit(
     db_session,
     sale_pricing_service,

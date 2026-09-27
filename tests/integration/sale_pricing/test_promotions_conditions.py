@@ -3,6 +3,10 @@ from decimal import Decimal
 
 import pytest
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 from app.features.pricing.models.promotion_pricing_rule import PromotionPricingRuleTable
 from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
@@ -28,7 +32,7 @@ from app.features.pricing.types.promotion_types import (
 from app.core.exceptions import ValidationError
 
 
-@pytest.mark.asyncio
+
 async def test_calculate_exclusive_promotion_blocks_stackable_promotion(
     db_session,
     sale_pricing_service,
@@ -68,7 +72,7 @@ async def test_calculate_exclusive_promotion_blocks_stackable_promotion(
         description="Descuento fijo exclusivo de S/20",
         type=PricingRuleType.FIXED_AMOUNT,
         parameters={
-            "value": "20.00",
+            "amount": "20.00",
         },
     )
 
@@ -174,7 +178,7 @@ async def test_calculate_exclusive_promotion_blocks_stackable_promotion(
     assert result.shipping_cost == Decimal("15.00")
     assert result.total == Decimal("75.00")
 
-@pytest.mark.asyncio
+
 async def test_calculate_applies_oldest_exclusive_promotion_when_priority_is_equal(
     db_session,
     sale_pricing_service,
@@ -229,7 +233,7 @@ async def test_calculate_applies_oldest_exclusive_promotion_when_priority_is_equ
         description="Descuento porcentual del 20%",
         type=PricingRuleType.PERCENTAGE,
         parameters={
-            "value": "20",
+            "percentage": "20",
         },
     )
 
@@ -338,7 +342,7 @@ async def test_calculate_applies_oldest_exclusive_promotion_when_priority_is_equ
     assert result.shipping_cost == Decimal("15.00")
     assert result.total == Decimal("95.00")
 
-@pytest.mark.asyncio
+
 async def test_calculate_rejects_promotion_before_start_date(
     db_session,
     sale_pricing_service,
@@ -374,7 +378,7 @@ async def test_calculate_rejects_promotion_before_start_date(
     ):
         await sale_pricing_service.calculate(context=context)
 
-@pytest.mark.asyncio
+
 async def test_calculate_rejects_expired_promotion(
     db_session,
     sale_pricing_service,
