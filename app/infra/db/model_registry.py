@@ -15,4 +15,5 @@ from app.features.balancing.models.accounts_receivable import AccountsReceivable
 from app.features.balancing.models.balance_snapshot import BalanceSnapshotTable # noqa: F401
 from app.features.balancing.models.financial_debt import FinancialDebtTable # noqa: F401
 from app.features.balancing.models.other_current_liability import OtherCurrentLiabilityTable # noqa: F401
-from app.features.sales.models.customer import Customer # noqa: F401
+from app.features.customer.models.customer import Customer # noqa: F401
+from app.infra.db.models.model_user import UserTable # noqa: F401
