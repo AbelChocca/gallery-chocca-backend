@@ -29,6 +29,22 @@ class PromotionSelectionResolver:
 
         return promotions_by_product
 
+    def resolve_promotions(
+        self,
+        *,
+        promotions: list[Promotion],
+    ) -> list[Promotion]:
+
+        resolved: list[Promotion] = []
+
+        for promotion in promotions:
+            self._resolve_promotion_conflict(
+                promotions=resolved,
+                candidate=promotion,
+            )
+
+        return resolved
+
     def _resolve_promotion_conflict(
         self,
         *,
@@ -80,3 +96,6 @@ class PromotionSelectionResolver:
             return candidate
 
         return current
+
+def get_promotion_selection_resolver() -> PromotionSelectionResolver:
+    return PromotionSelectionResolver()
