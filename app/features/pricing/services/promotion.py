@@ -1,12 +1,17 @@
 from datetime import datetime, timezone
 
-from app.features.pricing.dtos.promotion_dto import (
-    CreatePromotionDTO,
-)
 from app.features.pricing.entities.promotion import Promotion
 from app.features.pricing.repositories.promotion_repository import (
     PromotionRepository,
 )
+from app.features.pricing.types.promotion_types import (
+    PromotionStackingMode,
+    PromotionApplicationScope
+)
+from app.features.sales.types.sale import SaleChannel
+from app.shared.pagination.pagination_service import PaginationService
+from app.shared.pagination.dto import PaginatedDTO
+from app.features.pricing.dtos.promotion_dto import PromotionRowDTO
 
 class PromotionService:
 
@@ -14,31 +19,84 @@ class PromotionService:
         self,
         *,
         promotion_repository: PromotionRepository,
+        pagination_service: PaginationService
     ) -> None:
         self._promotion_repository = promotion_repository
+        self._pagination_service = pagination_service
 
     async def create(
         self,
         *,
-        data: CreatePromotionDTO,
+        name: str,
+        description: str | None,
+        sales_channel: SaleChannel,
+        stacking_mode: PromotionStackingMode,
+        application_scope: PromotionApplicationScope,
+        priority: int,
+        starts_at: datetime | None,
+        ends_at: datetime | None,
+        is_active: bool,
     ) -> Promotion:
 
         promotion = Promotion(
             id=None,
-            name=data.name,
-            description=data.description,
-            sales_channel=data.sales_channel,
-            stacking_mode=data.stacking_mode,
-            priority=data.priority,
-            starts_at=data.starts_at,
-            ends_at=data.ends_at,
-            is_active=data.is_active,
+            name=name,
+            description=description,
+            sales_channel=sales_channel,
+            application_scope=application_scope,
+            stacking_mode=stacking_mode,
+            priority=priority,
+            starts_at=starts_at,
+            ends_at=ends_at,
+            is_active=is_active,
         )
 
         promotion.validate()
 
         return await self._promotion_repository.save(
             entity=promotion,
+        )
+
+    async def toggle_status(
+        self,
+        *,
+        promotion_id: int,
+    ) -> bool:
+
+        return await self._promotion_repository.toggle_status(
+            promotion_id=promotion_id,
+        )
+
+    async def get_rows(
+        self,
+        *,
+        page: int,
+        limit: int,
+        search: str | None = None,
+        sales_channel: SaleChannel | None = None,
+        application_scope: PromotionApplicationScope | None = None,
+        starts_at: datetime | None = None,
+        ends_at: datetime | None = None,
+    ) -> PaginatedDTO[PromotionRowDTO]:
+        offset = self._pagination_service.get_offset(page, limit)
+
+        items, total_items = (
+            await self._promotion_repository.get_rows(
+                offset=offset,
+                limit=limit,
+                search=search,
+                sales_channel=sales_channel,
+                application_scope=application_scope,
+                starts_at=starts_at,
+                ends_at=ends_at,
+            )
+        )
+
+        return PaginatedDTO.create(
+            items=items,
+            total_items=total_items,
+            current_page=self._pagination_service.get_current_page(offset, limit),
+            total_pages=self._pagination_service.get_total_pages(total_items, limit)
         )
 
     async def get_by_id(
@@ -58,7 +116,7 @@ class PromotionService:
         *,
         promotion_id: int,
         changes: dict,
-    ) -> Promotion:
+    ) -> None:
 
         promotion = await self._promotion_repository.get_by_id(
             model_id=promotion_id,
@@ -78,7 +136,7 @@ class PromotionService:
 
         promotion.validate()
 
-        return await self._promotion_repository.save(
+        await self._promotion_repository.save(
             entity=promotion,
         )
 
