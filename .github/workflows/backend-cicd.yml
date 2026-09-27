@@ -43,8 +43,11 @@ jobs:
     env:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test_db
       POSTGRES_DB: test_db
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test_db
       REDIS_URL: redis://localhost:6379/0
       PYTHONPATH: .
 
