@@ -12,5 +12,5 @@ def get_cart_service(
     return CartService(
         cart_repository=uow.carts,
         product_repository=uow.products,
-        product_pricing_repository=uow.product_pricing,
+        inventory_repository=uow.inventory
     )
