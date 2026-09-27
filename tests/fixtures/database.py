@@ -2,42 +2,92 @@ import pytest_asyncio
 
 from sqlmodel import SQLModel
 from sqlalchemy import text
-from tests.config.db_test import engine
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from tests.config.db_test import (
+    engine,
+    async_session_factory,
+)
 from app.infra.db.uow.unit_of_work import UnitOfWork
-from app.features.material.service import MaterialService
-
-from app.shared.pagination.pagination_service import PaginationService
-from app.features.material.material_repository import PostgresMaterialRepository
-from app.features.material.models.model_material import MaterialTable
-from app.infra.db.mappers.material_mapper import MaterialMapper
-
 from app.infra.db import model_registry  # noqa: F401
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
+
+@pytest_asyncio.fixture(
+    scope="session",
+    loop_scope="session",
+    autouse=True,
+)
 async def setup_database():
 
     async with engine.begin() as conn:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
 
-        await conn.run_sync(SQLModel.metadata.drop_all)
+        await conn.execute(
+            text(
+                "CREATE EXTENSION IF NOT EXISTS pg_trgm"
+            )
+        )
 
-        await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.execute(
+            text(
+                "CREATE EXTENSION IF NOT EXISTS unaccent"
+            )
+        )
+
+        await conn.run_sync(
+            SQLModel.metadata.drop_all
+        )
+
+        await conn.run_sync(
+            SQLModel.metadata.create_all
+        )
 
     yield
 
-@pytest_asyncio.fixture(scope="function")
-async def db_session():
     async with engine.begin() as conn:
-        session = AsyncSession(
-            bind=conn,
-            expire_on_commit=False
+        await conn.run_sync(
+            SQLModel.metadata.drop_all
         )
 
-        try:
-            yield session
-        finally:
-            await session.close()
+
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+    autouse=True,
+)
+async def clean_database(
+    setup_database,
+):
+
+    table_names = [
+        f'"{table.name}"'
+        for table in reversed(
+            SQLModel.metadata.sorted_tables
+        )
+    ]
+
+    if table_names:
+        async with engine.connect() as conn:
+
+            await conn.execute(
+                text(
+                    "TRUNCATE TABLE "
+                    + ", ".join(table_names)
+                    + " RESTART IDENTITY CASCADE"
+                )
+            )
+
+            await conn.commit()
+
+    yield
+
+
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
+async def db_session():
+
+    async with async_session_factory() as session:
+        yield session
 
 @pytest_asyncio.fixture
 def uow_factory(db_session):
@@ -45,17 +95,3 @@ def uow_factory(db_session):
         return UnitOfWork(lambda: db_session)
 
     return create_uow
-
-@pytest_asyncio.fixture
-def material_service(db_session):
-
-    repository = PostgresMaterialRepository(
-        db_session=db_session,
-        base_mapper=MaterialMapper,
-        base_model=MaterialTable
-    )
-
-    return MaterialService(
-        material_repository=repository,
-        pagination_service=PaginationService()
-    )
