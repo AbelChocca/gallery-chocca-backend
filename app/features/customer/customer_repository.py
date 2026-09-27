@@ -13,9 +13,6 @@ from app.features.customer.models.customer import Customer
 from app.infra.db.repositories.base_repository import (
     BaseRepository,
 )
-from app.features.sales.types.customer import (
-    CustomerType,
-)
 
 
 class CustomerRepository(

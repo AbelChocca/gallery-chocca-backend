@@ -13,7 +13,6 @@ from app.features.pricing.pricing_route import (
 
 from app.features.pricing.schemas.promotion_schema import (
     UpdatePromotionSchema,
-    PromotionResponseSchema,
 )
 
 from app.features.pricing.services.promotion import (

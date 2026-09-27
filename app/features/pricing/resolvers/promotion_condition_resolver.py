@@ -1,6 +1,3 @@
-from decimal import Decimal
-from typing import Any
-
 from app.features.pricing.entities.promotion_condition import (
     PromotionCondition,
     PromotionConditionParameters,

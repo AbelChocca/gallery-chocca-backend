@@ -1,12 +1,5 @@
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
-
-import pytest
-
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
     SalePricingContext,
@@ -15,6 +8,12 @@ from app.features.sales.types.sale import SaleChannel
 from app.core.exceptions import ValidationError
 from app.features.pricing.models.coupon import CouponTable
 from app.features.pricing.models.coupon_redemption import CouponRedemptionTable
+
+import pytest
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 
 async def test_calculate_rejects_inactive_coupon(

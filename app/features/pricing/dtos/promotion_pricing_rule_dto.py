@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Literal
 from app.features.pricing.types.pricing_rules_types import PricingRuleType
 from app.features.pricing.dtos.pricing_rule_dto import PricingRuleParameters
 

@@ -4,17 +4,11 @@ from app.features.pricing.strategy.base import (
     BasePricingStrategy,
     PricingStrategyResult,
 )
-from app.features.pricing.strategy.base import (
-    BasePricingStrategy,
-)
 
 from app.features.pricing.dtos.pricing_rule_dto import (
     FreeItemRuleParameters,
 )
 
-from app.features.pricing.types.pricing_rules_types import (
-    PricingStrategyResult,
-)
 from app.core.exceptions import ValidationError
 
 

@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
 
 from app.features.pricing.types.pricing_rules_types import (
     PricingRuleType,
