@@ -1,10 +1,6 @@
 import pytest
 from pprint import pprint
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session"
-)
-
 from httpx import AsyncClient
 
 from decimal import Decimal
@@ -13,6 +9,10 @@ from tests.helpers.create_order_subtotal_promotion import (
     create_wholesale_bgoo_order_promotion,
 )
 from app.features.sales.types.customer import CustomerType
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 async def test_toggle_promotion_status_deactivates_e2e(
     admin_client: AsyncClient,

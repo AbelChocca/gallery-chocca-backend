@@ -1,9 +1,4 @@
 import pytest
-
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.material.service import MaterialService
 from app.features.material.dto.material import CreateMaterialDTO, UpdateMaterialDTO
 from app.core.exceptions import ValidationError
@@ -13,6 +8,10 @@ from app.features.material.types import (
     UnitType
 )
 from app.shared.types import CompanyType
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 
 async def test_should_create_material(material_service: MaterialService):

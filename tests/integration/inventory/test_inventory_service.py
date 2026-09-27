@@ -1,14 +1,14 @@
 import pytest
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.inventory.services.inventory_service import InventoryService
 from app.core.exceptions import InvalidOperation, ValueNotFound
 from app.features.inventory.types.inventory import AvailabilityStatus
 from app.features.inventory.types.inventory_movement import InventoryOwnerType
 from decimal import Decimal
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 
 async def test_create_inventory_success(

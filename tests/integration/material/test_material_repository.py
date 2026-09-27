@@ -1,9 +1,4 @@
 import pytest
-
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.material.entities.material import Material
 from app.features.material.dto.material import MaterialFilters
 from app.features.material.types import (
@@ -18,6 +13,10 @@ from app.shared.types import CompanyType
 from app.infra.db.uow.unit_of_work import UnitOfWork
 
 from datetime import datetime, timezone
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 def build_material(
     **overrides

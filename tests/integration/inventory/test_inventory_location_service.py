@@ -1,9 +1,5 @@
 import pytest
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.core.exceptions import (
     ValidationError,
     InvalidOperation,
@@ -15,6 +11,10 @@ from app.features.inventory.services.inventory_location_service import (
 
 from app.features.inventory.types.inventory_location import (
     InventoryLocationType,
+)
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
 )
 
 

@@ -3,10 +3,6 @@ from decimal import Decimal
 
 import pytest
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.sales.types.sale import SaleChannel
 from app.features.products.types import CategoryType
 from app.features.pricing.types.promotion_types import PromotionConditionType
@@ -23,6 +19,10 @@ from tests.helpers.create_per_item_promotion import (
 
 from app.features.pricing.types.pricing_rules_types import (
     PricingRuleType,
+)
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
 )
 
 async def test_order_subtotal_percentage_applies_once_to_order_subtotal(

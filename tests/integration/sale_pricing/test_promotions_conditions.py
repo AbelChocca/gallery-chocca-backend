@@ -1,12 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
-import pytest
-
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.pricing.models.promotion_pricing_rule import PromotionPricingRuleTable
 from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
@@ -30,6 +24,12 @@ from app.features.pricing.types.promotion_types import (
     PromotionTargetType,
 )
 from app.core.exceptions import ValidationError
+
+import pytest
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 
 

@@ -1,9 +1,4 @@
 import pytest
-
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from decimal import Decimal
 
 from app.features.material.service import MaterialService
@@ -17,6 +12,10 @@ from app.features.material.types import (
     FiberType,
 )
 from app.shared.types import CompanyType
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 
 async def test_should_create_material_with_components(

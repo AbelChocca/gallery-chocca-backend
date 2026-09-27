@@ -1,10 +1,10 @@
 import pytest
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session"
-)
-
 from httpx import AsyncClient
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 async def test_get_promotion_coupons_e2e(
     admin_client: AsyncClient,
