@@ -3,6 +3,10 @@ from decimal import Decimal
 
 import pytest
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
 
 from app.features.sales.types.sale import SaleChannel
 from app.features.products.types import CategoryType
@@ -13,7 +17,7 @@ from app.features.pricing.types.promotion_types import PromotionAudienceType, Pr
 from app.features.products.types import CategoryType, BrandType, FitType
 from app.features.products.models.model_product import ProductTable
 
-@pytest.mark.asyncio
+
 async def test_catalog_pricing_applies_public_pant_promotion_only_to_pants(
     db_session,
     catalog_pricing_service,
@@ -23,7 +27,7 @@ async def test_catalog_pricing_applies_public_pant_promotion_only_to_pants(
     products = pricing_products["products"]
 
     pant = products[0]
-    short = catalog_short_product
+    short = catalog_short_product["product"]
 
     await create_category_target_promotion(
         db_session,
@@ -72,7 +76,7 @@ async def test_catalog_pricing_applies_public_pant_promotion_only_to_pants(
     assert short_result.final_price == Decimal("80.00")
     assert short_result.discount_amount == Decimal("0.00")
 
-@pytest.mark.asyncio
+
 async def test_catalog_pricing_respects_customer_audience(
     db_session,
     catalog_pricing_service,
@@ -140,7 +144,7 @@ async def test_catalog_pricing_respects_customer_audience(
 
     assert result[0].final_price == Decimal("50.00")
 
-@pytest.mark.asyncio
+
 @pytest.mark.parametrize(
     ("condition_type", "parameters"),
     [
@@ -196,7 +200,7 @@ async def test_catalog_does_not_preview_promotions_requiring_missing_context(
     assert result[0].final_price == Decimal("50.00")
     assert result[0].discount_amount == Decimal("0.00")
 
-@pytest.mark.asyncio
+
 async def test_catalog_pricing_calculates_multiple_products_in_batch(
     db_session,
     catalog_pricing_service,
