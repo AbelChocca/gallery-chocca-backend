@@ -10,7 +10,6 @@ from app.features.pricing.models.promotion_audience import PromotionAudienceTabl
 from app.features.pricing.models.promotion_condition import PromotionConditionTable
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.features.pricing.dtos.promotion_dto import PromotionCandidateCriteria, PromotionProductCandidateDTO, PromotionRowDTO
-from app.features.pricing.models.promotion_target import PromotionTargetTable
 from app.features.pricing.types.promotion_types import PromotionTargetType
 from app.features.pricing.models.model_pricing_rule import PricingRuleTable
 from app.features.pricing.models.promotion_pricing_rule import PromotionPricingRuleTable
@@ -23,12 +22,6 @@ from app.features.pricing.mappers.promotion_audience_mapper import (
 )
 from app.features.pricing.mappers.promotion_condition_mapper import (
     PromotionConditionMapper,
-)
-from app.features.pricing.models.promotion_condition import (
-    PromotionConditionTable,
-)
-from app.features.pricing.models.promotion_audience import (
-    PromotionAudienceTable,
 )
 from app.features.pricing.entities.promotion_condition import (
     PromotionCondition,

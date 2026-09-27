@@ -1,13 +1,12 @@
 import pytest
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.inventory.types.inventory_movement import InventoryMovementType, InventoryOwnerType
 from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters
 from app.features.inventory.services.inventory_movement_service import InventoryMovementService
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 
 async def test_should_create_inventory_movement(

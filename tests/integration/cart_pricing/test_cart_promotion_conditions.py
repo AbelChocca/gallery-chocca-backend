@@ -3,10 +3,6 @@ from decimal import Decimal
 
 import pytest
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.sales.types.sale import SaleChannel
 from app.features.sales.types.customer import CustomerType
 from app.features.products.types import CategoryType
@@ -14,6 +10,9 @@ from app.features.pricing.types.promotion_types import PromotionConditionType, P
 from tests.helpers.create_test_promotion import create_cart_condition_promotion, create_category_audience_promotion
 from app.features.pricing.dtos.cart_pricing_dto import CartPricingContext, CartPricingItemDTO
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 async def test_cart_pricing_applies_minimum_order_amount_condition(
     db_session,

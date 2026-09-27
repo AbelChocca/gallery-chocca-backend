@@ -3,15 +3,15 @@ from decimal import Decimal
 
 import pytest
 
-pytestmark = pytest.mark.asyncio(
-    loop_scope="session",
-)
-
 from app.features.sales.types.sale import SaleChannel
 from app.features.products.types import CategoryType
 from tests.helpers.create_test_promotion import create_category_target_promotion
 from app.features.pricing.dtos.cart_pricing_dto import CartPricingContext, CartPricingItemDTO
 
+
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
 async def test_cart_pricing_applies_promotion_only_to_target_products(
     db_session,

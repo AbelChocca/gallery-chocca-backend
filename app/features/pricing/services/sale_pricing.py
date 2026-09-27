@@ -34,7 +34,6 @@ from app.features.pricing.resolvers.promotion_condition_resolver import (
 )
 
 from app.features.pricing.types.promotion_types import (
-    PromotionStackingMode,
     PromotionTargetType,
 )
 from app.features.pricing.repositories.coupon_redemption_repository import (
