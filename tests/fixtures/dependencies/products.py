@@ -11,7 +11,10 @@ from app.features.products.types import (
     FitType,
 )
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
 async def catalog_short_product(db_session):
     short = ProductTable(
         nombre="Short Catalog Test",
@@ -24,12 +27,41 @@ async def catalog_short_product(db_session):
     )
 
     db_session.add(short)
+    await db_session.flush()
+
+    variant = VariantTable(
+        product_id=short.id,
+        color="Negro",
+    )
+
+    db_session.add(variant)
+    await db_session.flush()
+
+    variant_size = VariantSizeTable(
+        variant_id=variant.id,
+        size="M",
+        sku="CATALOG-SHORT-NEGRO-M",
+        barcode="CATALOG-SHORT-BARCODE-001",
+    )
+
+    db_session.add(variant_size)
+
     await db_session.commit()
+
     await db_session.refresh(short)
+    await db_session.refresh(variant)
+    await db_session.refresh(variant_size)
 
-    return short
+    return {
+        "product": short,
+        "variant": variant,
+        "variant_size": variant_size,
+    }
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
 async def pricing_products(db_session):
     products = [
         ProductTable(
@@ -152,7 +184,10 @@ async def pricing_products(db_session):
     }
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
 async def product(db_session):
 
     product = ProductTable(
@@ -162,6 +197,7 @@ async def product(db_session):
         category=CategoryType.PANT,
         fit=FitType.REGULAR,
         slug="polo-test",
+        base_price=Decimal("300.00"),
     )
 
     db_session.add(product)
@@ -171,7 +207,10 @@ async def product(db_session):
 
     return product
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
 async def variant(
     db_session,
     product,
@@ -190,7 +229,10 @@ async def variant(
     return variant
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
 async def variant_size(
     db_session,
     variant,
@@ -209,7 +251,10 @@ async def variant_size(
 
     return variant_size
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
 async def location(db_session):
     location = InventoryLocationTable(
         name="Test Store",

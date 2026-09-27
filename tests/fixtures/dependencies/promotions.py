@@ -27,7 +27,10 @@ from app.features.pricing.types.promotion_types import (
 from app.features.sales.types.sale import SaleChannel
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    scope="function",
+    loop_scope="session",
+)
 async def pricing_promotions(db_session:AsyncSession, pricing_products):
     products = pricing_products["products"]
 
@@ -73,7 +76,7 @@ async def pricing_promotions(db_session:AsyncSession, pricing_products):
         description="Descuento porcentual del 10%",
         type=PricingRuleType.PERCENTAGE,
         parameters={
-            "value": "10",
+            "percentage": "10",
         },
     )
 
@@ -82,7 +85,7 @@ async def pricing_promotions(db_session:AsyncSession, pricing_products):
         description="Descuento fijo de S/20",
         type=PricingRuleType.FIXED_AMOUNT,
         parameters={
-            "value": "20.00",
+            "amount": "20.00",
         },
     )
 
