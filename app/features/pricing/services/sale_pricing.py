@@ -1,5 +1,4 @@
 from app.features.pricing.calculators.pricing_calculator import PricingCalculator
-from datetime import datetime
 
 from app.features.pricing.dtos.promotion_dto import (
     PromotionCandidateCriteria,
