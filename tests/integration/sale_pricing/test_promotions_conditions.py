@@ -23,7 +23,6 @@ from app.features.pricing.types.promotion_types import (
     PromotionStackingMode,
     PromotionTargetType,
 )
-from app.core.exceptions import ValidationError
 
 import pytest
 
@@ -343,7 +342,7 @@ async def test_calculate_applies_oldest_exclusive_promotion_when_priority_is_equ
     assert result.total == Decimal("95.00")
 
 
-async def test_calculate_rejects_promotion_before_start_date(
+async def test_calculate_ignores_promotion_before_start_date(
     db_session,
     sale_pricing_service,
     pricing_products,
@@ -372,14 +371,18 @@ async def test_calculate_rejects_promotion_before_start_date(
         now=now,
     )
 
-    with pytest.raises(
-        ValidationError,
-        match="La promoción aún no está disponible.",
-    ):
-        await sale_pricing_service.calculate(context=context)
+    result = await sale_pricing_service.calculate(
+        context=context,
+    )
+
+    item = result.items[0]
+
+    assert item.original_total == Decimal("100.00")
+    assert item.discount_amount == Decimal("0.00")
+    assert item.final_total == Decimal("100.00")
 
 
-async def test_calculate_rejects_expired_promotion(
+async def test_calculate_ignores_expired_promotion(
     db_session,
     sale_pricing_service,
     pricing_products,
@@ -408,8 +411,12 @@ async def test_calculate_rejects_expired_promotion(
         now=now,
     )
 
-    with pytest.raises(
-        ValidationError,
-        match="La promocion ha expirado",
-    ):
-        await sale_pricing_service.calculate(context=context)
+    result = await sale_pricing_service.calculate(
+        context=context,
+    )
+
+    item = result.items[0]
+
+    assert item.original_total == Decimal("100.00")
+    assert item.discount_amount == Decimal("0.00")
+    assert item.final_total == Decimal("100.00")

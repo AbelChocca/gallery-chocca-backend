@@ -1,66 +1,59 @@
 from datetime import datetime
 
 from app.features.pricing.entities.promotion import Promotion
-from app.core.exceptions import ValidationError
-
+from app.features.pricing.dtos.promotion_dto import (
+    PromotionProductCandidateDTO,
+)
 
 class PromotionResolver:
 
-    def validate(
+    def is_available(
         self,
         *,
         promotion: Promotion,
         now: datetime,
-    ) -> None:
-        self._validate_active(
-            promotion=promotion,
-        )
-        self._validate_start_date(
-            promotion=promotion,
-            now=now,
-        )
-        self._validate_end_date(
-            promotion=promotion,
-            now=now,
-        )
-
-    def _validate_active(
-        self,
-        *,
-        promotion: Promotion,
-    ) -> None:
+    ) -> bool:
         if not promotion.is_active:
-            raise ValidationError(
-                "La promocion esta inactiva."
-            )
+            return False
 
-    def _validate_start_date(
-        self,
-        *,
-        promotion: Promotion,
-        now: datetime,
-    ) -> None:
         if (
             promotion.starts_at is not None
             and now < promotion.starts_at
         ):
-            raise ValidationError(
-                "La promoción aún no está disponible."
-            )
+            return False
 
-    def _validate_end_date(
-        self,
-        *,
-        promotion: Promotion,
-        now: datetime,
-    ) -> None:
         if (
             promotion.ends_at is not None
             and now >= promotion.ends_at
         ):
-            raise ValidationError(
-                "La promocion ha expirado"
-            )
+            return False
+
+        return True
+
+    def filter_available(
+        self,
+        *,
+        candidates: list[PromotionProductCandidateDTO],
+        now: datetime,
+    ) -> list[PromotionProductCandidateDTO]:
+        availability_cache: dict[int, bool] = {}
+
+        result: list[PromotionProductCandidateDTO] = []
+
+        for candidate in candidates:
+            promotion = candidate.promotion
+
+            if promotion.id not in availability_cache:
+                availability_cache[promotion.id] = self.is_available(
+                    promotion=promotion,
+                    now=now,
+                )
+
+            if availability_cache[promotion.id]:
+                result.append(candidate)
+
+        return result
+
 
 def get_promotion_resolver() -> PromotionResolver:
     return PromotionResolver()

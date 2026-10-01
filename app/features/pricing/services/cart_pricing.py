@@ -110,7 +110,7 @@ class CartPricingService:
             criteria=criteria,
         )
 
-        self._validate_promotions(
+        candidates = self._promotion_resolver.filter_available(
             candidates=candidates,
             now=context.now,
         )
@@ -334,25 +334,3 @@ class CartPricingService:
                 promotion_totals.values()
             ),
         )
-
-    def _validate_promotions(
-        self,
-        *,
-        candidates: list[PromotionProductCandidateDTO],
-        now: datetime,
-    ) -> None:
-
-        validated: set[int] = set()
-
-        for candidate in candidates:
-            promotion = candidate.promotion
-
-            if promotion.id in validated:
-                continue
-
-            self._promotion_resolver.validate(
-                promotion=promotion,
-                now=now,
-            )
-
-            validated.add(promotion.id)
