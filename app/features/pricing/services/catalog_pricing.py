@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from app.features.pricing.dtos.promotion_dto import (
     PromotionCandidateCriteria,
     PromotionProductCandidateDTO,
