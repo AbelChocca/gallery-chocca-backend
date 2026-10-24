@@ -9,7 +9,7 @@ from app.features.cart.dto import (
 from app.features.cart.service import (
     CartService,
 )
-from app.features.sales.types.customer import (
+from app.features.customer.customer_types import (
     CustomerType,
 )
 from app.features.pricing.dtos.cart_pricing_dto import (
