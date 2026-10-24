@@ -3,7 +3,7 @@ from app.infra.db.repositories.product_repository import PostgresProductReposito
 from app.features.inventory.repositories.inventory_repository import InventoryRepository
 from app.core.exceptions import ValidationError
 from app.features.cart.entities.cart import Cart
-from app.features.cart.types import CartItemRow
+from app.features.cart.dto import CartItemRow
 from app.features.inventory.types.inventory_movement import InventoryOwnerType
 
 
@@ -17,6 +17,18 @@ class CartService:
         self._cart_repository = cart_repository
         self._product_repository = product_repository
         self._inventory_repo = inventory_repository
+
+
+    async def get_active_cart_items_count(
+        self,
+        *,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> int:
+        return await self._cart_repository.get_active_cart_items_count(
+            user_id=user_id,
+            session_id=session_id,
+        )
 
     async def add_item(
         self,
@@ -199,14 +211,20 @@ class CartService:
                 merged_quantity += existing_item.quantity
 
             variant_size = await self._product_repository.get_variant_size_by_id(
-                guest_item.variant_size_id,
-                with_lock=True
+                guest_item.variant_size_id
             )
 
-            # clamp quantity to available stock
+            total_available_stock = await (
+                self._inventory_repo
+                .get_total_available_stock_by_owner(
+                    owner_type=InventoryOwnerType.PRODUCT,
+                    owner_id=variant_size.id,
+                )
+            )
+
             final_quantity = min(
                 merged_quantity,
-                variant_size.stock
+                total_available_stock
             )
 
             # item already exists in user cart
