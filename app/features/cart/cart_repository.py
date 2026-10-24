@@ -16,6 +16,42 @@ from sqlmodel import col
 
 class CartRepository(BaseRepository[Cart, CartTable]):   
 
+    async def get_active_cart_items_count(
+        self,
+        *,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> int:
+        if user_id is None and session_id is None:
+            return 0
+
+        stmt = (
+            select(
+                func.coalesce(
+                    func.sum(CartItemTable.quantity),
+                    0,
+                )
+            )
+            .select_from(CartTable)
+            .join(
+                CartItemTable,
+                CartItemTable.cart_id == CartTable.id,
+            )
+            .where(
+                CartTable.status == CartStatus.ACTIVE,
+            )
+        )
+
+        if user_id is not None:
+            stmt = stmt.where(CartTable.user_id == user_id)
+        else:
+            stmt = stmt.where(CartTable.session_id == session_id)
+
+        result = await self._db_session.execute(stmt)
+
+        return int(result.scalar_one())
+
+
     async def delete_product_from_carts(
         self,
         product_id: int,
