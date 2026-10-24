@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends, status
 
 from app.features.cart.cart_route import router
-from app.features.cart.dependency import get_cart_service
+from app.features.cart.dependencies.services import get_cart_service
 from app.features.cart.schema import AddCartItemRequest
 
 from app.features.cart.service import CartService
