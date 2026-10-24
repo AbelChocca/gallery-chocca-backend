@@ -7,7 +7,7 @@ from app.features.pricing.dtos.sale_pricing import (
     SalePricingContext,
 )
 from tests.helpers.create_test_promotion import create_test_promotion
-from app.features.sales.types.customer import CustomerType
+from app.features.customer.customer_types import CustomerType
 from app.features.pricing.types.pricing_rules_types import PricingRuleType
 from app.features.sales.types.sale import SaleChannel
 from app.features.pricing.models.model_pricing_rule import PricingRuleTable

@@ -5,7 +5,7 @@ from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
     SalePricingContext,
 )
-from app.features.sales.types.customer import CustomerType
+from app.features.customer.customer_types import CustomerType
 from app.features.sales.types.sale import SaleChannel
 from app.features.products.types import CategoryType, BrandType, FitType
 from app.features.products.models.model_product import ProductTable
