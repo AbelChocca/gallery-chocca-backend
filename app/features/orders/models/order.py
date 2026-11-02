@@ -5,6 +5,7 @@ from sqlalchemy import Column, Enum as SQLEnum, DateTime, Sequence
 from sqlmodel import Field, SQLModel
 
 from app.features.orders.types.order import OrderStatus
+from app.features.orders.types.delivery import DeliveryMethod
 from app.features.payments.types.payment import PaymentMethod
 
 order_number_sequence = Sequence(
@@ -62,6 +63,23 @@ class OrderTable(SQLModel, table=True):
             ),
             nullable=False,
             server_default=OrderStatus.PENDING_PAYMENT.value,
+        ),
+    )
+
+    delivery_method: DeliveryMethod = Field(
+        default=DeliveryMethod.SHIPPING,
+        sa_column=Column(
+            SQLEnum(
+                DeliveryMethod,
+                values_callable=lambda enum: [
+                    item.value for item in enum
+                ],
+                native_enum=False,
+                create_constraint=True,
+                name="ck_orders_delivery_method",
+            ),
+            nullable=False,
+            server_default=DeliveryMethod.SHIPPING.value,
         ),
     )
 
