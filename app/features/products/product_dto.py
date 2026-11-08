@@ -80,10 +80,14 @@ class ProductDetailDTO:
             id=data["id"],
             nombre=data["nombre"],
             descripcion=data["descripcion"],
-            brand=data["brand"],
             base_price=Decimal(data["base_price"]),
-            category=data["category"],
-            fit=data.get("fit"),
+            brand=BrandType(data["brand"]),
+            category=CategoryType(data["category"]),
+            fit=(
+                FitType(data["fit"])
+                if data.get("fit") is not None
+                else None
+            ),
             slug=data.get("slug"),
             variants=[
                 ProductVariantDTO.from_dict(variant)
