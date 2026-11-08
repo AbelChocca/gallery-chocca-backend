@@ -5,6 +5,7 @@ from decimal import Decimal
 from app.features.media.schema import ReadImage
 from app.shared.pagination.schema import PaginationResponseSchema
 from app.features.products.types import ColorFilter, BrandType, CategoryType, SizeType, FitType
+from app.features.pricing.schemas.promotion_schema import AppliedPromotionResponseSchema
 from app.features.inventory.schemas.inventory_schema import CreateInventorySchema
 
 class VariantSizeRead(BaseModel):
@@ -31,10 +32,20 @@ class ProductRead(BaseModel):
     descripcion: str
     brand: BrandType
     category: CategoryType
+
+    base_price: Decimal
+    
     fit: str | None
     slug: str | None
 
     variants: List[ProductVariantRead]
+
+    discount_price: Decimal | None = None
+    final_price: Decimal | None = None
+
+    applied_promotions: list[AppliedPromotionResponseSchema] = Field(
+        default_factory=list
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -95,6 +106,8 @@ class CreateProductSchema(BaseModel):
 
     category: CategoryType
 
+    base_price: Decimal = Field(gt=0)
+
     brand: BrandType
 
     fit: str
@@ -111,6 +124,10 @@ class UpdateProductSchema(BaseModel):
     descripcion: str | None = Field(default=None, examples=[None], min_length=2)
     brand: BrandType | None = Field(default=None, examples=[None], min_length=2)
     category: CategoryType | None = Field(default=None, min_length=4, examples=[None]) # Ej: "pantalon", "camisa"\
+    base_price: Decimal | None = Field(
+        default=None,
+        gt=0,
+    )
     fit: str | None = Field(default=None, examples=[None], min_length=2)  # Ej: "jean", "drill"
 
     # flags
