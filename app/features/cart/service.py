@@ -1,11 +1,10 @@
 from app.features.cart.cart_repository import CartRepository
 from app.infra.db.repositories.product_repository import PostgresProductRepository
 from app.features.inventory.repositories.inventory_repository import InventoryRepository
-from app.core.exceptions import ValidationError
+from app.core.exceptions import ValidationError, InvalidOperation
 from app.features.cart.entities.cart import Cart
 from app.features.cart.dto import CartItemRow
 from app.features.inventory.types.inventory_movement import InventoryOwnerType
-
 
 class CartService:
     def __init__(
@@ -78,29 +77,27 @@ class CartService:
     
     async def set_item_quantity(
         self,
+        *,
         cart_item_id: int,
         quantity: int,
+        user_id: int | None,
+        session_id: str | None,
     ) -> None:
-
         if quantity <= 0:
             raise ValidationError(
                 "Quantity must be greater than 0",
-                {
-                    "event": "set_item_quantity",
-                    "cart_item_id": cart_item_id,
-                    "quantity": quantity,
-                }
             )
 
-        item = await self._cart_repository.get_cart_item_by_id(
-            cart_item_id,
-            raises=True
+        item = await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
+            user_id=user_id,
+            session_id=session_id,
         )
 
         await self._validate_product_stock(
             product_id=item.product_id,
             variant_size_id=item.variant_size_id,
-            quantity=quantity
+            quantity=quantity,
         )
 
         item.quantity = quantity
@@ -109,16 +106,23 @@ class CartService:
     
     async def increment_item_quantity(
         self,
+        *,
         cart_item_id: int,
+        user_id: int | None,
+        session_id: str | None,
     ) -> None:
-        item = await self._cart_repository.get_cart_item_by_id(cart_item_id, raises=True)
+        item = await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
+            user_id=user_id,
+            session_id=session_id,
+        )
 
         new_quantity = item.quantity + 1
 
         await self._validate_product_stock(
             product_id=item.product_id,
             variant_size_id=item.variant_size_id,
-            quantity=new_quantity
+            quantity=new_quantity,
         )
 
         item.quantity = new_quantity
@@ -127,9 +131,16 @@ class CartService:
     
     async def decrement_item_quantity(
         self,
+        *,
         cart_item_id: int,
-    ):
-        item = await self._cart_repository.get_cart_item_by_id(cart_item_id, True)
+        user_id: int | None,
+        session_id: str | None,
+    ) -> None:
+        item = await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
+            user_id=user_id,
+            session_id=session_id,
+        )
 
         if item.quantity <= 1:
             raise ValidationError(
@@ -142,9 +153,31 @@ class CartService:
 
     async def remove_item_from_cart(
         self,
-        cart_item_id: int
+        *,
+        cart_item_id: int,
+        user_id: int | None,
+        session_id: str | None,
     ) -> None:
-        await self._cart_repository.delete_item(cart_item_id)
+        await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
+            user_id=user_id,
+            session_id=session_id,
+        )
+
+        await self._cart_repository.delete_item(
+            cart_item_id
+        )
+
+    async def get_cart_id_by_owner(
+        self,
+        *,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> int | None:
+        return await self._cart_repository.get_active_cart_id_by_owner(
+            user_id=user_id,
+            session_id=session_id,
+        )
     
     async def get_cart_by_owner(
         self,
@@ -316,3 +349,38 @@ class CartService:
         return await self._cart_repository.save(
             cart
         )
+    
+    async def _get_owned_cart_item(
+        self,
+        *,
+        cart_item_id: int,
+        user_id: int | None,
+        session_id: str | None,
+    ):
+        cart_id = await self.get_cart_id_by_owner(
+            user_id=user_id,
+            session_id=session_id,
+        )
+
+        if cart_id is None:
+            raise InvalidOperation(
+                "Cart item not available.",
+                {
+                    "event": "cart_item_access_denied",
+                },
+            )
+
+        item = await self._cart_repository.get_cart_item_by_id(
+            cart_item_id,
+            raises=False,
+        )
+
+        if item is None or item.cart_id != cart_id:
+            raise InvalidOperation(
+                "Cart item not available.",
+                {
+                    "event": "cart_item_access_denied",
+                },
+            )
+
+        return item
