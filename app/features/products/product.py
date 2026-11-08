@@ -7,7 +7,7 @@ from decimal import Decimal
 from app.core.exceptions import ValidationError
 
 class Product:
-    _UPDATABLE_FIELDS = {"nombre", "descripcion", "category", "fit", "brand"}
+    _UPDATABLE_FIELDS = {"nombre", "descripcion", "category", "fit", "brand", "base_price", "is_active"}
 
     def __init__(
             self,
@@ -45,8 +45,17 @@ class Product:
         return self._base_price
     
     @base_price.setter
-    def price(self, new_price: Decimal) -> None:
-        self._base_price = new_price
+    def base_price(self, value: Decimal) -> None:
+        if value <= Decimal("0"):
+            raise ValidationError(
+                "El precio base debe ser mayor que cero.",
+                {
+                    "entity": "Product",
+                    "field": "base_price",
+                },
+            )
+
+        self._base_price = value
 
     @property
     def variants(self) -> List[ProductVariant]:
@@ -138,7 +147,7 @@ class Product:
         for size in variant_command.sizes:
 
             variant.add_new_size(
-                size=size,
+                size=size.size,
                 product_name=self.nombre,
                 variant_color=variant_command.color,
                 barcode=size.barcode
@@ -156,13 +165,8 @@ class Product:
                     "invalid_prop_type": type(new_product_obj).__name__
                 }
             )
-        if not new_product_obj:
-            return None
 
         for key, value in new_product_obj.items():
-            if key == "variants":
-                continue
-
             if key not in self._UPDATABLE_FIELDS:
                 continue
 

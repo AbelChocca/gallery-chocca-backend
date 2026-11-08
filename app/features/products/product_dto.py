@@ -1,8 +1,9 @@
 from dataclasses import dataclass, asdict, field
-from typing import List, Optional, Dict
+from typing import List, Dict
 from decimal import Decimal
 
 from app.features.products.variant.variant_dto import PublishProductVariantCommand, GridProductVariantDTO, ProductVariantDTO
+from app.features.pricing.dtos.cart_pricing_dto import AppliedPromotionDTO, PromotionApplicationScope
 from app.features.products.types import BrandType, CategoryType, FitType
 from app.shared.pagination.dto import PaginatedDTO, PaginationDTO
 
@@ -15,10 +16,19 @@ class ProductDetailDTO:
     brand: BrandType
     category: CategoryType
 
+    base_price: Decimal
+
     fit: FitType | None
     slug: str | None
 
     variants: list[ProductVariantDTO] = field(default_factory=list)
+
+    discount_price: Decimal | None = None
+    final_price: Decimal | None = None
+
+    applied_promotions: list[AppliedPromotionDTO] = field(
+        default_factory=list
+    )
 
     def to_dict(self) -> dict:
         return {
@@ -27,11 +37,36 @@ class ProductDetailDTO:
             "descripcion": self.descripcion,
             "brand": self.brand,
             "category": self.category,
+            "base_price": str(self.base_price),
             "fit": self.fit,
             "slug": self.slug,
             "variants": [
                 variant.to_dict()
                 for variant in self.variants
+            ],
+            "discount_price": (
+                str(self.discount_price)
+                if self.discount_price is not None
+                else None
+            ),
+            "final_price": (
+                str(self.final_price)
+                if self.final_price is not None
+                else None
+            ),
+            "applied_promotions": [
+                {
+                    "promotion_id": promo.promotion_id,
+                    "name": promo.name,
+                    "discount_amount": str(promo.discount_amount),
+                    "application_scope": (
+                        promo.application_scope.value
+                        if promo.application_scope is not None
+                        else None
+                    ),
+                    "coupon_code": promo.coupon_code,
+                }
+                for promo in self.applied_promotions
             ],
         }
 
@@ -46,12 +81,41 @@ class ProductDetailDTO:
             nombre=data["nombre"],
             descripcion=data["descripcion"],
             brand=data["brand"],
+            base_price=Decimal(data["base_price"]),
             category=data["category"],
             fit=data.get("fit"),
             slug=data.get("slug"),
             variants=[
                 ProductVariantDTO.from_dict(variant)
                 for variant in data["variants"]
+            ],
+            discount_price=(
+                Decimal(data["discount_price"])
+                if data.get("discount_price") is not None
+                else None
+            ),
+            final_price=(
+                Decimal(data["final_price"])
+                if data.get("final_price") is not None
+                else None
+            ),
+            applied_promotions=[
+                AppliedPromotionDTO(
+                    promotion_id=promo["promotion_id"],
+                    name=promo["name"],
+                    discount_amount=Decimal(
+                        promo["discount_amount"]
+                    ),
+                    application_scope=(
+                        PromotionApplicationScope(
+                            promo["application_scope"]
+                        )
+                        if promo.get("application_scope") is not None
+                        else None
+                    ),
+                    coupon_code=promo.get("coupon_code"),
+                )
+                for promo in data.get("applied_promotions", [])
             ],
         )
 
@@ -165,27 +229,12 @@ class CatalogProductDTO(PaginatedDTO[GridProductDTO]):
             )
         )
 
-@dataclass
-class UpdateProductCommand:
-    id: Optional[int] = None
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
-    brand: Optional[BrandType] = None
-    category: Optional[CategoryType] = None
-    fit: str | None = None
-
-    # flags
-    name_changed: bool = False
-
-    @property
-    def to_dict(self) -> dict:
-        return asdict(self)
-
 @dataclass 
 class PublishProductCommand:
     nombre: str
     descripcion: str
     category: CategoryType
+    base_price: Decimal
     brand: BrandType
     fit: str
 
