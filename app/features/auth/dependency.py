@@ -2,7 +2,7 @@ from app.features.auth.auth_service import AuthService
 from app.features.user.dependency import get_user_service
 from app.features.user.service import UserService
 from app.api.security.hashing.hash_service import HashService, get_hasher_service
-from app.features.cart.dependency import get_cart_service
+from app.features.cart.dependencies.services import get_cart_service
 from app.features.cart.service import CartService
 from app.api.security.jwt.jwt_service import JWTService, get_jwt_service
 from app.core.settings.pydantic_settings import Settings, get_settings

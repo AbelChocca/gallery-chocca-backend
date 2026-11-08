@@ -37,7 +37,7 @@ async def logout(
 @router.post(
     '/register',
     response_model=ReadSessionSchema,
-    dependencies=[Depends(limiter.limiter(3, 60))],
+    dependencies=[Depends(limiter.limiter(5, 3600))],
     status_code=status.HTTP_201_CREATED,
     summary='Register form for user'
     )
