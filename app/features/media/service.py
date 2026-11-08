@@ -195,6 +195,7 @@ class MediaService:
 
             raise ae
         
+
     async def create_image_batch(
         self,
         *,
@@ -202,25 +203,21 @@ class MediaService:
         owner_id: int,
         owner_type: str,
     ) -> list[ImageEntity]:
+        if not uploads:
+            return []
 
-        images: list[ImageEntity] = []
-
-        for upload in uploads:
-            image = ImageEntity(
+        images = [
+            ImageEntity(
                 image_url=upload.url,
                 public_id=upload.public_id,
                 owner_id=owner_id,
                 owner_type=owner_type,
             )
+            for upload in uploads
+        ]
 
-            await self._image_repo.save_many(
-                image,
-                flush=False
-            )
+        return await self._image_repo.save_many(images)
 
-            images.append(image)
-
-        return images
 
     async def upload_images_batch(self, images_resource: List[BinaryIO], folder: str) -> List[MediaImageDTO]:
         semaphore = self._async_service.create_semaphore(3)
