@@ -14,7 +14,8 @@ from app.features.orders.types.order_billing import AdminOrderBillingDTO, MyOrde
 from app.features.orders.types.order_item import AdminOrderItemDTO, MyOrderItemDTO
 from app.features.orders.types.order_promotion import AdminOrderPromotionDTO, MyOrderPromotionDTO
 from app.features.customer.dtos.customer import AdminOrderCustomerDTO, MyOrderCustomerDTO
-from app.features.orders.types.order_receipt import AdminOrderReceiptDTO    
+from app.features.orders.types.order_receipt import AdminOrderReceiptDTO 
+from app.features.orders.types.order_pickup import OrderPickupDetailDTO   
 
 from app.features.payments.types.payment import (
     PaymentMethod,
@@ -215,7 +216,10 @@ class AdminOrderDetailDTO:
 
     promotions: list[AdminOrderPromotionDTO]
 
-    address: AdminOrderAddressDTO
+    delivery_method: DeliveryMethod
+
+    address: AdminOrderAddressDTO | None
+    pickup: OrderPickupDetailDTO | None
 
     billing: AdminOrderBillingDTO | None
 
@@ -259,7 +263,10 @@ class MyOrderDetailDTO:
 
     promotions: list[MyOrderPromotionDTO]
 
-    address: MyOrderAddressDTO
+    delivery_method: DeliveryMethod
+
+    address: MyOrderAddressDTO | None
+    pickup: OrderPickupDetailDTO | None
 
     billing: MyOrderBillingDTO | None
 
