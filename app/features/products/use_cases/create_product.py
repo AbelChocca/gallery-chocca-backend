@@ -117,7 +117,6 @@ class CreateProductUseCase(UseCaseSaga):
                 variant_command.temp_key
             ] = variant_id
 
-        # variant_id -> images
         images_by_variant: dict[int, list[BinaryIO]] = {}
 
 
@@ -150,6 +149,7 @@ class CreateProductUseCase(UseCaseSaga):
 
         return images_by_variant
     
+    
     async def _create_initial_inventory(
         self,
         *,
@@ -157,39 +157,48 @@ class CreateProductUseCase(UseCaseSaga):
         command: PublishProductCommand,
         user_id: int,
     ) -> None:
-
-        inventory_mapping = {
-            (
-                variant.temp_key,
-                size.size,
-            ): size.inventories
-            for variant in command.variants
-            for size in variant.sizes
-        }
-
-        variant_command_by_temp = {
-            variant.temp_key: variant
+        variant_commands_by_color = {
+            variant.color: variant
             for variant in command.variants
         }
 
         for variant in product.variants:
+            variant_command = variant_commands_by_color.get(
+                variant.color
+            )
 
-            variant_command = variant_command_by_temp[
-                variant.temp_key
-            ]
+            if variant_command is None:
+                raise ValidationError(
+                    "Color de variante no fue encontrado despues de la publicacion",
+                    {
+                        "event": "create_product_use_case/inventory_mapping",
+                        "color": variant.color,
+                    },
+                )
 
-            for size in variant.sizes:
+            inventories_by_size = {
+                size.size: size.inventories
+                for size in variant_command.sizes
+            }
 
-                inventories = inventory_mapping[
-                    (
-                        variant_command.temp_key,
-                        size.size,
+            for variant_size in variant.sizes:
+                inventories = inventories_by_size.get(
+                    variant_size.size
+                )
+
+                if inventories is None:
+                    raise ValidationError(
+                        "La talla de la variante no fue encontrado en el comando de publicacion",
+                        {
+                            "event": "create_product_use_case/inventory_mapping",
+                            "color": variant.color,
+                            "size": variant_size.size,
+                        },
                     )
-                ]
 
                 await self._create_inventory_for_size(
                     product=product,
-                    variant_size=size,
+                    variant_size=variant_size,
                     inventories=inventories,
                     user_id=user_id,
                 )
