@@ -20,6 +20,7 @@ class ProductMapper:
             descripcion=product.descripcion,
             brand=product.brand,
             category=product.category,
+            base_price=product.base_price,
             fit=product.fit,
             slug=product.slug,
             variants=[

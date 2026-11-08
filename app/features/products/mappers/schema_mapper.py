@@ -3,48 +3,15 @@ from app.features.inventory.dtos.inventory import CreateInventoryCommand
 from app.core.constants.color_families import COLOR_FAMILY_MAP
 
 from app.features.products.product_dto import (
-    CatalogProductDTO,
-    GridProductDTO,
-    ProductDetailDTO,
     PublishProductCommand,
     PublishProductVariantCommand,
     FilterProductCommand,
-    UpdateProductCommand
 )
 
 from app.features.products.schema import (
-    ProductRead,
-    GridProductRead,
-    GetGridProductsResponse,
     CreateProductSchema,
     FilterSchema,
-    UpdateProductSchema
 )
-
-
-class OutputSchemaMapper:
-
-    @staticmethod
-    def to_product_read(dto: ProductDetailDTO) -> ProductRead:
-        return ProductRead.model_validate(dto)
-
-    @staticmethod
-    def to_grid_product_read(dto: GridProductDTO) -> GridProductRead:
-        return GridProductRead.model_validate(dto)
-
-    @staticmethod
-    def to_grid_products_response(
-        dto: CatalogProductDTO,
-    ) -> GetGridProductsResponse:
-
-        return GetGridProductsResponse(
-            products=[
-                OutputSchemaMapper.to_grid_product_read(product)
-                for product in dto.items
-            ],
-            total_items=dto.total_items,
-            pagination=dto.pagination,
-        )
 
 class InputSchemaMapper:
 
@@ -81,22 +48,10 @@ class InputSchemaMapper:
             descripcion=schema.descripcion,
             brand=schema.brand,
             category=schema.category,
+            base_price=schema.base_price,
             fit=schema.fit,
             variants=product_variants,
             temp_keys=schema.temp_keys,
-        )
-    
-    @staticmethod
-    def to_update_command(schema: UpdateProductSchema) -> UpdateProductCommand:
-
-        return UpdateProductCommand(
-            id=schema.id,
-            nombre=schema.nombre,
-            descripcion=schema.descripcion,
-            brand=schema.brand,
-            category=schema.category,
-            fit=schema.fit,
-            name_changed=schema.name_changed,
         )
     
     @staticmethod
