@@ -18,8 +18,8 @@ from app.features.pricing.dtos.catalog_pricing_dto import (
     CatalogPricingItemResultDTO,
 )
 
-from app.features.sales.types.customer import CustomerType
-from app.features.sales.types.sale import SaleChannel
+from app.features.customer.customer_types import CustomerType
+from app.features.orders.types.sale import SaleChannel
 
 from app.infra.cache.redis_service import RedisService
 
