@@ -55,10 +55,25 @@ ROLE_PERMISSIONS = {
     ],
 
     UserRole.SELLER: [
+        Permission.DASHBOARD_READ,
+
+        # Catálogo
         Permission.PRODUCT_READ,
+        Permission.PRODUCT_READ,
+        Permission.PRODUCT_CREATE,
+        Permission.PRODUCT_UPDATE,
         Permission.MATERIAL_READ,
+
+        # Inventario
         Permission.INVENTORY_READ,
-        Permission.DASHBOARD_READ
+
+        # Pedidos
+        Permission.ORDER_READ,
+        Permission.ORDER_UPDATE,
+        Permission.ORDER_PAYMENT_CREATE,
+
+        # Comprobantes
+        Permission.RECEIPT_GENERATE,
     ],
 
     UserRole.ACCOUNTANT: [
