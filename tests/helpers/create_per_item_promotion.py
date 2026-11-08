@@ -21,7 +21,7 @@ from app.features.pricing.types.promotion_types import (
 from app.features.pricing.types.pricing_rules_types import (
     PricingRuleType,
 )
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 
 
 async def create_per_item_promotion(
