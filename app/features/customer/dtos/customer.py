@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from app.features.sales.types.customer import (
-    CustomerDocumentType,
+from app.features.customer.customer_types import (
+    IdentityDocumentType,
     CustomerType,
 )
 
@@ -13,7 +13,7 @@ class CustomerSearchOptionDTO:
 
     customer_type: CustomerType
 
-    document_type: CustomerDocumentType | None
+    document_type: IdentityDocumentType | None
     document_number: str | None
 
     email: str | None
@@ -28,4 +28,24 @@ class CustomerPricingContext:
 class CustomerFilters:
     search: str | None = None
     customer_type: CustomerType | None = None
-    document_type: CustomerDocumentType | None = None
+    document_type: IdentityDocumentType | None = None
+
+@dataclass(frozen=True, slots=True)
+class AdminOrderCustomerDTO:
+    id: int
+
+    name: str
+    last_name: str
+
+    document_type: IdentityDocumentType | None
+    document_number: str | None
+
+    email: str | None
+    phone: str | None
+
+@dataclass(frozen=True, slots=True)
+class MyOrderCustomerDTO:
+    name: str
+    last_name: str
+    email: str | None
+    phone: str | None
