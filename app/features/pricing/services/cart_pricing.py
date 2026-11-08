@@ -190,6 +190,7 @@ class CartPricingService:
         condition_context = SalePricingContext(
             items=[
                 PricingItemDTO(
+                    item_id=item.item_id, 
                     product_id=item.product_id,
                     quantity=item.quantity,
                     category=item.category,
