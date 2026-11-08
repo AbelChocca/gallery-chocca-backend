@@ -1,46 +1,94 @@
-from fastapi import FastAPI, Request
-import traceback
-from fastapi.responses import JSONResponse
-from app.core.app_exception import AppException
 
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+import traceback
+
+from app.core.app_exception import AppException
 from app.core.log.config import logger_service
+from app.core.settings.pydantic_settings import settings
+
+IS_DEV = settings.ENV == "development"
+
 
 class MiddlewareException:
+
     def register(self, app: FastAPI):
+
         @app.middleware("http")
-        async def exception_middleware(request: Request, call_next):
+        async def exception_middleware(
+            request: Request,
+            call_next,
+        ):
             try:
                 return await call_next(request)
-            except AppException as a:
-                logger_service.log(
-                    a.log_level,
-                    a.message,
-                    error=str(a),
-                    error_code=a.error_code,
-                    **a.context,
-                    method=request.method,
-                    path=request.url.path,
-                )
-                return JSONResponse(
-                    status_code=a.status_code,
-                    content={"detail": a.message}
-                )
-            except Exception as e:
-                tb = e.__traceback__
-                last = traceback.extract_tb(tb)[-1] if tb else None
 
-                logger_service.opt(exception=e).error(
-                    "Unknow internal server error",
+            except AppException as exc:
+                original = exc.__cause__
+
+                context = {
+                    **(exc.context or {}),
+                    "method": request.method,
+                    "path": request.url.path,
+                    "error_code": exc.error_code,
+                }
+
+                if original is not None:
+                    context["original_exception_type"] = type(original).__name__
+
+                    if IS_DEV:
+                        context["original_exception_message"] = str(original)
+
+                    logger_service.opt(
+                        exception=exc if IS_DEV else None,
+                    ).log(
+                        exc.log_level,
+                        exc.message,
+                        **context,
+                    )
+                else:
+                    logger_service.log(
+                        exc.log_level,
+                        exc.message,
+                        **context,
+                    )
+
+                return JSONResponse(
+                    status_code=exc.status_code,
+                    content={"detail": exc.message},
+                )
+
+            except Exception as exc:
+                tb = exc.__traceback__
+                last = (
+                    traceback.extract_tb(tb)[-1]
+                    if tb
+                    else None
+                )
+
+                logger_service.opt(
+                    exception=exc,
+                ).error(
+                    "Unknown internal server error",
                     method=request.method,
                     path=request.url.path,
                     status_code=500,
-                    exception_type=type(e).__name__,
-                    exception_message=str(e),
-                    origin_file=getattr(last, "filename", None),
-                    origin_line=getattr(last, "lineno", None),
-                    origin_function=getattr(last, "name", None),
+                    exception_type=type(exc).__name__,
+                    exception_message=str(exc),
+                    origin_file=getattr(
+                        last, "filename", None
+                    ),
+                    origin_line=getattr(
+                        last, "lineno", None
+                    ),
+                    origin_function=getattr(
+                        last, "name", None
+                    ),
                 )
+
                 return JSONResponse(
                     status_code=500,
-                    content={"detail": "Internal server error"}
+                    content={
+                        "detail": "Internal server error"
+                    },
                 )
