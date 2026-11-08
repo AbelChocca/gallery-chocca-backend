@@ -27,4 +27,6 @@ pytest_plugins = [
     "tests.fixtures.dependencies.cart",
     "tests.fixtures.dependencies.user",
     "tests.fixtures.dependencies.inventory",
+    "tests.fixtures.dependencies.locations",
+    "tests.fixtures.dependencies.complaints",
 ]
