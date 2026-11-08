@@ -3,11 +3,12 @@ from app.features.products.product_dto import PublishProductCommand
 from app.shared.slug.protocol import SlugProtocol
 from app.features.products.product import Product
 from app.features.products.product_dto import (
-    UpdateProductCommand, 
     FilterProductCommand, 
     CountProductPerCategoryDTO,
     ProductSearchOptionDTO
 )
+from app.features.products.types import CategoryType, BrandType
+from decimal import Decimal
 from app.core.exceptions import ValidationError
 
 class ProductService:
@@ -44,13 +45,14 @@ class ProductService:
         product = Product(
             nombre=command.nombre,
             descripcion=command.descripcion,
-            marca=command.marca,
-            categoria=command.categoria,
-            model_family=command.model_family,
+            brand=command.brand,
+            category=command.category,
+            base_price=command.base_price,
             fit=command.fit,
             slug=self._slug_service.generate(
                 command.nombre
             ),
+            is_active=True,
             variants=[]
         )
 
@@ -69,36 +71,36 @@ class ProductService:
     async def update_product(
         self,
         product_id: int,
-        command: UpdateProductCommand
+        *,
+        nombre: str | None = None,
+        descripcion: str | None = None,
+        brand: BrandType | None = None,
+        category: CategoryType | None = None,
+        fit: str | None = None,
+        base_price: Decimal | None = None,
     ) -> Product:
 
-        product = await self.get_product_entity_by_id(
-            product_id
-        )
+        product = await self.get_product_entity_by_id(product_id)
 
         if not product.is_active:
             raise ValidationError(
-                "El producto esta deshabilitado temporalmente.",
-                {
-                    "product_id": product_id
-                }
+                "El producto está deshabilitado temporalmente.",
+                {"product_id": product_id},
             )
 
+        if nombre is not None and nombre != product.nombre:
+            product.slug = self._slug_service.generate(nombre)
 
-        if command.name_changed:
-            product.slug = self._slug_service.generate(
-                command.nombre
-            )
+        product.update_product({
+            "nombre": nombre,
+            "descripcion": descripcion,
+            "brand": brand,
+            "category": category,
+            "fit": fit,
+            "base_price": base_price,
+        })
 
-
-        product.update_product(
-            command.to_dict
-        )
-
-
-        return await self._product_repo.save(
-            product
-        )
+        return await self._product_repo.save(product)
     
     async def get_related_products(
         self,
