@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from app.features.sales.types.customer import CustomerType
+from app.features.customer.customer_types import CustomerType
 from app.features.pricing.types.promotion_types import (
     PromotionAudienceType,
 )
