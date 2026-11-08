@@ -30,6 +30,5 @@ class GetRelatedProductsUseCase:
             products
         )
 
-        return [
-            ProductMapper.to_grid_products(products)
-        ]
+        return ProductMapper.to_grid_products(products)
+        
