@@ -24,7 +24,7 @@ from app.features.pricing.types.promotion_types import (
     PromotionStackingMode,
     PromotionTargetType,
 )
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 
 
 @pytest_asyncio.fixture(
