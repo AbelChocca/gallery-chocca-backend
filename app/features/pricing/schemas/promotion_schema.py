@@ -14,7 +14,7 @@ from app.features.pricing.schemas.promotion_condition_schema import PromotionCon
 from app.features.pricing.schemas.promotion_target_schema import PromotionTargetResponseSchema, CreatePromotionTargetSchema
 from app.features.pricing.schemas.coupon_schema import CouponResponseSchema
 
-from app.features.sales.types.sale import (
+from app.features.orders.types.sale import (
     SaleChannel,
 )
 
@@ -188,3 +188,6 @@ class AppliedPromotionResponseSchema(BaseModel):
     promotion_id: int
     name: str
     discount_amount: Decimal
+
+    application_scope: PromotionApplicationScope | None = None
+    coupon_code: str | None = None
