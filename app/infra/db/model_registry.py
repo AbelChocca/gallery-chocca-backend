@@ -17,3 +17,11 @@ from app.features.balancing.models.financial_debt import FinancialDebtTable # no
 from app.features.balancing.models.other_current_liability import OtherCurrentLiabilityTable # noqa: F401
 from app.features.customer.models.customer import Customer # noqa: F401
 from app.infra.db.models.model_user import UserTable # noqa: F401
+from app.features.locations.models.ubigeo import UbigeoTable # noqa: F401
+from app.features.orders.models.order import OrderTable # noqa: F401
+from app.features.orders.models.order_address import OrderAddressTable # noqa: F401
+from app.features.orders.models.order_billing import OrderBillingTable # noqa: F401
+from app.features.orders.models.order_item import OrderItemTable # noqa: F401
+from app.features.orders.models.order_promotion import OrderPromotionTable # noqa: F401
+from app.features.payments.models.payment import PaymentTable # noqa: F401
+from app.features.payments.models.payment_events import PaymentEventTable # noqa: F401
