@@ -40,11 +40,28 @@ async def setup_database():
             SQLModel.metadata.create_all
         )
 
+        await conn.execute(
+            text(
+                """
+                CREATE SEQUENCE IF NOT EXISTS complaint_number_seq
+                AS BIGINT
+                START WITH 1
+                INCREMENT BY 1
+                """
+            )
+        )
+
     yield
 
     async with engine.begin() as conn:
         await conn.run_sync(
             SQLModel.metadata.drop_all
+        )
+
+        await conn.execute(
+            text(
+                "DROP SEQUENCE IF EXISTS complaint_number_seq"
+            )
         )
 
 
@@ -76,6 +93,13 @@ async def clean_database(
             )
 
             await conn.commit()
+
+        async with engine.begin() as conn:
+            await conn.execute(
+                text(
+                    "ALTER SEQUENCE complaint_number_seq RESTART WITH 1"
+                )
+            )
 
     yield
 
