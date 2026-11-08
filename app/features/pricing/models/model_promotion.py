@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 
 from sqlmodel import Field, SQLModel
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.features.pricing.types.promotion_types import PromotionStackingMode, PromotionApplicationScope
 
 
