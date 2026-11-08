@@ -3,6 +3,7 @@ from app.features.inventory.dtos.inventory_locations import InventoryLocationSto
 from app.features.material.dto.material_component import MaterialComponentDTO
 from app.shared.types import CompanyType
 from app.features.material.types import UnitType
+from app.features.inventory.types.inventory_movement import InventoryOwnerType
 
 from dataclasses import dataclass
 from decimal import Decimal
@@ -186,3 +187,52 @@ class InventoryConsumptionChartDTO:
 class InventoryOwnerDTO:
     id: int
     unit_type: UnitType
+
+@dataclass(slots=True)
+class InventoryReservationItem:
+    owner_id: int
+    quantity: Decimal
+
+
+@dataclass(slots=True)
+class InventoryReservationResult:
+    inventory_id: int
+    owner_id: int
+    location_id: int
+
+    quantity: Decimal
+
+    stock_quantity: Decimal
+
+    previous_reserved_quantity: Decimal
+    current_reserved_quantity: Decimal
+
+    previous_available_quantity: Decimal
+    current_available_quantity: Decimal
+
+@dataclass(frozen=True, slots=True)
+class InventoryReservedItem:
+    owner_type: InventoryOwnerType
+    owner_id: int
+    location_id: int
+    quantity: Decimal
+
+
+@dataclass(frozen=True, slots=True)
+class InventoryReservationUpdateResult:
+    inventory_id: int
+
+    owner_type: InventoryOwnerType
+    owner_id: int
+    location_id: int
+
+    quantity: Decimal
+
+    previous_stock: Decimal
+    current_stock: Decimal
+
+    previous_reserved: Decimal
+    current_reserved: Decimal
+
+    previous_available: Decimal
+    current_available: Decimal

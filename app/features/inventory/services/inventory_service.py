@@ -8,6 +8,10 @@ from app.features.inventory.dtos.inventory import (
     MaterialInventoryRowDTO,
     MaterialInventoryDetailDTO,
     InventoryKPIItemDTO,
+    InventoryReservationResult,
+    InventoryReservationItem,
+    InventoryReservationUpdateResult,
+    InventoryReservedItem
 )
 from app.features.inventory.dtos.inventory_movements import MovementItem
 from app.features.inventory.types.inventory_movement import InventoryOwnerType, InventoryMovementType
@@ -36,6 +40,361 @@ class InventoryService:
         inventory_repository: InventoryRepository,
     ) -> None:
         self._inventory_repository = inventory_repository
+
+    async def release_reserved_stock(
+        self,
+        *,
+        items: list[InventoryReservedItem],
+    ) -> list[InventoryReservationUpdateResult]:
+
+        results: list[
+            InventoryReservationUpdateResult
+        ] = []
+
+        for item in items:
+            inventory = await self._inventory_repository.get_by_owner_and_location_for_update(
+                owner_type=item.owner_type,
+                owner_id=item.owner_id,
+                location_id=item.location_id,
+            )
+
+            if inventory is None:
+                raise ValueNotFound(
+                    message=(
+                        "No se encontró el inventario "
+                        "reservado."
+                    ),
+                )
+
+            if (
+                inventory.reserved_quantity
+                < item.quantity
+            ):
+                raise InvalidOperation(
+                    message=(
+                        "La cantidad reservada no es "
+                        "suficiente para liberar la reserva."
+                    ),
+                )
+
+            previous_stock = inventory.quantity
+            previous_reserved = (
+                inventory.reserved_quantity
+            )
+
+            previous_available = (
+                previous_stock
+                - previous_reserved
+            )
+
+            now = datetime.now(timezone.utc)
+
+            # El stock físico NO cambia.
+            inventory.reserved_quantity -= (
+                item.quantity
+            )
+
+            inventory.last_movement_at = now
+
+            await self._inventory_repository.save(
+                inventory,
+                flush=True,
+            )
+
+            results.append(
+                InventoryReservationUpdateResult(
+                    inventory_id=inventory.id,
+                    owner_type=item.owner_type,
+                    owner_id=item.owner_id,
+                    location_id=item.location_id,
+                    quantity=item.quantity,
+                    previous_stock=previous_stock,
+                    current_stock=inventory.quantity,
+                    previous_reserved=previous_reserved,
+                    current_reserved=(
+                        inventory.reserved_quantity
+                    ),
+                    previous_available=(
+                        previous_available
+                    ),
+                    current_available=(
+                        inventory.quantity
+                        - inventory.reserved_quantity
+                    ),
+                )
+            )
+
+        return results
+
+    async def consume_reserved_stock(
+        self,
+        *,
+        items: list[InventoryReservedItem],
+    ) -> list[InventoryReservationUpdateResult]:
+
+        results: list[
+            InventoryReservationUpdateResult
+        ] = []
+
+        for item in items:
+            inventory = await self._inventory_repository.get_by_owner_and_location_for_update(
+                owner_type=item.owner_type,
+                owner_id=item.owner_id,
+                location_id=item.location_id,
+            )
+
+            if inventory is None:
+                raise ValueNotFound(
+                    message=(
+                        "No se encontró el inventario "
+                        "reservado."
+                    ),
+                )
+
+            if (
+                inventory.reserved_quantity
+                < item.quantity
+            ):
+                raise InvalidOperation(
+                    message=(
+                        "La cantidad reservada no es "
+                        "suficiente para completar la venta."
+                    ),
+                )
+
+            if inventory.quantity < item.quantity:
+                raise InvalidOperation(
+                    message=(
+                        "El stock físico no es suficiente "
+                        "para completar la venta."
+                    ),
+                )
+
+            previous_stock = inventory.quantity
+            previous_reserved = (
+                inventory.reserved_quantity
+            )
+
+            previous_available = (
+                previous_stock
+                - previous_reserved
+            )
+
+            now = datetime.now(timezone.utc)
+
+            inventory.quantity -= item.quantity
+            inventory.reserved_quantity -= (
+                item.quantity
+            )
+
+            inventory.last_movement_at = now
+
+            await self._inventory_repository.save(
+                inventory,
+                flush=True,
+            )
+
+            results.append(
+                InventoryReservationUpdateResult(
+                    inventory_id=inventory.id,
+                    owner_type=item.owner_type,
+                    owner_id=item.owner_id,
+                    location_id=item.location_id,
+                    quantity=item.quantity,
+                    previous_stock=previous_stock,
+                    current_stock=inventory.quantity,
+                    previous_reserved=previous_reserved,
+                    current_reserved=(
+                        inventory.reserved_quantity
+                    ),
+                    previous_available=(
+                        previous_available
+                    ),
+                    current_available=(
+                        inventory.quantity
+                        - inventory.reserved_quantity
+                    ),
+                )
+            )
+
+        return results
+
+    async def reserve_stock_many(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        items: list[InventoryReservationItem],
+    ) -> list[InventoryReservationResult]:
+
+        if not items:
+            return []
+
+        required_by_owner: dict[int, Decimal] = {}
+
+        for item in items:
+
+            if item.quantity <= Decimal("0"):
+                raise InvalidOperation(
+                    "Reservation quantity must be greater than zero."
+                )
+
+            required_by_owner[item.owner_id] = (
+                required_by_owner.get(
+                    item.owner_id,
+                    Decimal("0"),
+                )
+                + item.quantity
+            )
+
+        inventories = await (
+            self._inventory_repository
+            .get_available_many_for_update(
+                owner_type=owner_type,
+                owner_ids=list(
+                    required_by_owner.keys()
+                ),
+            )
+        )
+
+        inventories_by_owner: dict[
+            int,
+            Inventory,
+        ] = {}
+
+        for inventory in inventories:
+
+            if (
+                inventory.owner_id
+                in inventories_by_owner
+            ):
+                continue
+
+            required_quantity = (
+                required_by_owner[
+                    inventory.owner_id
+                ]
+            )
+
+            available_quantity = (
+                inventory.quantity
+                - inventory.reserved_quantity
+            )
+
+            if (
+                available_quantity
+                < required_quantity
+            ):
+                continue
+
+            inventories_by_owner[
+                inventory.owner_id
+            ] = inventory
+
+        missing_owner_ids = (
+            set(required_by_owner)
+            - set(inventories_by_owner)
+        )
+
+        if missing_owner_ids:
+            raise InvalidOperation(
+                (
+                    "No existe stock suficiente "
+                    "para uno o más productos."
+                ),
+                context={
+                    "owner_ids": list(
+                        missing_owner_ids
+                    )
+                },
+            )
+
+        updates: dict[int, Decimal] = {}
+
+        results: list[
+            InventoryReservationResult
+        ] = []
+
+        for owner_id, inventory in (
+            inventories_by_owner.items()
+        ):
+
+            reservation_quantity = (
+                required_by_owner[
+                    owner_id
+                ]
+            )
+
+            previous_reserved = (
+                inventory.reserved_quantity
+            )
+
+            previous_available = (
+                inventory.quantity
+                - previous_reserved
+            )
+
+            current_reserved = (
+                previous_reserved
+                + reservation_quantity
+            )
+
+            current_available = (
+                inventory.quantity
+                - current_reserved
+            )
+
+            updates[inventory.id] = (
+                current_reserved
+            )
+
+            results.append(
+                InventoryReservationResult(
+                    inventory_id=(
+                        inventory.id
+                    ),
+
+                    owner_id=(
+                        inventory.owner_id
+                    ),
+
+                    location_id=(
+                        inventory.location_id
+                    ),
+
+                    quantity=(
+                        reservation_quantity
+                    ),
+
+                    stock_quantity=(
+                        inventory.quantity
+                    ),
+
+                    previous_reserved_quantity=(
+                        previous_reserved
+                    ),
+
+                    current_reserved_quantity=(
+                        current_reserved
+                    ),
+
+                    previous_available_quantity=(
+                        previous_available
+                    ),
+
+                    current_available_quantity=(
+                        current_available
+                    ),
+                )
+            )
+
+        await (
+            self._inventory_repository
+            .update_reserved_quantity_many(
+                updates
+            )
+        )
+
+        return results
 
     async def get_inventory_by_owner(
         self,
@@ -658,6 +1017,11 @@ class InventoryService:
                     availability_status=self._calculate_status(
                         available_quantity,
                         row.minimum_stock,
+                    ),
+
+                    valuation=(
+                        (row.unit_price or Decimal("0")) *
+                        row.quantity
                     ),
 
                     last_movement_at=row.last_movement_at,

@@ -15,6 +15,14 @@ class InventoryLocationTable(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
 
+    location_id: int | None = Field(
+        default=None,
+        foreign_key="locations.id",
+        nullable=True,
+        unique=True,
+        index=True,
+    )
+
     name: str = Field(max_length=100)
     type: InventoryLocationType
 

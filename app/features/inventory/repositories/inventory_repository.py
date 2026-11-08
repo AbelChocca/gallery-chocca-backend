@@ -19,6 +19,149 @@ from app.features.inventory.dtos.inventory import InventoryKPIItemDTO
 class InventoryRepository(
     BaseRepository[Inventory, InventoryTable],
 ):
+    async def get_total_available_stock_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+    ) -> int:
+        statement = select(
+            func.coalesce(
+                func.sum(
+                    InventoryTable.quantity
+                    - InventoryTable.reserved_quantity
+                ),
+                0,
+            )
+        ).where(
+            InventoryTable.owner_type == owner_type,
+            InventoryTable.owner_id == owner_id,
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        total_available = (
+            result.scalar_one()
+        )
+
+        return int(total_available)
+
+    async def get_by_owner_and_location_for_update(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+        location_id: int,
+    ) -> Inventory | None:
+        statement = (
+            select(InventoryTable)
+            .where(
+                InventoryTable.owner_type == owner_type,
+                InventoryTable.owner_id == owner_id,
+                InventoryTable.location_id == location_id,
+            )
+            .with_for_update()
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        row = result.scalar_one_or_none()
+
+        return (
+            self._base_mapper.to_entity(row)
+            if row is not None
+            else None
+        )
+    
+    async def get_available_many_for_update(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_ids: list[int],
+    ) -> list[Inventory]:
+
+        statement = (
+            select(InventoryTable)
+            .join(
+                InventoryLocationTable,
+                InventoryLocationTable.id
+                == InventoryTable.location_id,
+            )
+            .where(
+                InventoryTable.owner_type
+                == owner_type,
+
+                InventoryTable.owner_id.in_(
+                    owner_ids
+                ),
+
+                InventoryLocationTable
+                .is_active
+                .is_(True),
+
+                (
+                    InventoryTable.quantity
+                    - InventoryTable.reserved_quantity
+                ) > Decimal("0"),
+            )
+            .order_by(
+                InventoryTable.owner_id.asc(),
+                InventoryTable.location_id.asc(),
+            )
+            .with_for_update()
+        )
+
+        result = await (
+            self._db_session.execute(
+                statement
+            )
+        )
+
+        tables = (
+            result.scalars().all()
+        )
+
+        return [
+            self._base_mapper.to_entity(
+                table
+            )
+            for table in tables
+        ]
+
+    async def update_reserved_quantity_many(
+        self,
+        updates: dict[int, Decimal],
+    ) -> None:
+
+        for inventory_id, reserved_quantity in (
+            updates.items()
+        ):
+            statement = (
+                update(
+                    InventoryTable
+                )
+                .where(
+                    InventoryTable.id
+                    == inventory_id
+                )
+                .values(
+                    reserved_quantity=(
+                        reserved_quantity
+                    ),
+                    last_movement_at=datetime.now(timezone.utc),
+                )
+            )
+
+            await (
+                self._db_session.execute(
+                    statement
+                )
+            )
+    
     async def get_available_total_stock_by_owner(
         self,
         *,
@@ -475,6 +618,7 @@ class InventoryRepository(
                 VariantTable.id.label("variant_id"),
 
                 ProductTable.nombre,
+                ProductTable.base_price.label("unit_price"),
                 VariantTable.color,
 
                 VariantSizeTable.size,
