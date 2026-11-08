@@ -45,8 +45,10 @@ class PricingItemCalculator:
                         promotion_id=promotion.id,
                         name=promotion.name,
                         discount_amount=promotion_discount_amount,
+                        application_scope=promotion.application_scope
                     )
                 )
+
 
         return PricingItemCalculationResult(
             original_unit_price=original_unit_price,
