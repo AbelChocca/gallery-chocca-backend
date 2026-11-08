@@ -1,8 +1,7 @@
 import pytest_asyncio
 
-from app.features.pricing.calculators.pricing_calculator import (
-    PricingCalculator,
-)
+from app.features.pricing.calculators.pricing_item_calculator import PricingItemCalculator
+from app.features.pricing.calculators.pricing_subtotal_calculator import PricingSubtotalCalculator
 from app.features.pricing.mappers.coupon_mapper import CouponMapper
 from app.features.pricing.mappers.coupon_redemption_mapper import (
     CouponRedemptionMapper,
@@ -64,10 +63,11 @@ def sale_pricing_service(db_session):
         promotion_repository=promotion_repository,
         coupon_repository=coupon_repository,
         coupon_redemption_repository=coupon_redemption_repository,
-        pricing_calculator=PricingCalculator(),
         coupon_resolver=CouponResolver(),
         promotion_resolver=PromotionResolver(),
         promotion_audience_resolver=PromotionAudienceResolver(),
         promotion_selection_resolver=PromotionSelectionResolver(),
         promotion_condition_resolver=PromotionConditionResolver(),
+        pricing_subtotal_calculator=PricingSubtotalCalculator(),
+        pricing_item_calculator=PricingItemCalculator(),
     )
