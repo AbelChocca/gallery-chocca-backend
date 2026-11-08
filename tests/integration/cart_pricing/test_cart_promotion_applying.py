@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.features.products.types import CategoryType
 from tests.helpers.create_test_promotion import create_category_target_promotion
 from app.features.pricing.dtos.cart_pricing_dto import CartPricingContext, CartPricingItemDTO

@@ -6,7 +6,7 @@ from app.features.pricing.dtos.sale_pricing import (
     SalePricingContext,
 )
 from app.features.customer.customer_types import CustomerType
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.features.products.types import CategoryType, BrandType, FitType
 from app.features.products.models.model_product import ProductTable
 from tests.helpers.create_test_promotion import create_category_target_promotion
@@ -50,6 +50,7 @@ async def test_calculate_applies_coupon_promotion_to_customer_cart(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,
@@ -57,6 +58,7 @@ async def test_calculate_applies_coupon_promotion_to_customer_cart(
                 unit_price=products[0].base_price,
             ),
             PricingItemDTO(
+                item_id=2,
                 product_id=products[1].id,
                 quantity=1,
                 category=products[1].category,
@@ -121,6 +123,11 @@ async def test_calculate_applies_coupon_promotion_to_customer_cart(
     assert result.shipping_cost == Decimal("15.00")
     assert result.total == Decimal("205.00")
 
+    assert any(
+        promotion.coupon_code == coupon.code
+        for promotion in result.applied_promotions
+    )
+
 
 async def test_calculate_applies_category_promotion_only_to_target_category(
     db_session,
@@ -156,6 +163,7 @@ async def test_calculate_applies_category_promotion_only_to_target_category(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=pant.id,
                 quantity=1,
                 category=pant.category,
@@ -163,6 +171,7 @@ async def test_calculate_applies_category_promotion_only_to_target_category(
                 unit_price=pant.base_price,
             ),
             PricingItemDTO(
+                item_id=2,
                 product_id=short.id,
                 quantity=1,
                 category=short.category,

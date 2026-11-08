@@ -9,7 +9,7 @@ from app.features.pricing.dtos.sale_pricing import (
 from tests.helpers.create_test_promotion import create_test_promotion
 from app.features.customer.customer_types import CustomerType
 from app.features.pricing.types.pricing_rules_types import PricingRuleType
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.features.pricing.models.model_pricing_rule import PricingRuleTable
 from app.features.pricing.models.model_promotion import PromotionTable
 from app.features.pricing.models.promotion_audience import (
@@ -124,6 +124,7 @@ async def test_calculate_exclusive_promotion_blocks_stackable_promotion(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,
@@ -285,6 +286,7 @@ async def test_calculate_applies_oldest_exclusive_promotion_when_priority_is_equ
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,
@@ -400,6 +402,7 @@ async def test_calculate_ignores_expired_promotion(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=product.id,
                 quantity=2,
                 category=product.category,
