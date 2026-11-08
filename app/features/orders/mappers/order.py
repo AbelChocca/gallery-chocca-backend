@@ -19,6 +19,8 @@ class OrderMapper(BaseMapper[Order, OrderTable]):
         model.payment_method = entity.payment_method
         model.status = entity.status
 
+        model.delivery_method = entity.delivery_method
+
         model.subtotal = entity.subtotal
         model.discount_amount = entity.discount_amount
         model.shipping_cost = entity.shipping_cost
@@ -36,6 +38,7 @@ class OrderMapper(BaseMapper[Order, OrderTable]):
             order_number=model.order_number,
             customer_id=model.customer_id,
             payment_method=model.payment_method,
+            delivery_method=model.delivery_method,
             status=model.status,
             subtotal=model.subtotal,
             discount_amount=model.discount_amount,
