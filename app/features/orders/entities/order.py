@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from app.features.orders.types.order import OrderStatus
 from app.features.payments.types.payment import PaymentMethod
+from app.features.orders.types.delivery import DeliveryMethod
 
 @dataclass
 class Order:
@@ -13,6 +14,8 @@ class Order:
 
     status: OrderStatus
     payment_method: PaymentMethod
+
+    delivery_method: DeliveryMethod
 
     subtotal: Decimal
     discount_amount: Decimal
