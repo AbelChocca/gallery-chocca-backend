@@ -3,7 +3,7 @@ from datetime import datetime
 from app.features.pricing.entities.promotion import Promotion
 
 from app.features.pricing.types.promotion_types import PromotionStackingMode, PromotionApplicationScope
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 
 from app.features.products.types import BrandType, CategoryType
 from app.features.pricing.dtos.promotion_condition import CreatePromotionConditionDTO
