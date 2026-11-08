@@ -2,10 +2,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 
-from app.features.sales.types.sale import SaleChannel
-from app.features.sales.types.customer import CustomerType
+from app.features.orders.types.sale import SaleChannel
+from app.features.customer.customer_types import CustomerType
 from app.features.products.types import CategoryType, BrandType
-
+from app.features.orders.types.order_promotion import PromotionApplicationScope
 
 @dataclass
 class CartPricingItemDTO:
@@ -33,6 +33,8 @@ class AppliedPromotionDTO:
     name: str
     discount_amount: Decimal
 
+    application_scope: PromotionApplicationScope | None = None
+    coupon_code: str | None = None
 
 @dataclass
 class CartPricingItemResultDTO:
