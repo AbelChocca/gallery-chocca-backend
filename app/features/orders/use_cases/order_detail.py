@@ -168,11 +168,11 @@ class GetAdminOrderDetailUseCase:
 
         elif order.delivery_method == DeliveryMethod.STORE_PICKUP:
             pickup = await self._order_pickup_service.get_by_order_id(
-                order.id
+                order_id=order.id
             )
 
             location = await self._location_service.get_by_id(
-                pickup.location_id
+                location_id=pickup.location_id
             )
 
             if location is None:
