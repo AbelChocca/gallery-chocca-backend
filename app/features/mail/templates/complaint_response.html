@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 32px 12px;
+      background: #f3f4f6;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #171717;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      style="max-width: 640px; margin: auto; background: #ffffff"
+    >
+      <tr>
+        <td style="padding: 28px 32px; background: #071a35; color: #ffffff">
+          <p style="margin: 0; font-size: 13px; letter-spacing: 2px">CHOCCA</p>
+
+          <h1 style="margin: 18px 0 0; font-size: 24px">
+            Respuesta a tu reclamación
+          </h1>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 32px">
+          <p>Estimado/a {name}:</p>
+
+          <p style="color: #64748b; font-size: 14px; line-height: 1.7">
+            En atención a la reclamación
+            <strong>{number}</strong>, te comunicamos nuestra respuesta:
+          </p>
+
+          <div
+            style="
+              padding: 24px;
+              background: #f8fafc;
+              border-left: 3px solid #3863a0;
+              font-size: 15px;
+              line-height: 1.9;
+              overflow-wrap: break-word;
+            "
+          >
+            {message}
+          </div>
+
+          <p style="margin-top: 28px; line-height: 1.7">
+            Atentamente,<br />
+            <strong>{provider}</strong>
+          </p>
+
+          <p style="margin-top: 28px; line-height: 1.7">
+            Atentamente,
+            <br />
+            <strong>{provider}</strong>
+          </p>
+
+          <!-- CONTACTO PARA RESPONDER -->
+          <div
+            style="
+              margin-top: 28px;
+              padding: 20px;
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+            "
+          >
+            <p
+              style="
+                margin: 0 0 10px;
+                font-size: 14px;
+                font-weight: 700;
+                color: #071a35;
+              "
+            >
+              ¿Deseas responder a esta comunicación?
+            </p>
+
+            <p
+              style="
+                margin: 0;
+                font-size: 13px;
+                line-height: 1.8;
+                color: #475569;
+              "
+            >
+              Puedes responder directamente a este correo para comunicar tu
+              conformidad, desacuerdo o realizar alguna consulta sobre la
+              respuesta recibida. Nuestro equipo de atención revisará tu
+              mensaje.
+            </p>
+
+            <p
+              style="
+                margin: 12px 0 0;
+                font-size: 13px;
+                line-height: 1.8;
+                color: #475569;
+              "
+            >
+              Incluye el número de reclamación
+              <strong>{number}</strong>
+              para facilitar el seguimiento de tu caso.
+            </p>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td
+          style="
+            padding: 20px 32px;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 12px;
+          "
+        >
+          Comunicación formal del Libro de Reclamaciones de CHOCCA.
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
