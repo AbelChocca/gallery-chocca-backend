@@ -7,6 +7,7 @@ from app.shared.pagination.pagination_service import PaginationService
 from app.shared.pagination.dto import PaginatedDTO
 from app.core.exceptions import ValidationError
 from app.features.payments.types.payment import PaymentMethod
+from app.features.orders.types.delivery import DeliveryMethod
 from app.core.exceptions import InvalidOperation
 
 from decimal import Decimal
@@ -181,6 +182,7 @@ class OrderService:
         discount_amount: Decimal,
         shipping_cost: Decimal,
         payment_method: PaymentMethod,
+        delivery_method: DeliveryMethod,
         total: Decimal,
         now: datetime,
     ) -> Order:
@@ -192,6 +194,7 @@ class OrderService:
             order_number=order_number,
             customer_id=customer_id,
             status=OrderStatus.PENDING_PAYMENT,
+            delivery_method=delivery_method,
             payment_method=payment_method,
             subtotal=subtotal,
             discount_amount=discount_amount,
