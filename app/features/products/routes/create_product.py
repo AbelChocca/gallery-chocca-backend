@@ -30,6 +30,9 @@ from fastapi import (
 
 from typing import Annotated
 
+from pydantic import ValidationError as PydanticValidationError
+from app.core.exceptions import ValidationError
+
 import orjson
 
 
@@ -52,9 +55,33 @@ async def create_product(
     ],
 ) -> CreateProductResponse:
 
-    data = orjson.loads(product_schema_json)
+    
+    try:
+        data = orjson.loads(product_schema_json)
+        schema = CreateProductSchema.model_validate(data)
 
-    schema = CreateProductSchema(**data)
+    except orjson.JSONDecodeError as exc:
+        raise ValidationError(
+            message="El JSON del producto tiene un formato inválido.",
+            context={
+                "field": "product_schema_json",
+                "error": "invalid_json",
+            },
+        ) from exc
+
+    except PydanticValidationError as exc:
+        raise ValidationError(
+            message="Los datos del producto no son válidos.",
+            context={
+                "field": "product_schema_json",
+                "errors": exc.errors(
+                    include_url=False,
+                    include_context=False,
+                    include_input=False,
+                ),
+            },
+        ) from exc
+
 
     response = await use_case.execute(
         images_file=[file.file for file in files],
