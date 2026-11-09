@@ -111,6 +111,14 @@ class LocationService:
         pickup_enabled: bool = False,
     ) -> Location:
 
+        existing = await self._repository.get_by_name(name)
+
+        if existing is not None:
+            raise ValidationError(
+                "A location with this name already exists.",
+                {"field": "name"},
+            )
+
         self._validate_pickup_configuration(
             type=type,
             is_active=is_active,
@@ -121,8 +129,16 @@ class LocationService:
 
         now = datetime.now(timezone.utc)
 
+        name = name.strip()
+
+        if not name:
+            raise ValidationError(
+                "The location name is required.",
+                {"field": "name"},
+            )
+
         location = Location(
-            name=name.strip(),
+            name=name,
             type=type,
             address=address,
             ubigeo_code=ubigeo_code,
