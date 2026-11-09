@@ -9,7 +9,7 @@ from app.core.log.config import logger_service
 from app.api.middlewares.manager import init_middlewares
 from app.infra.db.config import init_db
 from app.core.settings.pydantic_settings import settings
-from app.infra.storage.config import init_cloudinary_client
+from app.infra.storage.config import init_cloudinary_client, cloudinary
 
 from app.features.user import user_route
 from app.features.slides import slide_route
@@ -59,7 +59,21 @@ async def lifespan(app: FastAPI):
 
         init_cloudinary_client()
 
-        logger_service.info("✅ Storage inicializada correctamente.")
+        cfg = cloudinary.config()
+
+        if (
+            cfg.cloud_name != settings.CLOUDINARY_NAME
+            or cfg.api_key != settings.CLOUDINARY_API_KEY
+            or cfg.api_secret != settings.CLOUDINARY_API_SECRET
+        ):
+            raise RuntimeError(
+                "La configuración de Cloudinary no coincide "
+                "con las credenciales de la aplicación."
+            )
+
+        logger_service.info(
+            "✅ Storage Cloudinary configurado correctamente."
+        )
 
         try:
             redis_connected = await redis.ping()
