@@ -8,6 +8,27 @@ from app.infra.db.repositories.base_repository import BaseRepository
 
 class LocationRepository(BaseRepository[Location, LocationTable]):
 
+    async def get_by_name(
+        self,
+        name: str,
+    ) -> Location | None:
+        stmt = (
+            select(LocationTable)
+            .where(
+                func.lower(func.trim(LocationTable.name))
+                == name.strip().lower()
+            )
+            .limit(1)
+        )
+
+        result = await self._db_session.execute(stmt)
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            return None
+
+        return self._base_mapper.to_entity(model)
+
     async def get_inventory_locations(
         self,
         *,
