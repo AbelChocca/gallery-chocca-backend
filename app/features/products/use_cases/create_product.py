@@ -282,7 +282,7 @@ class CreateProductUseCase(UseCaseSaga):
             action=self._media_service.upload_images_batch,
             action_kwargs={
                 "images_resource": images,
-                "folder": StorageFolder.PRODUCTS,
+                "folder": StorageFolder.PRODUCTS.value,
             },
             compensation_factory=lambda uploaded: (
                 self._media_service.move_images_to_trash,

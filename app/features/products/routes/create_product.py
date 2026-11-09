@@ -26,6 +26,7 @@ from fastapi import (
     Depends,
     File,
     Form,
+    UploadFile
 )
 
 from typing import Annotated
@@ -35,6 +36,35 @@ from app.core.exceptions import ValidationError
 
 import orjson
 
+MAX_IMAGES = 40
+MAX_IMAGE_SIZE = 5 * 1024 * 1024
+
+
+def validate_product_images(
+    files: list[UploadFile],
+) -> None:
+    if not 1 <= len(files) <= MAX_IMAGES:
+        raise ValidationError(
+            message="Debes enviar entre 1 y 40 imágenes.",
+            context={"field": "files"},
+        )
+
+    for index, file in enumerate(files):
+        stream = file.file
+
+        stream.seek(0, 2)
+        size = stream.tell()
+        stream.seek(0)
+
+        if size == 0 or size > MAX_IMAGE_SIZE:
+            raise ValidationError(
+                message="La imagen debe pesar entre 1 byte y 5 MB.",
+                context={
+                    "field": "files",
+                    "index": index,
+                    "size": size,
+                },
+            )
 
 @router.post(
     "/publish/",
@@ -82,6 +112,7 @@ async def create_product(
             },
         ) from exc
 
+    validate_product_images(files)
 
     response = await use_case.execute(
         images_file=[file.file for file in files],

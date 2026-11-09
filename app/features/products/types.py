@@ -46,10 +46,4 @@ class SizeType(str, Enum):
     L = "L"
     XL = "XL"
 
-ProductImageType = Annotated[
-    List[UploadFile],
-    WrapValidator(
-        max_length_validator(40),
-        max_file_size_validator(5 * 1024 * 1024)
-    )
-]
+ProductImageType = list[UploadFile]
