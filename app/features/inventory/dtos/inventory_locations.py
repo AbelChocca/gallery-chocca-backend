@@ -3,8 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.features.inventory.types.inventory import AvailabilityStatus
-from app.features.inventory.types.inventory_location import InventoryLocationType
-
+from app.features.locations.types import LocationType
 
 @dataclass
 class InventoryLocationStockDTO:
@@ -12,7 +11,7 @@ class InventoryLocationStockDTO:
 
     location_id: int
     location_name: str
-    location_type: InventoryLocationType
+    location_type: LocationType
 
     quantity: Decimal
     reserved_quantity: Decimal

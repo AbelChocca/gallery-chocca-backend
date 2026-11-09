@@ -40,16 +40,6 @@ from app.features.inventory.repositories.inventory_repository import InventoryRe
 from app.features.inventory.models.inventory import InventoryTable
 from app.features.inventory.mappers.inventory_mapper import InventoryMapper
 
-from app.features.inventory.mappers.inventory_location import (
-    InventoryLocationMapper,
-)
-from app.features.inventory.repositories.inventory_location_repository import (
-    InventoryLocationRepository,
-)
-from app.features.inventory.models.inventory_location import (
-    InventoryLocationTable,
-)
-
 from app.infra.db.uow.repositories.pricing import PricingRepositoriesMixin
 from app.infra.db.uow.repositories.customer import CustomerRepositoriesMixin
 from app.infra.db.uow.repositories.order import (
@@ -174,20 +164,6 @@ class UnitOfWork(
                 CartMapper,
                 CartTable
             )
-        )
-
-    @property
-    def inventory_locations(
-        self,
-    ) -> InventoryLocationRepository:
-
-        return self._get_or_create(
-            "inventory_locations",
-            lambda: InventoryLocationRepository(
-                self.session,
-                InventoryLocationMapper,
-                InventoryLocationTable,
-            ),
         )
 
     @property

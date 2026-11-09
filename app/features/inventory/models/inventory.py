@@ -61,7 +61,11 @@ class InventoryTable(SQLModel, table=True):
 
     location_id: int = Field(
         sa_column=Column(
-            ForeignKey("inventory_location.id"),
+            ForeignKey(
+                "locations.id",
+                name="fk_inventory_location_id_locations",
+                ondelete="RESTRICT",
+            ),
             nullable=False,
         )
     )

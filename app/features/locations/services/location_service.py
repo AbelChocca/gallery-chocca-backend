@@ -67,6 +67,33 @@ class LocationService:
 
         return location
 
+    
+    async def set_active_status(
+        self,
+        *,
+        location_id: int,
+        is_active: bool,
+    ) -> Location:
+
+        location = await self.get_by_id(
+            location_id=location_id,
+            raises=True,
+            with_lock=True,
+        )
+
+        location.is_active = is_active
+
+        if not is_active:
+            location.pickup_enabled = False
+
+        location.updated_at = datetime.now(timezone.utc)
+
+        return await self._repository.save(
+            location,
+            flush=True,
+        )
+
+
     async def create(
         self,
         *,
@@ -136,6 +163,18 @@ class LocationService:
         await self._repository.save(
             location,
             flush=True,
+        )
+
+    async def get_inventory_locations(
+        self,
+        *,
+        search: str | None = None,
+        is_active: bool | None = None,
+    ) -> list[Location]:
+
+        return await self._repository.get_inventory_locations(
+            search=search,
+            is_active=is_active,
         )
 
     async def get_locations(

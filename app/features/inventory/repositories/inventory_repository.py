@@ -7,7 +7,6 @@ from sqlalchemy.orm import aliased
 from app.core.exceptions import ValueNotFound
 from app.features.inventory.entities.inventory import Inventory
 from app.features.inventory.models.inventory import InventoryTable
-from app.features.inventory.models.inventory_location import InventoryLocationTable
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.features.products.models.model_product import ProductTable, VariantSizeTable, VariantTable
 from app.features.inventory.types.inventory_movement import InventoryOwnerType
@@ -15,6 +14,7 @@ from app.features.material.models.model_material import MaterialTable
 from app.features.material.types import MaterialType
 from app.features.inventory.types.inventory import AvailabilityStatus
 from app.features.inventory.dtos.inventory import InventoryKPIItemDTO
+from app.features.locations.models.locations import LocationTable
 
 class InventoryRepository(
     BaseRepository[Inventory, InventoryTable],
@@ -87,8 +87,8 @@ class InventoryRepository(
         statement = (
             select(InventoryTable)
             .join(
-                InventoryLocationTable,
-                InventoryLocationTable.id
+                LocationTable,
+                LocationTable.id
                 == InventoryTable.location_id,
             )
             .where(
@@ -99,7 +99,7 @@ class InventoryRepository(
                     owner_ids
                 ),
 
-                InventoryLocationTable
+                LocationTable
                 .is_active
                 .is_(True),
 
@@ -633,10 +633,10 @@ class InventoryRepository(
 
                 InventoryTable.last_movement_at,
 
-                InventoryLocationTable.id.label("location_id"),
-                InventoryLocationTable.name.label("location_name"),
-                InventoryLocationTable.type.label("location_type"),
-                InventoryLocationTable.address.label("location_address"),
+                LocationTable.id.label("location_id"),
+                LocationTable.name.label("location_name"),
+                LocationTable.type.label("location_type"),
+                LocationTable.address.label("location_address"),
             )
             .join(
                 VariantTable,
@@ -654,8 +654,8 @@ class InventoryRepository(
                 ),
             )
             .outerjoin(
-                InventoryLocationTable,
-                InventoryLocationTable.id == InventoryTable.location_id,
+                LocationTable,
+                LocationTable.id == InventoryTable.location_id,
             )
             .where(
                 VariantSizeTable.id == variant_size_id
@@ -692,21 +692,21 @@ class InventoryRepository(
                 InventoryTable.last_movement_at,
 
 
-                InventoryLocationTable.name.label(
+                LocationTable.name.label(
                     "location_name"
                 ),
 
-                InventoryLocationTable.type.label(
+                LocationTable.type.label(
                     "location_type"
                 ),
 
-                InventoryLocationTable.address.label(
+                LocationTable.address.label(
                     "location_address"
                 ),
             )
             .outerjoin(
-                InventoryLocationTable,
-                InventoryLocationTable.id ==
+                LocationTable,
+                LocationTable.id ==
                 InventoryTable.location_id,
             )
             .where(

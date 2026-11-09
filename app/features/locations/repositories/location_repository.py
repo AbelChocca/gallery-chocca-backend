@@ -8,6 +8,44 @@ from app.infra.db.repositories.base_repository import BaseRepository
 
 class LocationRepository(BaseRepository[Location, LocationTable]):
 
+    async def get_inventory_locations(
+        self,
+        *,
+        search: str | None = None,
+        is_active: bool | None = None,
+    ) -> list[Location]:
+
+        allowed_types = (
+            LocationType.STORE,
+            LocationType.WORKSHOP,
+            LocationType.WAREHOUSE,
+        )
+
+        stmt = select(LocationTable).where(
+            LocationTable.type.in_(allowed_types)
+        )
+
+        if search:
+            stmt = stmt.where(
+                LocationTable.name.ilike(f"%{search.strip()}%")
+            )
+
+        if is_active is not None:
+            stmt = stmt.where(
+                LocationTable.is_active == is_active
+            )
+
+        stmt = stmt.order_by(LocationTable.name.asc())
+
+        result = await self._db_session.execute(stmt)
+
+        locations = result.scalars().all()
+
+        return [
+            self._base_mapper.to_entity(location)
+            for location in locations
+        ]
+
     async def get_locations(
         self,
         *,
