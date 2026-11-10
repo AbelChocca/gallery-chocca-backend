@@ -10,6 +10,8 @@ from app.core.exceptions import ValueNotFound
 from app.api.security.exceptions import AuthException
 from app.core.authorization.role_permissions import ROLE_PERMISSIONS
 
+from app.features.consents.consent_service import ConsentService
+from app.features.consents.exceptions import TermsNotAcceptedError
 
 class AuthService:
     def __init__(
@@ -18,12 +20,14 @@ class AuthService:
         hasher_service: HashService,
         cart_service: CartService,
         jwt_service: JWTService,
+        consent_service: ConsentService,
         settings: Settings
     ):
         self._user_service = user_service
         self._hasher_service = hasher_service
         self._cart_service = cart_service
         self._jwt_service = jwt_service
+        self.consent_service = consent_service
         self._settings = settings
 
     def logout_user(self) -> dict:
@@ -77,6 +81,10 @@ class AuthService:
         command: RegisterUserCommand,
         anon_session_id: int | None = None
     ) -> dict:
+        if command.accepted_terms is not True:
+            raise TermsNotAcceptedError(
+                "Debes aceptar los términos y condiciones."
+            )
         hashed_password = self._hasher_service.hash(command.password)
 
         user = await self._user_service.create_user(
@@ -84,6 +92,11 @@ class AuthService:
             email=command.email,
             hashed_password=hashed_password,
             anon_session_id=anon_session_id
+        )
+
+        await self.consent_service.accept_terms(
+            user_id=user.id,
+            session_id=None,
         )
 
         return {
