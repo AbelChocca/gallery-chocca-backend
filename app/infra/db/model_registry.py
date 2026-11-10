@@ -18,10 +18,23 @@ from app.features.balancing.models.other_current_liability import OtherCurrentLi
 from app.features.customer.models.customer import Customer # noqa: F401
 from app.infra.db.models.model_user import UserTable # noqa: F401
 from app.features.locations.models.ubigeo import UbigeoTable # noqa: F401
+from app.features.locations.models.locations import LocationTable # noqa: F401
 from app.features.orders.models.order import OrderTable # noqa: F401
 from app.features.orders.models.order_address import OrderAddressTable # noqa: F401
 from app.features.orders.models.order_billing import OrderBillingTable # noqa: F401
 from app.features.orders.models.order_item import OrderItemTable # noqa: F401
 from app.features.orders.models.order_promotion import OrderPromotionTable # noqa: F401
+from app.features.orders.models.order_receipt import OrderReceiptTable # noqa: F401
+from app.features.orders.models.order_pickup import OrderPickupTable # noqa: F401
 from app.features.payments.models.payment import PaymentTable # noqa: F401
 from app.features.payments.models.payment_events import PaymentEventTable # noqa: F401
+from app.infra.db.models.model_cart import CartTable, CartItemTable # noqa: F401
+from app.infra.db.models.model_favorites import FavoritesTable # noqa: F401
+from app.infra.db.models.model_media import MediaImageTable # noqa: F401
+from app.infra.db.models.model_slide import SlideTable # noqa: F401
+from app.infra.db.models.model_user import UserTable # noqa: F401
+from app.features.consents.models.user_consent import UserConsentTable # noqa: F401
+from app.features.complaints.models.complaint import ComplaintTable # noqa: F401
+from app.features.complaints.models.complaint_response import ComplaintResponseTable # noqa: F401
+from app.features.inventory.models.inventory import InventoryTable # noqa: F401
+from app.features.inventory.models.inventory_movement import InventoryMovementTable # noqa: F401
