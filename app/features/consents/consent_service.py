@@ -15,6 +15,7 @@ from app.features.consents.consent_repository import (
 from app.features.consents.config.policy_versions import (
     POLICY_VERSIONS,
 )
+from app.features.consents.exceptions import TermsNotAcceptedError
 
 
 class ConsentService:
@@ -121,6 +122,21 @@ class ConsentService:
         
         return self._to_dto(saved)
 
+    async def require_current_terms(
+        self,
+        *,
+        user_id: int | None,
+        session_id: UUID | None,
+    ) -> None:
+        accepted = await self.has_accepted_current_terms(
+            user_id=user_id,
+            session_id=session_id,
+        )
+
+        if not accepted:
+            raise TermsNotAcceptedError(
+                "Debes aceptar los términos y condiciones vigentes."
+            )
 
     async def has_accepted_current_terms(
         self,
