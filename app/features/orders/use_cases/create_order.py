@@ -58,6 +58,8 @@ from app.features.inventory.types.inventory_reference import (
     InventoryReferenceType,
 )
 
+from app.features.consents.consent_service import ConsentService
+
 from app.core.exceptions import ValidationError
 
 
@@ -78,7 +80,8 @@ class CreateOrderUseCase:
         inventory_movement_service: InventoryMovementService,
         ubigeo_service: UbigeoService,
         order_pickup_service: OrderPickupService,
-        location_service: LocationService
+        location_service: LocationService,
+        consent_service: ConsentService,
     ):
         self._order_service = order_service
         self._order_item_service = order_item_service
@@ -95,11 +98,17 @@ class CreateOrderUseCase:
         )
         self._order_pickup_service = order_pickup_service
         self._location_service = location_service
+        self.consent_service = consent_service
 
     async def execute(
         self,
         input: CreateOrderInput,
     ) -> CreateOrderResult:
+        await self.consent_service.require_current_terms(
+            user_id=input.user_id,
+            session_id=input.session_id,
+        )
+
         now = datetime.now(UTC)
 
         customer = await self._resolve_customer(

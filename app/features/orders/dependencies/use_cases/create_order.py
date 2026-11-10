@@ -54,6 +54,10 @@ from app.features.locations.services.ubigeo_service import UbigeoService
 from app.features.inventory.dependencies.services import InventoryMovementService, InventoryService, get_inventory_movement_service, get_inventory_service
 from app.features.orders.services.order_pickup_service import OrderPickupService
 from app.features.locations.services.location_service import LocationService
+from app.features.consents.dependencies.services import (
+    get_consent_service,
+    ConsentService
+)
 
 def get_create_order_use_case(
     order_service: OrderService = Depends(
@@ -95,6 +99,7 @@ def get_create_order_use_case(
     location_service: 
         LocationService =
         Depends(get_location_service),
+    consent_service: ConsentService = Depends(get_consent_service),
 ) -> CreateOrderUseCase:
     return CreateOrderUseCase(
         order_service=order_service,
@@ -109,5 +114,6 @@ def get_create_order_use_case(
         inventory_service=inventory_service,
         inventory_movement_service=inventory_movement_service,
         order_pickup_service=order_pickup_service,
+        consent_service=consent_service,
         location_service=location_service,
     )
