@@ -121,6 +121,26 @@ class ConsentService:
         
         return self._to_dto(saved)
 
+
+    async def has_accepted_current_terms(
+        self,
+        *,
+        user_id: int | None,
+        session_id: UUID | None,
+    ) -> bool:
+        latest = await self.consent_repository.get_latest_by_owner(
+            user_id=user_id,
+            session_id=session_id,
+            consent_type=ConsentType.TERMS,
+        )
+
+        return (
+            latest is not None
+            and latest.accepted
+            and latest.version == POLICY_VERSIONS.terms
+        )
+
+
     async def accept_terms(
         self,
         *,
