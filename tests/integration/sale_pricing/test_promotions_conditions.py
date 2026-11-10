@@ -362,6 +362,7 @@ async def test_calculate_ignores_promotion_before_start_date(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=product.id,
                 product_id=product.id,
                 quantity=2,
                 category=product.category,
