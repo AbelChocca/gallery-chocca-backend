@@ -115,7 +115,7 @@ class SendAdminComplaintResponseUseCase:
 
         except AppException:
             logger_service.exception(
-                f"Complaint response email failed."
+                "Complaint response email failed."
                 "complaint_id=%s response_id=%s",
                 complaint_id,
                 response_id,

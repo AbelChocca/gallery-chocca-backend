@@ -16,7 +16,6 @@ from app.features.balancing.models.balance_snapshot import BalanceSnapshotTable 
 from app.features.balancing.models.financial_debt import FinancialDebtTable # noqa: F401
 from app.features.balancing.models.other_current_liability import OtherCurrentLiabilityTable # noqa: F401
 from app.features.customer.models.customer import Customer # noqa: F401
-from app.infra.db.models.model_user import UserTable # noqa: F401
 from app.features.locations.models.ubigeo import UbigeoTable # noqa: F401
 from app.features.locations.models.locations import LocationTable # noqa: F401
 from app.features.orders.models.order import OrderTable # noqa: F401

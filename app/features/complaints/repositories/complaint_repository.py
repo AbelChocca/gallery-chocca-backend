@@ -10,7 +10,6 @@ from app.features.complaints.models.complaint import (
     complaint_number_sequence,
 )
 from app.features.complaints.types.complaint import (
-    ComplaintStatus,
     AdminComplaintListItemDTO,
     ComplaintFilters,
 )

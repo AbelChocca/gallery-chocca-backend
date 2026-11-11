@@ -40,7 +40,6 @@ from app.features.locations.services.ubigeo_service import UbigeoService
 
 from app.core.exceptions import (
     ValueNotFound,
-    ValidationError
 )
 from app.features.orders.services.order_pickup_service import (
     OrderPickupService,

@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -24,7 +23,6 @@ from app.shared.calendar.business_day_service import (
     BusinessDayService,
 )
 from app.infra.db.uow.unit_of_work import UnitOfWork
-from app.core.exceptions import AppException
 from app.core.log.config import logger_service
 
 

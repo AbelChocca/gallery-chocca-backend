@@ -79,7 +79,6 @@ from app.features.orders.repositories.order_pickup_repository import (
     OrderPickupRepository,
 )
 
-from app.features.locations.entities.location import Location
 from app.features.locations.mappers.location_mapper import (
     LocationMapper,
 )

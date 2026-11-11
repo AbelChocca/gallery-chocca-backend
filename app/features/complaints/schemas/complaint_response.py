@@ -7,19 +7,6 @@ from app.features.complaints.types.complaint_response import (
     ComplaintResponseStatus,
 )
 
-
-class CreateComplaintResponseRequestSchema(BaseModel):
-    model_config = ConfigDict(
-        str_strip_whitespace=True,
-        extra="forbid",
-    )
-
-    message: str = Field(
-        min_length=10,
-        max_length=10000,
-    )
-
-
 class ComplaintResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -6,7 +6,6 @@ from app.features.cart.cart_route import router
 from app.features.cart.dependencies.services import get_cart_service
 from app.features.cart.service import CartService
 from app.api.security.rate_limiter.ratelimiter import limiter
-from app.api.security.rate_limiter.ratelimiter import limiter
 from app.api.security.resolvers.session_owner import (
     OwnerSession,
     get_session_owner,

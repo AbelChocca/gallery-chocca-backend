@@ -137,19 +137,6 @@ class ComplaintService:
             public_id
         )
 
-    async def get_by_id(
-        self,
-        complaint_id: int,
-        *,
-        raises: bool = True,
-        with_lock: bool = False,
-    ) -> Complaint | None:
-        return await self._repository.get_by_id(
-            model_id=complaint_id,
-            raises=raises,
-            with_lock=with_lock,
-        )
-
     
     async def get_admin_complaints(
         self,

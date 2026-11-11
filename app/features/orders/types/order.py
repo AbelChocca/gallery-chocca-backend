@@ -7,7 +7,6 @@ from app.features.pricing.dtos.cart_pricing_dto import (
     AppliedPromotionDTO,
 )
 
-from app.features.customer.customer_types import IdentityDocumentType
 from app.features.receipts.types.document import BillingDocumentType
 from app.features.orders.types.order_address import AdminOrderAddressDTO, MyOrderAddressDTO
 from app.features.orders.types.order_billing import AdminOrderBillingDTO, MyOrderBillingDTO
@@ -92,14 +91,6 @@ class CreateOrderAddressDTO:
     reference: str | None = None
     delivery_instructions: str | None = None
 
-
-@dataclass(frozen=True, slots=True)
-class CreateOrderBillingDTO:
-    document_type: BillingDocumentType
-    document_number_type: IdentityDocumentType
-    document_number: str
-    legal_name: str | None = None
-    billing_address: str | None = None
 
 @dataclass(frozen=True, slots=True)
 class CreateOrderBillingDTO:
