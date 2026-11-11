@@ -304,6 +304,7 @@ async def test_register_name_sql_injection_e2e(
             "email": email,
             "password": "StrongPassword123!",
             "captchaToken": "e2e-captcha-bypass",
+            "accepted_terms": True
         },
     )
 
