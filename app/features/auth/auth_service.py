@@ -85,6 +85,7 @@ class AuthService:
             raise TermsNotAcceptedError(
                 "Debes aceptar los términos y condiciones."
             )
+        
         hashed_password = self._hasher_service.hash(command.password)
 
         user = await self._user_service.create_user(

@@ -49,7 +49,8 @@ async def register_user(
     command = RegisterUserCommand(
         name=register_schema.name,
         email=register_schema.email,
-        password=register_schema.password
+        password=register_schema.password,
+        accepted_terms=register_schema.accepted_terms
     )
     res = await service.register_user(command, anon_id)
     return ReadSessionSchema(**res)
