@@ -1,15 +1,32 @@
 from sqlmodel import SQLModel
-from sqlalchemy.engine import URL
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.engine import URL, make_url
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 from app.core.settings.pydantic_settings import settings
 
 from app.infra.db import model_registry  # noqa: F401
 
-def get_db_url():
-    ssl_mode = {}
+def get_db_url() -> URL:
+    if settings.DATABASE_URL:
+        url = make_url(settings.DATABASE_URL)
 
-    if settings.ENV == "production":
-        ssl_mode = {"ssl": "require"}
+        if not url.drivername.startswith("postgresql"):
+            raise ValueError("DATABASE_URL debe utilizar PostgreSQL")
+
+        return url.set(
+            drivername="postgresql+asyncpg",
+        ).difference_update_query(
+            ["sslmode", "ssl"]
+        )
+
+    if not all((
+        settings.POSTGRES_USER,
+        settings.POSTGRES_PASSWORD,
+        settings.POSTGRES_HOST,
+        settings.POSTGRES_DB,
+    )):
+        raise ValueError(
+            "Configura DATABASE_URL o las variables POSTGRES_*"
+        )
 
     return URL.create(
         drivername="postgresql+asyncpg",
@@ -18,11 +35,9 @@ def get_db_url():
         host=settings.POSTGRES_HOST,
         port=settings.POSTGRES_PORT,
         database=settings.POSTGRES_DB,
-        query=ssl_mode
     )
 
-
-engine = create_async_engine(
+engine: AsyncEngine = create_async_engine(
     get_db_url(),
     echo=False,
     pool_size=3,
@@ -30,6 +45,11 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_recycle=1800,
     pool_timeout=30,
+    connect_args=(
+        {"ssl": "require"}
+        if settings.ENV == "production"
+        else {}
+    ),
 )
 
 async_session_factory = async_sessionmaker(
