@@ -31,11 +31,11 @@ class Settings(BaseSettings):
 
     # base de datos que usaremos en producción
     DATABASE_URL: str | None = None
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_HOST: str | None = None
+    POSTGRES_DB: str | None = None
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    POSTGRES_HOST: str
 
     # google captcha
     RECAPTCHA_SECRET_KEY: str
