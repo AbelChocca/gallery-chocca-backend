@@ -72,6 +72,28 @@ jobs:
 
       RECAPTCHA_SECRET_KEY: test
 
+      OPENPAY_MERCHANT_ID: test-merchant-id
+      OPENPAY_PRIVATE_KEY: sk_test_ci_dummy
+      OPENPAY_BASE_URL: https://sandbox-api.openpay.pe
+      OPENPAY_TEST_CLIENT_IP: 127.0.0.1
+
+      FRONTEND_URL: http://localhost:3000
+
+      FACTUSMART_BASE_URL: https://example.invalid
+      FACTUSMART_API_KEY: test-factusmart-api-key
+      FACTUSMART_RUC: "20123456789"
+
+      RESEND_API_KEY: re_test_dummy
+      RESEND_FROM_EMAIL: test@example.com
+      RESEND_COMPLAINTS_FROM_EMAIL: complaints@example.com
+      RESEND_ORDERS_FROM_EMAIL: orders@example.com
+      RESEND_SUPPORT_FROM_EMAIL: support@example.com
+
+      COMPLAINT_REPLY_TO_EMAIL: support@example.com
+      COMPLAINT_PROVIDER_LEGAL_NAME: OLD DENIM CLUB TEST
+      COMPLAINT_PROVIDER_RUC: "20123456789"
+      COMPLAINT_PROVIDER_ADDRESS: Lima, Peru
+
       PYTHONPATH: .
 
     steps:
