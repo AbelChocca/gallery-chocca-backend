@@ -27,16 +27,12 @@ from app.features.inventory.resolvers.inventory_owner_resolver import InventoryO
 
 from app.features.inventory.dependencies.services import (
     get_inventory_service,
-    get_inventory_location_service,
 )
 
 from app.features.inventory.services.inventory_service import (
     InventoryService,
 )
-
-from app.features.inventory.services.inventory_location_service import (
-    InventoryLocationService,
-)
+from app.features.locations.dependencies.services import get_location_service, LocationService
 
 from app.features.inventory.use_cases.get_inventory_materials import (
     GetInventoryMaterialsUseCase,
@@ -87,8 +83,8 @@ def get_update_inventory_locations_use_case(
     inventory_service: InventoryService = Depends(
         get_inventory_service,
     ),
-    inventory_location_service: InventoryLocationService = Depends(
-        get_inventory_location_service,
+    inventory_location_service: LocationService = Depends(
+        get_location_service,
     ),
 ) -> UpdateInventoryLocationsUseCase:
 

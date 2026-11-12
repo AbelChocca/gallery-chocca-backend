@@ -4,6 +4,19 @@ class Permission(StrEnum):
 
     DASHBOARD_READ = "dashboard:read"
 
+    LOCATION_CREATE = "location:create"
+    LOCATION_DELETE = "location:delete"
+
+    COMPLAINT_VIEW = "complaint:view"
+    COMPLAINT_RESPOND = "complaint:respond"
+
+    RECEIPT_GENERATE = "receipt:generate"
+
+    # Orders
+    ORDER_READ = "order:read"
+    ORDER_UPDATE = "order:update"
+    ORDER_PAYMENT_CREATE = "order:payment:create"
+
     # Materiales
     MATERIAL_READ = "material:read"
     MATERIAL_CREATE = "material:create"

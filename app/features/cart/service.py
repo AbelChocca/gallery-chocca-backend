@@ -1,25 +1,33 @@
-from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
+from app.features.cart.cart_repository import CartRepository
 from app.infra.db.repositories.product_repository import PostgresProductRepository
-from app.core.exceptions import ValueNotFound, ValidationError
+from app.features.inventory.repositories.inventory_repository import InventoryRepository
+from app.core.exceptions import ValidationError, InvalidOperation
 from app.features.cart.entities.cart import Cart
-from app.features.cart.types import CartItemRow
-from app.features.pricing.utils.pricing_calculator import ProductPricingCalculator
-from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import ProductPricingRepository
-
-from collections import defaultdict
+from app.features.cart.dto import CartItemRow
+from app.features.inventory.types.inventory_movement import InventoryOwnerType
 
 class CartService:
     def __init__(
             self,
             cart_repository: CartRepository,
             product_repository: PostgresProductRepository,
-            product_pricing_repository: ProductPricingRepository,
-            pricing_calculator: ProductPricingCalculator
+            inventory_repository: InventoryRepository
         ):
         self._cart_repository = cart_repository
         self._product_repository = product_repository
-        self._pricing_calculator = pricing_calculator
-        self._product_pricing_repository = product_pricing_repository
+        self._inventory_repo = inventory_repository
+
+
+    async def get_active_cart_items_count(
+        self,
+        *,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> int:
+        return await self._cart_repository.get_active_cart_items_count(
+            user_id=user_id,
+            session_id=session_id,
+        )
 
     async def add_item(
         self,
@@ -69,29 +77,27 @@ class CartService:
     
     async def set_item_quantity(
         self,
+        *,
         cart_item_id: int,
         quantity: int,
+        user_id: int | None,
+        session_id: str | None,
     ) -> None:
-
         if quantity <= 0:
             raise ValidationError(
                 "Quantity must be greater than 0",
-                {
-                    "event": "set_item_quantity",
-                    "cart_item_id": cart_item_id,
-                    "quantity": quantity,
-                }
             )
 
-        item = await self._cart_repository.get_cart_item_by_id(
-            cart_item_id,
-            raises=True
+        item = await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
+            user_id=user_id,
+            session_id=session_id,
         )
 
         await self._validate_product_stock(
             product_id=item.product_id,
             variant_size_id=item.variant_size_id,
-            quantity=quantity
+            quantity=quantity,
         )
 
         item.quantity = quantity
@@ -100,16 +106,23 @@ class CartService:
     
     async def increment_item_quantity(
         self,
+        *,
         cart_item_id: int,
+        user_id: int | None,
+        session_id: str | None,
     ) -> None:
-        item = await self._cart_repository.get_cart_item_by_id(cart_item_id, raises=True)
+        item = await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
+            user_id=user_id,
+            session_id=session_id,
+        )
 
         new_quantity = item.quantity + 1
 
         await self._validate_product_stock(
             product_id=item.product_id,
             variant_size_id=item.variant_size_id,
-            quantity=new_quantity
+            quantity=new_quantity,
         )
 
         item.quantity = new_quantity
@@ -118,9 +131,16 @@ class CartService:
     
     async def decrement_item_quantity(
         self,
+        *,
         cart_item_id: int,
-    ):
-        item = await self._cart_repository.get_cart_item_by_id(cart_item_id, True)
+        user_id: int | None,
+        session_id: str | None,
+    ) -> None:
+        item = await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
+            user_id=user_id,
+            session_id=session_id,
+        )
 
         if item.quantity <= 1:
             raise ValidationError(
@@ -133,100 +153,51 @@ class CartService:
 
     async def remove_item_from_cart(
         self,
-        cart_item_id: int
+        *,
+        cart_item_id: int,
+        user_id: int | None,
+        session_id: str | None,
     ) -> None:
-        await self._cart_repository.delete_item(cart_item_id)
-    
-    async def get_full_cart_by_owner(
-            self, 
-            user_id: int | None,
-            session_id: str | None,
-            ) -> dict | None:
-        cart = await self._cart_repository.get_active_cart(
+        await self._get_owned_cart_item(
+            cart_item_id=cart_item_id,
             user_id=user_id,
             session_id=session_id,
         )
 
-        if not cart:
-            return None
-        
-        cart_items = await self._cart_repository.get_full_cart(cart.id)
-
-        if not cart_items:
-            return {
-                "cart_id": cart.id,
-                "items": [],
-                "subtotal": 0,
-                "total": 0,
-                "total_items": 0,
-            }
-        
-        product_ids: list[int] = [item["product_id"] for item in cart_items]
-        
-        rules = await (
-            self._product_pricing_repository
-            .get_product_pricing_rules_summary(
-                product_ids=product_ids
-            )
+        await self._cart_repository.delete_item(
+            cart_item_id
         )
 
-        rules_by_product = defaultdict(list)
+    async def get_cart_id_by_owner(
+        self,
+        *,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> int | None:
+        return await self._cart_repository.get_active_cart_id_by_owner(
+            user_id=user_id,
+            session_id=session_id,
+        )
+    
+    async def get_cart_by_owner(
+        self,
+        *,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> Cart | None:
+        return await self._cart_repository.get_active_cart(
+            user_id=user_id,
+            session_id=session_id,
+        )
 
-        for rule in rules:
-            rules_by_product[rule.product_id].append(rule)
-        
-        parsed_items = []
-
-        subtotal = 0
-        total = 0
-        
-        for item in cart_items:
-            item: CartItemRow = dict(item)
-
-            product_rules = rules_by_product.get(
-                item["product_id"],
-                []
-            )
-
-            pricing_result = self._pricing_calculator.calculate(
-                base_price=item['base_price'],
-                rules=product_rules
-            )
-
-            item["final_price"] = pricing_result.final_price
-
-            item["available_quantity"] = min(
-                item["stock"],
-                item["quantity"]
-            )
-
-            item["is_available"] = (
-                item["has_stock"] and
-                item["is_product_active"]
-            )
-
-            item["subtotal"] = (
-                item["quantity"] *
-                item["base_price"]
-            )
-
-            item["final_subtotal"] = (
-                item["quantity"] *
-                pricing_result.final_price
-            )
-
-            subtotal += item["subtotal"]
-            total += item["final_subtotal"]
-
-            parsed_items.append(item)
-
-        return {
-            "cart_id": cart.id,
-            "items": parsed_items,
-            "subtotal": subtotal,
-            "total": total,
-            "total_items": len(parsed_items)
-        }
+    async def get_cart_items(
+        self,
+        *,
+        cart_id: int,
+    ) -> list[CartItemRow]:
+        return await self._cart_repository.get_cart_items_detail(
+            cart_id=cart_id,
+        )
     
     async def merge_guest_cart_to_user_cart(
         self,
@@ -273,14 +244,20 @@ class CartService:
                 merged_quantity += existing_item.quantity
 
             variant_size = await self._product_repository.get_variant_size_by_id(
-                guest_item.variant_size_id,
-                with_lock=True
+                guest_item.variant_size_id
             )
 
-            # clamp quantity to available stock
+            total_available_stock = await (
+                self._inventory_repo
+                .get_total_available_stock_by_owner(
+                    owner_type=InventoryOwnerType.PRODUCT,
+                    owner_id=variant_size.id,
+                )
+            )
+
             final_quantity = min(
                 merged_quantity,
-                variant_size.stock
+                total_available_stock
             )
 
             # item already exists in user cart
@@ -310,25 +287,12 @@ class CartService:
             guest_cart.id
         )
     
-    async def _get_cart_or_raise(self, cart_id: int) -> Cart:
-        cart = await self._cart_repository.get_by_id_with_items(cart_id)
-
-        if not cart:
-            raise ValueNotFound(
-                "Cart not found",
-                {
-                    "cart_id": cart_id
-                }
-            )
-
-        return cart
-    
     async def _validate_product_stock(
         self,
         product_id: int,
         variant_size_id: int,
         quantity: int
-    ):
+    ) -> None:
         product = await self._product_repository.get_by_id(product_id)
 
         if not product.is_active:
@@ -336,17 +300,15 @@ class CartService:
                 f"Product {product.nombre} is inactive"
             )
 
-        variant_size = await self._product_repository.get_variant_size_by_id(
-            variant_size_id,
-            with_lock=True
+        available_total_stock = await self._inventory_repo.get_available_total_stock_by_owner(
+            owner_type=InventoryOwnerType.PRODUCT,
+            owner_id=variant_size_id
         )
 
-        if variant_size.stock < quantity:
+        if available_total_stock < quantity:
             raise ValidationError(
-                f"Insufficient stock. Available: {variant_size.stock}"
+                f"Insufficient stock. Available: {available_total_stock}"
             )
-
-        return variant_size
     
     async def _get_or_create_active_cart(
         self,
@@ -387,3 +349,38 @@ class CartService:
         return await self._cart_repository.save(
             cart
         )
+    
+    async def _get_owned_cart_item(
+        self,
+        *,
+        cart_item_id: int,
+        user_id: int | None,
+        session_id: str | None,
+    ):
+        cart_id = await self.get_cart_id_by_owner(
+            user_id=user_id,
+            session_id=session_id,
+        )
+
+        if cart_id is None:
+            raise InvalidOperation(
+                "Cart item not available.",
+                {
+                    "event": "cart_item_access_denied",
+                },
+            )
+
+        item = await self._cart_repository.get_cart_item_by_id(
+            cart_item_id,
+            raises=False,
+        )
+
+        if item is None or item.cart_id != cart_id:
+            raise InvalidOperation(
+                "Cart item not available.",
+                {
+                    "event": "cart_item_access_denied",
+                },
+            )
+
+        return item

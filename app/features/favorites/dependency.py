@@ -12,6 +12,7 @@ from app.shared.pagination.pagination_service import (
     PaginationService,
     get_pagination_service,
 )
+from app.features.pricing.dependencies.services.catalog_pricing_service import get_catalog_pricing_service, CatalogPricingService
 
 
 def get_favorite_service(
@@ -25,9 +26,11 @@ def get_favorite_products_use_case(
     favorite_service: FavoriteService = Depends(get_favorite_service),
     pagination_service: PaginationService = Depends(get_pagination_service),
     product_enricher: ProductEnricher = Depends(get_product_enricher),
+    catalog_pricing_service: CatalogPricingService = Depends(get_catalog_pricing_service)
 ) -> GetFavoriteProductsUseCase:
     return GetFavoriteProductsUseCase(
         favorite_service=favorite_service,
         pagination_service=pagination_service,
         product_enricher=product_enricher,
+        catalog_pricing_service=catalog_pricing_service
     )

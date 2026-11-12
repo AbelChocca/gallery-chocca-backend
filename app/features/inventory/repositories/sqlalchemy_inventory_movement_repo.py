@@ -3,10 +3,48 @@ from app.features.inventory.entities.inventory_movement_entity import InventoryM
 from app.features.inventory.models.inventory_movement import InventoryMovementTable
 from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters, InventoryMovementSummaryDTO
 from app.features.inventory.types.inventory_movement import InventoryOwnerType, InventoryMovementType
+from app.features.inventory.types.inventory_reference import InventoryReferenceType
 from sqlalchemy import select, func, Select, or_, case
 from sqlmodel import col
 
 class PostgresInventoryMovementReposity(BaseRepository[InventoryMovement, InventoryMovementTable]):
+    async def get_by_reference(
+        self,
+        *,
+        reference_type: InventoryReferenceType,
+        reference_id: int,
+        movement_type: InventoryMovementType | None = None,
+    ) -> list[InventoryMovement]:
+
+        statement = select(
+            InventoryMovementTable
+        ).where(
+            InventoryMovementTable.reference_type
+            == reference_type,
+            InventoryMovementTable.reference_id
+            == reference_id,
+        )
+
+        if movement_type is not None:
+            statement = statement.where(
+                InventoryMovementTable.type
+                == movement_type
+            )
+
+        statement = statement.order_by(
+            InventoryMovementTable.id.asc()
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        rows = result.scalars().all()
+
+        return [
+            self._base_mapper.to_entity(row)
+            for row in rows
+        ]
     async def get_last_material_movement(
         self,
         owner_type: InventoryOwnerType,

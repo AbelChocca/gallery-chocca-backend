@@ -2,7 +2,7 @@ from app.features.inventory.repositories.sqlalchemy_inventory_movement_repo impo
 from app.infra.db.mappers.inventory_movement_mapper import InventoryMovementMapper
 from app.features.inventory.models.inventory_movement import InventoryMovementTable
 
-from app.infra.db.repositories.product_repository import PostgresProductRepository
+from app.features.products.product_repository import PostgresProductRepository
 from app.infra.db.mappers.product_mapper import ProductMapper
 from app.features.products.models.model_product import ProductTable, VariantSizeTable, VariantTable
 
@@ -22,15 +22,9 @@ from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavo
 from app.infra.db.mappers.favorite_mapper import FavoritesMapper
 from app.infra.db.models.model_favorites import FavoritesTable
 
-from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
+from app.features.cart.cart_repository import CartRepository
 from app.infra.db.mappers.cart_mapper import CartMapper
 from app.infra.db.models.model_cart import CartTable
-
-from app.infra.db.repositories.sqlalchemy_pricing_rule_repository import PricingRuleRepository
-from app.infra.db.mappers.pricing_rule_mapper import PricingRuleMapper
-from app.infra.db.models.model_pricing_rule import PricingRuleTable
-
-from app.infra.db.repositories.sqlalchemy_product_pricing_rule_repository import ProductPricingRepository
 
 from app.features.material.material_repository import PostgresMaterialRepository
 from app.infra.db.mappers.material_mapper import MaterialMapper
@@ -46,81 +40,27 @@ from app.features.inventory.repositories.inventory_repository import InventoryRe
 from app.features.inventory.models.inventory import InventoryTable
 from app.features.inventory.mappers.inventory_mapper import InventoryMapper
 
-from app.features.inventory.mappers.inventory_location import (
-    InventoryLocationMapper,
+from app.infra.db.uow.repositories.pricing import PricingRepositoriesMixin
+from app.infra.db.uow.repositories.customer import CustomerRepositoriesMixin
+from app.infra.db.uow.repositories.order import (
+    OrdersRepositoriesMixin,
 )
-from app.features.inventory.repositories.inventory_location_repository import (
-    InventoryLocationRepository,
-)
-from app.features.inventory.models.inventory_location import (
-    InventoryLocationTable,
-)
-
-from app.features.balancing.repositories.balance_snapshot_repository import BalanceSnapshotRepository
-from app.features.balancing.mappers.balance_snapshot_mapper import BalanceSnapshotMapper
-from app.features.balancing.models.balance_snapshot import BalanceSnapshotTable
-
-from app.features.balancing.repositories.accounts_receivable_repository import (
-    AccountsReceivableRepository,
+from app.infra.db.uow.repositories.complaints import ComplaintsRepositoriesMixin
+from app.infra.db.uow.repositories.payment import PaymentsRepositoriesMixin
+from app.infra.db.uow.repositories.balancing import (
+    BalancingRepositoriesMixin,
 )
 
-from app.features.balancing.repositories.accounts_payable_repository import (
-    AccountsPayableRepository,
+from app.features.consents.consent_repository import (
+    UserConsentRepository,
+)
+from app.features.consents.user_consent_mapper import (
+    UserConsentMapper,
+)
+from app.features.consents.models.user_consent import (
+    UserConsentTable,
 )
 
-from app.features.balancing.repositories.financial_debt_repository import (
-    FinancialDebtRepository,
-)
-
-from app.features.balancing.repositories.inventory_valuation_repository import (
-    InventoryValuationRepository,
-)
-
-from app.features.balancing.repositories.other_current_liability_repository import (
-    OtherCurrentLiabilityRepository,
-)
-
-
-from app.features.balancing.mappers.accounts_receivable_mapper import (
-    AccountsReceivableMapper,
-)
-
-from app.features.balancing.mappers.accounts_payable_mapper import (
-    AccountsPayableMapper,
-)
-
-from app.features.balancing.mappers.financial_debt_mapper import (
-    FinancialDebtMapper,
-)
-
-from app.features.balancing.mappers.inventory_valuation_mapper import (
-    InventoryValuationMapper,
-)
-
-from app.features.balancing.mappers.other_current_liability_mapper import (
-    OtherCurrentLiabilityMapper,
-)
-
-
-from app.features.balancing.models.accounts_receivable import (
-    AccountsReceivableTable,
-)
-
-from app.features.balancing.models.accounts_payable import (
-    AccountsPayableTable,
-)
-
-from app.features.balancing.models.financial_debt import (
-    FinancialDebtTable,
-)
-
-from app.features.balancing.models.inventory_valuation import (
-    InventoryValuationTable,
-)
-
-from app.features.balancing.models.other_current_liability import (
-    OtherCurrentLiabilityTable,
-)
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import AbstractAsyncContextManager
@@ -128,7 +68,15 @@ from typing import Callable, Type, TypeVar
 
 T = TypeVar("T")
 
-class UnitOfWork(AbstractAsyncContextManager):
+class UnitOfWork(
+    PricingRepositoriesMixin,
+    CustomerRepositoriesMixin,
+    OrdersRepositoriesMixin,
+    PaymentsRepositoriesMixin,
+    ComplaintsRepositoriesMixin,
+    BalancingRepositoriesMixin,
+    AbstractAsyncContextManager
+):
     def __init__(self, session_factory: Callable[[], AsyncSession]):
         self._session_factory = session_factory
         self.session: AsyncSession | None = None
@@ -136,85 +84,16 @@ class UnitOfWork(AbstractAsyncContextManager):
         self._repositories = None
 
     @property
-    def accounts_receivable(
-        self,
-    ) -> AccountsReceivableRepository:
-
+    def consents(self) -> UserConsentRepository:
         return self._get_or_create(
-            "accounts_receivable",
-            lambda: AccountsReceivableRepository(
+            "consents",
+            lambda: UserConsentRepository(
                 self.session,
-                AccountsReceivableMapper,
-                AccountsReceivableTable,
+                UserConsentMapper,
+                UserConsentTable,
             ),
         )
-
-    @property
-    def accounts_payable(
-        self,
-    ) -> AccountsPayableRepository:
-
-        return self._get_or_create(
-            "accounts_payable",
-            lambda: AccountsPayableRepository(
-                self.session,
-                AccountsPayableMapper,
-                AccountsPayableTable,
-            ),
-        )
-
-    @property
-    def financial_debts(
-        self,
-    ) -> FinancialDebtRepository:
-
-        return self._get_or_create(
-            "financial_debts",
-            lambda: FinancialDebtRepository(
-                self.session,
-                FinancialDebtMapper,
-                FinancialDebtTable,
-            ),
-        )
-
-    @property
-    def inventory_valuations(
-        self,
-    ) -> InventoryValuationRepository:
-
-        return self._get_or_create(
-            "inventory_valuations",
-            lambda: InventoryValuationRepository(
-                self.session,
-                InventoryValuationMapper,
-                InventoryValuationTable,
-            ),
-        )
-
-    @property
-    def other_current_liabilities(
-        self,
-    ) -> OtherCurrentLiabilityRepository:
-
-        return self._get_or_create(
-            "other_current_liabilities",
-            lambda: OtherCurrentLiabilityRepository(
-                self.session,
-                OtherCurrentLiabilityMapper,
-                OtherCurrentLiabilityTable,
-            ),
-        )
-
-    @property
-    def balance_snapshots(self) -> BalanceSnapshotRepository:
-        return self._get_or_create(
-            "balance_snapshots",
-            lambda: BalanceSnapshotRepository(
-                self.session,
-                BalanceSnapshotMapper,
-                BalanceSnapshotTable,
-            ),
-        )
+    
     
     @property
     def favorites(
@@ -286,48 +165,6 @@ class UnitOfWork(AbstractAsyncContextManager):
                 CartTable
             )
         )
-
-    @property
-    def inventory_locations(
-        self,
-    ) -> InventoryLocationRepository:
-
-        return self._get_or_create(
-            "inventory_locations",
-            lambda: InventoryLocationRepository(
-                self.session,
-                InventoryLocationMapper,
-                InventoryLocationTable,
-            ),
-        )
-
-    @property
-    def pricing_rules(
-        self
-    ) -> PricingRuleRepository:
-
-        return self._get_or_create(
-            "pricing_rules",
-            lambda: PricingRuleRepository(
-                self.session,
-                PricingRuleMapper,
-                PricingRuleTable
-            )
-        )
-
-
-    @property
-    def product_pricing(
-        self
-    ) -> ProductPricingRepository:
-
-        return self._get_or_create(
-            "product_pricing",
-            lambda: ProductPricingRepository(
-                self.session
-            )
-        )
-
 
     @property
     def materials(
@@ -412,6 +249,14 @@ class UnitOfWork(AbstractAsyncContextManager):
                 UserTable
             )
         )
+
+    async def commit(self) -> None:
+        if self.session is None:
+            raise RuntimeError(
+                "UnitOfWork no tiene una sesión activa."
+            )
+
+        await self.session.commit()
     
     def _get_or_create(
         self,

@@ -2,7 +2,6 @@ from app.features.products.product_route import router
 from app.api.security.rate_limiter.ratelimiter import limiter
 from app.features.products.schema import GridProductRead
 from app.shared.pagination.schema import ProductRelatedPaginationSchema
-from app.features.products.mappers.schema_mapper import OutputSchemaMapper
 from app.features.products.dependency import get_related_products_use_case
 from app.features.products.use_cases.search_product import GetRelatedProductsUseCase
 
@@ -25,6 +24,6 @@ async def search_product(
     products = await use_case.execute(query, pagination.limit)
 
     return [
-        OutputSchemaMapper.to_grid_product_read(product)
+        GridProductRead.model_validate(product)
         for product in products
     ]

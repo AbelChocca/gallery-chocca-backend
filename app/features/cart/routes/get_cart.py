@@ -1,41 +1,69 @@
 from typing import Annotated
 
-from fastapi import Depends, status
+from fastapi import (
+    Depends,
+    status,
+)
 
 from app.features.cart.cart_route import router
-from app.features.cart.dependency import get_cart_service
-from app.features.cart.service import CartService
+from app.features.cart.dependencies.use_cases.get_full_cart import (
+    get_full_cart_use_case,
+)
+from app.features.cart.schema import (
+    GetFullCartResponse,
+)
+from app.features.cart.use_cases.get_full_cart import (
+    GetFullCartUseCase,
+)
+from app.features.customer.helpers.get_customer_pricing_context import (
+    get_customer_pricing_context,
+)
+from app.features.customer.dtos.customer import (
+    CustomerPricingContext,
+)
 
 from app.api.security.resolvers.session_owner import (
     OwnerSession,
     get_session_owner,
 )
 
-from app.features.cart.schema import CartResponse
-
 
 @router.get(
-    path="",
+    "",
+    response_model=GetFullCartResponse | None,
     status_code=status.HTTP_200_OK,
-    summary="Get active cart"
+    summary="Get current cart",
 )
 async def get_cart(
+    use_case: Annotated[
+        GetFullCartUseCase,
+        Depends(get_full_cart_use_case),
+    ],
     owner: Annotated[OwnerSession, Depends(get_session_owner)],
-    service: Annotated[CartService, Depends(get_cart_service)],
-) -> CartResponse | None:
-    result = await service.get_full_cart_by_owner(
+    customer: Annotated[
+        CustomerPricingContext | None,
+        Depends(get_customer_pricing_context),
+    ],
+) -> GetFullCartResponse | None:
+
+    result = await use_case.execute(
         user_id=owner.user_id,
         session_id=owner.session_id,
+        customer_id=(
+            customer.customer_id
+            if customer
+            else None
+        ),
+        customer_type=(
+            customer.customer_type
+            if customer
+            else None
+        ),
     )
 
-    return (
-        CartResponse(**result) 
-        if result is not None 
-        else CartResponse(
-            items=[],
-            subtotal=0,
-            total=0,
-            total_items=0,
-            cart_id=None
-        )
+    if result is None:
+        return None
+
+    return GetFullCartResponse.model_validate(
+        result
     )

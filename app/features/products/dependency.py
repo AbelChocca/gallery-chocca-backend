@@ -5,6 +5,7 @@ from app.features.products.use_cases.update_product import UpdateProductUseCase
 from app.features.products.use_cases.get_products import GetProductsUseCase
 from app.features.products.use_cases.get_product_by_id import GetProductByIdUseCase
 from app.features.products.use_cases.search_product import GetRelatedProductsUseCase
+from app.features.pricing.dependencies.services.catalog_pricing_service import get_catalog_pricing_service, CatalogPricingService
 
 from app.features.inventory.dependencies.services import (
     get_inventory_service,
@@ -43,7 +44,7 @@ from app.features.media.service import MediaService
 from app.features.favorites.dependency import get_favorite_service
 from app.features.favorites.service import FavoriteService
 
-from app.features.cart.dependency import get_cart_service
+from app.features.cart.dependencies.services import get_cart_service
 from app.features.cart.service import CartService
 
 from app.shared.enrichers.dependency import get_product_enricher
@@ -119,6 +120,7 @@ def get_products_use_case(
     cache_service: RedisService = Depends(get_cache_service),
     pagination_service: PaginationService = Depends(get_pagination_service),
     product_enricher: ProductEnricher = Depends(get_product_enricher),
+    catalog_pricing_service: CatalogPricingService = Depends(get_catalog_pricing_service)
 ) -> GetProductsUseCase:
 
     return GetProductsUseCase(
@@ -126,18 +128,21 @@ def get_products_use_case(
         cache_service=cache_service,
         pagination_service=pagination_service,
         product_enricher=product_enricher,
+        catalog_pricing_service=catalog_pricing_service
     )
 
 def get_product_by_id_use_case(
     product_service: ProductService = Depends(get_product_service),
     cache_service: RedisService = Depends(get_cache_service),
     product_enricher: ProductEnricher = Depends(get_product_enricher),
+    catalog_pricing_service: CatalogPricingService = Depends(get_catalog_pricing_service)
 ) -> GetProductByIdUseCase:
 
     return GetProductByIdUseCase(
         product_service=product_service,
         cache_service=cache_service,
         product_enricher=product_enricher,
+        catalog_pricing_service=catalog_pricing_service
     )
 
 def get_related_products_use_case(

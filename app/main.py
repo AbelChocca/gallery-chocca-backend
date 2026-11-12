@@ -9,7 +9,7 @@ from app.core.log.config import logger_service
 from app.api.middlewares.manager import init_middlewares
 from app.infra.db.config import init_db
 from app.core.settings.pydantic_settings import settings
-from app.infra.storage.config import init_cloudinary_client
+from app.infra.storage.config import init_cloudinary_client, cloudinary
 
 from app.features.user import user_route
 from app.features.slides import slide_route
@@ -27,12 +27,24 @@ from app.features.balancing.routes.inventory_valuation import inventory_valuatio
 from app.features.balancing.routes.accounts_receivables import account_receivable_router
 from app.features.balancing.routes.accounts_payables import account_payable_router
 from app.features.balancing.routes.financial_debts import financial_debt_router
+from app.features.pricing import pricing_route
+from app.features.customer import customer_route
+from app.features.orders import checkout_router, order_router
+from app.features.payments import payment_route
+from app.api import webhook_routes
+from app.features.receipts import receipt_route
+from app.features.locations import ubigeo_router
+from app.features.locations import location_router
+from app.features.complaints import complaint_router
+from app.features.consents import consent_route
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger_service.info('🚀 Iniciandoo App')
     try:
-        await init_db()
+        if settings.ENV != "test":
+            await init_db()
+            
         redis = from_url(
             settings.REDIS_URL,
             encoding="utf-8",
@@ -47,7 +59,21 @@ async def lifespan(app: FastAPI):
 
         init_cloudinary_client()
 
-        logger_service.info("✅ Storage inicializada correctamente.")
+        cfg = cloudinary.config()
+
+        if (
+            cfg.cloud_name != settings.CLOUDINARY_NAME
+            or cfg.api_key != settings.CLOUDINARY_API_KEY
+            or cfg.api_secret != settings.CLOUDINARY_API_SECRET
+        ):
+            raise RuntimeError(
+                "La configuración de Cloudinary no coincide "
+                "con las credenciales de la aplicación."
+            )
+
+        logger_service.info(
+            "✅ Storage Cloudinary configurado correctamente."
+        )
 
         try:
             redis_connected = await redis.ping()
@@ -63,7 +89,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    await redis.close()
+    await redis.aclose()
 
     logger_service.info("🛑 Cerrando aplicación y liberando recursos...")
 
@@ -86,6 +112,23 @@ app.add_middleware(
     allow_headers = ['*']
 )
 
+@app.get(
+    "/health",
+    summary="Health check",
+)
+async def health_check():
+    return {
+        "status": "ok",
+    }
+
+@app.get(
+    "/session/init",
+    status_code=204,
+    summary="Initialize anonymous session",
+)
+async def initialize_session() -> None:
+    return None
+
 app.include_router(user_route.router)
 app.include_router(product_route.router)
 app.include_router(slide_route.router)
@@ -102,3 +145,14 @@ app.include_router(account_receivable_router.accounts_receivable_router)
 app.include_router(inventory_valuation_router.inventory_valuation_router)
 app.include_router(financial_debt_router.financial_debt_router)
 app.include_router(other_current_liability_router.other_current_liability_router)
+app.include_router(pricing_route.router)
+app.include_router(checkout_router.router)
+app.include_router(customer_route.router)
+app.include_router(order_router.router)
+app.include_router(payment_route.router)
+app.include_router(webhook_routes.router)
+app.include_router(receipt_route.router)
+app.include_router(ubigeo_router.router)
+app.include_router(location_router.router)
+app.include_router(complaint_router.router)
+app.include_router(consent_route.router)

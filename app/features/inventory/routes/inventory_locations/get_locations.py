@@ -7,19 +7,13 @@ from app.core.authorization.dependencies import (
 )
 from app.core.authorization.permissions import Permission
 
-from app.features.inventory.dependencies.services import (
-    get_inventory_location_service,
-)
-
 from app.features.inventory.schemas.inventory_location_schema import (
     InventoryLocationFiltersSchema,
     InventoryLocationResponseSchema,
 )
 
-from app.features.inventory.services.inventory_location_service import (
-    InventoryLocationService,
-)
-
+from app.features.locations.services.location_service import LocationService
+from app.features.locations.dependencies.services import get_location_service
 
 @router.get(
     "/locations",
@@ -32,14 +26,13 @@ from app.features.inventory.services.inventory_location_service import (
 )
 async def get_inventory_locations(
     filters: InventoryLocationFiltersSchema = Depends(),
-    service: InventoryLocationService = Depends(
-        get_inventory_location_service,
+    service: LocationService = Depends(
+        get_location_service,
     ),
 ):
-    locations = await service.get_locations(
+    locations = await service.get_inventory_locations(
         search=filters.search,
         is_active=filters.is_active,
-        location_type=filters.location_type,
     )
 
     return [

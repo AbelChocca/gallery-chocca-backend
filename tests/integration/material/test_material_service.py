@@ -1,5 +1,4 @@
 import pytest
-
 from app.features.material.service import MaterialService
 from app.features.material.dto.material import CreateMaterialDTO, UpdateMaterialDTO
 from app.core.exceptions import ValidationError
@@ -10,7 +9,11 @@ from app.features.material.types import (
 )
 from app.shared.types import CompanyType
 
-@pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
+
+
 async def test_should_create_material(material_service: MaterialService):
 
     dto = CreateMaterialDTO(
@@ -33,7 +36,7 @@ async def test_should_create_material(material_service: MaterialService):
 
     assert result.code.startswith("TBX-")
 
-@pytest.mark.asyncio
+
 async def test_should_not_create_material_when_name_already_exists(
     material_service: MaterialService
 ):

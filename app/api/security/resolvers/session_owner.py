@@ -11,13 +11,13 @@ class OwnerSession:
     @property
     def is_user(self) -> bool:
         return self.user_id is not None
-    
-def get_anon_id(request: Request) -> int | None:
-    anon_id = request.cookies.get("anon_session_id")
-    if not anon_id: 
-        return None
 
-    return anon_id
+    @property
+    def is_empty(self) -> bool:
+        return self.user_id is None and self.session_id is None
+    
+def get_anon_id(request: Request) -> str | None:
+    return getattr(request.state, "anon_session_id", None)
 
 def get_session_owner(
     request: Request,

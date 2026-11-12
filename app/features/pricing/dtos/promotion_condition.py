@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import TypeAlias
 
 from app.features.pricing.types.promotion_types import PromotionConditionType
-from app.features.sales.types.payment import PaymentMethod
+from app.features.payments.types.payment_legacy import PaymentMethod
 
 @dataclass(slots=True)
 class MinimumOrderAmountConditionParameters:
@@ -23,8 +23,14 @@ PromotionConditionParameters: TypeAlias = (
     | PaymentMethodConditionParameters
 )
 
-@dataclass(slots=True)
-class AppliedPromotionConditionDTO:
-    type: PromotionConditionType
-
+@dataclass(frozen=True)
+class PromotionConditionAssignment:
+    condition_type: PromotionConditionType
     parameters: PromotionConditionParameters
+    description: str | None = None
+
+@dataclass(slots=True)
+class CreatePromotionConditionDTO:
+    condition_type: PromotionConditionType
+    parameters: PromotionConditionParameters
+    description: str | None = None

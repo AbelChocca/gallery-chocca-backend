@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
@@ -38,8 +40,41 @@ class Settings(BaseSettings):
 
     ENV: str
 
+    OPENPAY_MERCHANT_ID: str
+    OPENPAY_PRIVATE_KEY: str
+    OPENPAY_BASE_URL: str
+    OPENPAY_TEST_CLIENT_IP: str
+
+    FRONTEND_URL: str
+
+    FACTUSMART_BASE_URL: str
+    FACTUSMART_API_KEY: str
+    FACTUSMART_RUC: str
+
+    RESEND_API_KEY: str
+    RESEND_FROM_EMAIL: str
+
+    RESEND_COMPLAINTS_FROM_EMAIL: str
+
+    RESEND_ORDERS_FROM_EMAIL: str
+
+    RESEND_SUPPORT_FROM_EMAIL: str
+
+    COMPLAINT_REPLY_TO_EMAIL: str
+
+    COMPLAINT_PROVIDER_LEGAL_NAME: str
+    COMPLAINT_PROVIDER_RUC: str
+    COMPLAINT_PROVIDER_ADDRESS: str
+
     # Configuración del settings
-    model_config = SettingsConfigDict(extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(
+            ".env.test"
+            if os.getenv("ENV") == "test"
+            else ".env"
+        ),
+        extra="ignore",
+    )
 
 @lru_cache
 def get_settings():

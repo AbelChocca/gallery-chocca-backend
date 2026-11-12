@@ -1,6 +1,6 @@
 from app.infra.db.repositories.sqlmodel_favorites_repository import PostgresFavoritesRepository
 from app.infra.db.repositories.sqlalchemy_user_repository import PostgresUserRepository
-from app.infra.db.repositories.sqlalchemy_cart_repository import CartRepository
+from app.features.cart.cart_repository import CartRepository
 from app.infra.db.exceptions import DatabaseException
 from app.core.exceptions import ValidationError, InvalidOperation, ValueNotFound
 from app.features.user.entity import User

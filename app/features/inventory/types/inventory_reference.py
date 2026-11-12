@@ -1,6 +1,7 @@
 from enum import StrEnum
 
 class InventoryReferenceType(StrEnum):
+    ORDER ="ORDER"
     SALE = "SALE"
     STOCK_TRANSFER = "STOCK_TRANSFER"
     PRODUCTION_ORDER = "PRODUCTION_ORDER"

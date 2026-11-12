@@ -7,7 +7,6 @@ from sqlalchemy.orm import aliased
 from app.core.exceptions import ValueNotFound
 from app.features.inventory.entities.inventory import Inventory
 from app.features.inventory.models.inventory import InventoryTable
-from app.features.inventory.models.inventory_location import InventoryLocationTable
 from app.infra.db.repositories.base_repository import BaseRepository
 from app.features.products.models.model_product import ProductTable, VariantSizeTable, VariantTable
 from app.features.inventory.types.inventory_movement import InventoryOwnerType
@@ -15,10 +14,182 @@ from app.features.material.models.model_material import MaterialTable
 from app.features.material.types import MaterialType
 from app.features.inventory.types.inventory import AvailabilityStatus
 from app.features.inventory.dtos.inventory import InventoryKPIItemDTO
+from app.features.locations.models.locations import LocationTable
 
 class InventoryRepository(
     BaseRepository[Inventory, InventoryTable],
 ):
+    async def get_total_available_stock_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+    ) -> int:
+        statement = select(
+            func.coalesce(
+                func.sum(
+                    InventoryTable.quantity
+                    - InventoryTable.reserved_quantity
+                ),
+                0,
+            )
+        ).where(
+            InventoryTable.owner_type == owner_type,
+            InventoryTable.owner_id == owner_id,
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        total_available = (
+            result.scalar_one()
+        )
+
+        return int(total_available)
+
+    async def get_by_owner_and_location_for_update(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+        location_id: int,
+    ) -> Inventory | None:
+        statement = (
+            select(InventoryTable)
+            .where(
+                InventoryTable.owner_type == owner_type,
+                InventoryTable.owner_id == owner_id,
+                InventoryTable.location_id == location_id,
+            )
+            .with_for_update()
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        row = result.scalar_one_or_none()
+
+        return (
+            self._base_mapper.to_entity(row)
+            if row is not None
+            else None
+        )
+    
+    async def get_available_many_for_update(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_ids: list[int],
+    ) -> list[Inventory]:
+
+        statement = (
+            select(InventoryTable)
+            .join(
+                LocationTable,
+                LocationTable.id
+                == InventoryTable.location_id,
+            )
+            .where(
+                InventoryTable.owner_type
+                == owner_type,
+
+                InventoryTable.owner_id.in_(
+                    owner_ids
+                ),
+
+                LocationTable
+                .is_active
+                .is_(True),
+
+                (
+                    InventoryTable.quantity
+                    - InventoryTable.reserved_quantity
+                ) > Decimal("0"),
+            )
+            .order_by(
+                InventoryTable.owner_id.asc(),
+                InventoryTable.location_id.asc(),
+            )
+            .with_for_update()
+        )
+
+        result = await (
+            self._db_session.execute(
+                statement
+            )
+        )
+
+        tables = (
+            result.scalars().all()
+        )
+
+        return [
+            self._base_mapper.to_entity(
+                table
+            )
+            for table in tables
+        ]
+
+    async def update_reserved_quantity_many(
+        self,
+        updates: dict[int, Decimal],
+    ) -> None:
+
+        for inventory_id, reserved_quantity in (
+            updates.items()
+        ):
+            statement = (
+                update(
+                    InventoryTable
+                )
+                .where(
+                    InventoryTable.id
+                    == inventory_id
+                )
+                .values(
+                    reserved_quantity=(
+                        reserved_quantity
+                    ),
+                    last_movement_at=datetime.now(timezone.utc),
+                )
+            )
+
+            await (
+                self._db_session.execute(
+                    statement
+                )
+            )
+    
+    async def get_available_total_stock_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+    ) -> int:
+        available_stock = func.coalesce(
+            func.sum(
+                InventoryTable.quantity
+                - InventoryTable.reserved_quantity
+            ),
+            Decimal("0"),
+        )
+
+        stmt = (
+            select(available_stock)
+            .where(
+                InventoryTable.owner_type == owner_type,
+                InventoryTable.owner_id == owner_id,
+            )
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        total = result.scalar_one()
+
+        return int(total)
+    
     async def get_inventory_by_owner(
         self,
         *,
@@ -447,6 +618,7 @@ class InventoryRepository(
                 VariantTable.id.label("variant_id"),
 
                 ProductTable.nombre,
+                ProductTable.base_price.label("unit_price"),
                 VariantTable.color,
 
                 VariantSizeTable.size,
@@ -461,10 +633,10 @@ class InventoryRepository(
 
                 InventoryTable.last_movement_at,
 
-                InventoryLocationTable.id.label("location_id"),
-                InventoryLocationTable.name.label("location_name"),
-                InventoryLocationTable.type.label("location_type"),
-                InventoryLocationTable.address.label("location_address"),
+                LocationTable.id.label("location_id"),
+                LocationTable.name.label("location_name"),
+                LocationTable.type.label("location_type"),
+                LocationTable.address.label("location_address"),
             )
             .join(
                 VariantTable,
@@ -482,8 +654,8 @@ class InventoryRepository(
                 ),
             )
             .outerjoin(
-                InventoryLocationTable,
-                InventoryLocationTable.id == InventoryTable.location_id,
+                LocationTable,
+                LocationTable.id == InventoryTable.location_id,
             )
             .where(
                 VariantSizeTable.id == variant_size_id
@@ -520,21 +692,21 @@ class InventoryRepository(
                 InventoryTable.last_movement_at,
 
 
-                InventoryLocationTable.name.label(
+                LocationTable.name.label(
                     "location_name"
                 ),
 
-                InventoryLocationTable.type.label(
+                LocationTable.type.label(
                     "location_type"
                 ),
 
-                InventoryLocationTable.address.label(
+                LocationTable.address.label(
                     "location_address"
                 ),
             )
             .outerjoin(
-                InventoryLocationTable,
-                InventoryLocationTable.id ==
+                LocationTable,
+                LocationTable.id ==
                 InventoryTable.location_id,
             )
             .where(

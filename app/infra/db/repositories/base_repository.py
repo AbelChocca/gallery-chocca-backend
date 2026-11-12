@@ -20,6 +20,83 @@ class BaseRepository(Generic[E, M]):
         self._base_model: Type[M] = base_model
         self._base_mapper: BaseMapper[E, M] = base_mapper
 
+    async def save_all(
+        self,
+        entities: list[E],
+        flush: bool = True,
+    ) -> list[E]:
+        try:
+            merged_models = []
+
+            for entity in entities:
+                model = (
+                    self._base_mapper
+                    .to_db_model(entity)
+                )
+
+                merged_model = await (
+                    self._db_session.merge(
+                        model
+                    )
+                )
+
+                merged_models.append(
+                    merged_model
+                )
+
+            if flush:
+                await self._db_session.flush()
+
+            return [
+                self._base_mapper.to_entity(
+                    model
+                )
+                for model in merged_models
+            ]
+
+        except IntegrityError as i:
+            raise DatabaseException(
+                "Integrity constraint violation",
+                {
+                    "repository": (
+                        f"postgres_"
+                        f"{self._base_model.__name__.lower()}"
+                    ),
+                    "base_model": (
+                        self._base_model.__name__
+                    ),
+                    "db_error_code": (
+                        "integrity_error"
+                    ),
+                    "event": "save_all",
+                    "original_error": str(
+                        i.orig
+                    ),
+                },
+            ) from i
+
+        except SQLAlchemyError as s:
+            raise DatabaseException(
+                "Postgres error while saving models.",
+                {
+                    "repository": (
+                        f"postgres_"
+                        f"{self._base_model.__name__.lower()}"
+                    ),
+                    "base_model": (
+                        self._base_model.__name__
+                    ),
+                    "event": "save_all",
+                    "original_error": str(
+                        getattr(
+                            s,
+                            "orig",
+                            s,
+                        )
+                    ),
+                },
+            ) from s
+
     async def _get_model_by_id_non_raise(self, model_id: int, with_lock: bool = False) -> M | None:
         statement = (
             select(self._base_model)
@@ -31,8 +108,6 @@ class BaseRepository(Generic[E, M]):
         
         result = await self._db_session.execute(statement)
         model: M | None = result.scalar_one_or_none()
-        if not model:
-            return None
         
         return model
 
@@ -78,7 +153,7 @@ class BaseRepository(Generic[E, M]):
                 raise ValueNotFound(
                     "Model to delete wasn't found.",
                     {
-                        "repository": f"postres_{E.__name__.lower()}",
+                        "repository": f"postgres_{E.__name__.lower()}",
                         "base_model": self._base_model.__name__,
                         "event": "delete_by_id",
                         "model_id": model_id
@@ -86,6 +161,7 @@ class BaseRepository(Generic[E, M]):
                     )
 
             await self._db_session.delete(model)
+            await self._db_session.flush()
         except SQLAlchemyError as s:
             raise DatabaseException(
                 "Postgres error while deleting.",

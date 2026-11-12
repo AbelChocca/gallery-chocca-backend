@@ -4,8 +4,11 @@ from app.features.inventory.types.inventory_movement import InventoryMovementTyp
 from app.features.inventory.dtos.inventory_movements import InventoryMovementFilters
 from app.features.inventory.services.inventory_movement_service import InventoryMovementService
 
+pytestmark = pytest.mark.asyncio(
+    loop_scope="session",
+)
 
-@pytest.mark.asyncio
+
 async def test_should_create_inventory_movement(
     inventory_movement_service: InventoryMovementService,
     location
@@ -32,7 +35,7 @@ async def test_should_create_inventory_movement(
     assert movement.previous_stock == 20
     assert movement.new_stock == 30
 
-@pytest.mark.asyncio
+
 async def test_should_get_inventory_movements_filtered_and_paginated(
     inventory_movement_service: InventoryMovementService,
     location
@@ -83,7 +86,7 @@ async def test_should_get_inventory_movements_filtered_and_paginated(
     assert movement.owner_code == "MAT-001"
     assert movement.type == InventoryMovementType.ENTRY
 
-@pytest.mark.asyncio
+
 async def test_should_get_last_material_movement(
     inventory_movement_service: InventoryMovementService,
     location,

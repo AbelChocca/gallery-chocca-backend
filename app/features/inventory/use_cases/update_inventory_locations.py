@@ -1,21 +1,41 @@
-from app.features.inventory.services.inventory_location_service import InventoryLocationService
-from app.features.inventory.services.inventory_service import InventoryService
-from app.features.inventory.types.inventory_movement import InventoryOwnerType
 
-from app.features.inventory.dtos.inventory import UpdateInventoryLocationDTO
+from app.features.inventory.services.inventory_service import (
+    InventoryService,
+)
+from app.features.inventory.types.inventory_movement import (
+    InventoryOwnerType,
+)
+from app.features.inventory.dtos.inventory import (
+    UpdateInventoryLocationDTO,
+)
 
-from app.core.exceptions import ValidationError, InvalidOperation
+from app.features.locations.services.location_service import (
+    LocationService,
+)
+from app.features.locations.types import LocationType
+
+from app.core.exceptions import (
+    ValidationError,
+    InvalidOperation,
+)
+
+
+INVENTORY_LOCATION_TYPES = frozenset({
+    LocationType.STORE,
+    LocationType.WORKSHOP,
+    LocationType.WAREHOUSE,
+})
+
 
 class UpdateInventoryLocationsUseCase:
 
     def __init__(
         self,
         inventory_service: InventoryService,
-        inventory_location_service: InventoryLocationService,
+        location_service: LocationService,
     ) -> None:
         self._inventory_service = inventory_service
-        self._inventory_location_service = inventory_location_service
-
+        self._location_service = location_service
 
     async def execute(
         self,
@@ -27,9 +47,8 @@ class UpdateInventoryLocationsUseCase:
 
         if not locations:
             raise ValidationError(
-                "Se requiere al menos una ubicacion de inventario."
+                "Se requiere al menos una ubicación de inventario."
             )
-
 
         location_ids = [
             location.location_id
@@ -41,20 +60,27 @@ class UpdateInventoryLocationsUseCase:
                 "No se permiten ubicaciones repetidas."
             )
 
-
-        for location in locations:
-
-            inventory_location = (
-                await self._inventory_location_service.get_location_by_id(
-                    location.location_id
-                )
+        # Validar ubicaciones solicitadas
+        for dto in locations:
+            location = await self._location_service.get_by_id(
+                location_id=dto.location_id,
             )
 
-            if not inventory_location.is_active:
-                raise InvalidOperation(
-                    f"Inventory location '{inventory_location.name}' is inactive."
+            if location is None:
+                raise ValidationError(
+                    f"La ubicación {dto.location_id} no existe."
                 )
 
+            if not location.is_active:
+                raise InvalidOperation(
+                    f"La ubicación '{location.name}' está inactiva."
+                )
+
+            if location.type not in INVENTORY_LOCATION_TYPES:
+                raise InvalidOperation(
+                    f"La ubicación '{location.name}' "
+                    "no admite inventario."
+                )
 
         current_inventories = (
             await self._inventory_service.get_owner_inventories(
@@ -63,41 +89,32 @@ class UpdateInventoryLocationsUseCase:
             )
         )
 
-
         current_by_location = {
             inventory.location_id: inventory
             for inventory in current_inventories
         }
-
 
         incoming_by_location = {
             dto.location_id: dto
             for dto in locations
         }
 
+        current_ids = set(current_by_location)
+        incoming_ids = set(incoming_by_location)
 
-        # actualizar existentes
-        for location_id in (
-            current_by_location.keys()
-            & incoming_by_location.keys()
-        ):
-
+        # Actualizar existentes
+        for location_id in current_ids & incoming_ids:
             inventory = current_by_location[location_id]
             dto = incoming_by_location[location_id]
 
             await self._inventory_service.update_inventory(
                 inventory_id=inventory.id,
                 minimum_stock=dto.minimum_stock,
-                unit_price=dto.unit_price
+                unit_price=dto.unit_price,
             )
 
-
-        # crear nuevos
-        for location_id in (
-            incoming_by_location.keys()
-            - current_by_location.keys()
-        ):
-
+        # Crear nuevos
+        for location_id in incoming_ids - current_ids:
             dto = incoming_by_location[location_id]
 
             await self._inventory_service.create_inventory(
@@ -108,13 +125,8 @@ class UpdateInventoryLocationsUseCase:
                 minimum_stock=dto.minimum_stock,
             )
 
-
-        # eliminar removidos
-        for location_id in (
-            current_by_location.keys()
-            - incoming_by_location.keys()
-        ):
-
+        # Eliminar ubicaciones retiradas
+        for location_id in current_ids - incoming_ids:
             inventory = current_by_location[location_id]
 
             await self._inventory_service.delete_inventory(

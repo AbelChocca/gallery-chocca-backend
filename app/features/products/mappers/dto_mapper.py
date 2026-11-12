@@ -20,6 +20,7 @@ class ProductMapper:
             descripcion=product.descripcion,
             brand=product.brand,
             category=product.category,
+            base_price=product.base_price,
             fit=product.fit,
             slug=product.slug,
             variants=[
@@ -79,6 +80,7 @@ class ProductMapper:
             brand=product.brand,
             fit=product.fit,
             slug=product.slug,
+            original_price=product.base_price,
             variants=[
                 ProductMapper.to_grid_variant_dto(v)
                 for v in product.variants
