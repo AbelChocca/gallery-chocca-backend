@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel
 from sqlalchemy.engine import URL
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.core.settings.pydantic_settings import settings
 
 from app.infra.db import model_registry  # noqa: F401
@@ -16,7 +16,7 @@ def get_db_url():
         username=settings.POSTGRES_USER,
         password=settings.POSTGRES_PASSWORD,
         host=settings.POSTGRES_HOST,
-        port=5432,
+        port=settings.POSTGRES_PORT,
         database=settings.POSTGRES_DB,
         query=ssl_mode
     )

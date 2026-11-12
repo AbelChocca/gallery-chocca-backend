@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     REDIS_MIN_TTL: int
 
     # base de datos que usaremos en producción
+    DATABASE_URL: str | None = None
+    POSTGRES_PORT: int = 5432
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
