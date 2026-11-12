@@ -12,6 +12,8 @@ class RegisterUserSchema(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     captchaToken: str
 
+    accepted_terms: bool
+
 class ReadSessionSchema(BaseModel):
     id: int | None = None
     role: UserRole

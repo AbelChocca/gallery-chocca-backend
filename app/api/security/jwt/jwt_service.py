@@ -76,7 +76,7 @@ class JWTService:
             max_age=expires,
             expires=timedelta(seconds=expires),
             path='/',
-            secure=True if is_prod else False,
+            secure=is_prod,
             httponly=True,
             samesite='none' if is_prod else 'lax',
             domain=self.settings.COOKIE_DOMAIN if is_prod else None

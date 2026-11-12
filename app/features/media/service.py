@@ -10,6 +10,7 @@ from app.features.media.dto import MediaImageDTO
 
 from typing import BinaryIO, List
 from collections import defaultdict
+import asyncio
 
 class MediaService:
     def __init__(
@@ -118,21 +119,30 @@ class MediaService:
                 }
             )
 
-    async def move_images_to_trash(self, images_public_id: List[str]) -> List[dict]:
-        semaphore = self._async_service.create_semaphore(5)
-        tasks = [
-            self._async_service.run_in_semaphore(
-                semaphore,
-                self._cloudinary_service.rename_resource,
-                public_id,
-                self._trash_public_id(public_id)
-            )
-            for public_id in images_public_id
-        ]
+    
+    async def move_images_to_trash(
+        self,
+        images_public_id: list[str],
+    ) -> list[dict]:
 
-        _, errors = await self._async_service.run_in_gather(*tasks, return_exceptions=True)
+        errors: list[dict] = []
+
+        for public_id in images_public_id:
+            try:
+                await self.move_image_to_trash(
+                    public_id=public_id,
+                )
+
+            except Exception as exc:
+                errors.append(
+                    {
+                        "public_id": public_id,
+                        "error": str(exc),
+                    }
+                )
 
         return errors
+
     
     async def recover_images_from_trash(self, images_public_id: List[str]) -> List[dict]:
         semaphore = self._async_service.create_semaphore(5)
@@ -178,23 +188,27 @@ class MediaService:
             }
 
         
-    async def upload_image(self, image_resource: BinaryIO, folder: str) -> MediaImageDTO:
+    async def upload_image(
+        self,
+        image_resource: BinaryIO,
+        folder: str,
+    ) -> MediaImageDTO:
         try:
-            data = await self._async_service.run_blocking(
+            return await asyncio.to_thread(
                 self._storage_service.upload_image,
                 image_resource,
-                folder
+                folder,
             )
 
-            return data
         except AppException as ae:
             ae.context["head_context"] = {
                 "service": "media",
-                "service_event": "upload_image"
+                "service_event": "upload_image",
             }
+            raise
 
-            raise ae
         
+
     async def create_image_batch(
         self,
         *,
@@ -202,54 +216,67 @@ class MediaService:
         owner_id: int,
         owner_type: str,
     ) -> list[ImageEntity]:
+        if not uploads:
+            return []
 
-        images: list[ImageEntity] = []
-
-        for upload in uploads:
-            image = ImageEntity(
+        images = [
+            ImageEntity(
                 image_url=upload.url,
                 public_id=upload.public_id,
                 owner_id=owner_id,
                 owner_type=owner_type,
             )
-
-            await self._image_repo.save_many(
-                image,
-                flush=False
-            )
-
-            images.append(image)
-
-        return images
-
-    async def upload_images_batch(self, images_resource: List[BinaryIO], folder: str) -> List[MediaImageDTO]:
-        semaphore = self._async_service.create_semaphore(3)
-        tasks = [
-            self._async_service.run_in_semaphore(
-                semaphore,
-                self._storage_service.upload_image,
-                file,
-                folder=folder
-            )
-            for file in images_resource
+            for upload in uploads
         ]
-        
-        uploaded: List[MediaImageDTO] = []
-        uploaded, errors = await self._async_service.run_in_gather(*tasks, return_exceptions=True)
 
-        if errors:
-            compesated_errors = await self.move_images_to_trash(uploaded)
+        return await self._image_repo.save_many(images)
+
+
+    
+    async def upload_images_batch(
+        self,
+        images_resource: list[BinaryIO],
+        folder: str,
+    ) -> list[MediaImageDTO]:
+
+        uploaded: list[MediaImageDTO] = []
+
+        try:
+            for image in images_resource:
+                result = await self.upload_image(
+                    image_resource=image,
+                    folder=folder,
+                )
+
+                uploaded.append(result)
+
+            return uploaded
+
+        except Exception as exc:
+            compensation_errors = []
+
+            for image in reversed(uploaded):
+                try:
+                    await self.move_image_to_trash(
+                        public_id=image.public_id,
+                    )
+                except Exception as compensation_exc:
+                    compensation_errors.append({
+                        "public_id": image.public_id,
+                        "error": str(compensation_exc),
+                    })
+
             raise AppException(
-                "Upload images batch failed",
+                "Upload images failed",
                 {
-                    "errors": errors,
+                    "original_exception_type": type(exc).__name__,
+                    "original_error": str(exc),
+                    "original_context": getattr(exc, "context", None),
                     "uploaded_count": len(uploaded),
-                    "failed_count": len(errors),
-                    "compesated_errors": compesated_errors
-                }
-            )
+                    "compensation_errors": compensation_errors,
+                },
+            ) from exc
 
-        return uploaded 
     
     # LEGACY
     async def create_image(

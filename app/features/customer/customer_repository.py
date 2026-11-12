@@ -17,10 +17,66 @@ from app.infra.db.repositories.base_repository import (
 
 class CustomerRepository(
     BaseRepository[
-        Customer,
         CustomerEntity,
+        Customer,
     ]
 ):
+
+    async def get_by_id(
+        self,
+        customer_id: int,
+    ) -> CustomerEntity | None:
+        stmt = (
+            select(Customer)
+            .where(Customer.id == customer_id)
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            return None
+
+        return self._base_mapper.to_entity(model)
+
+    async def get_by_user_id(
+        self,
+        user_id: int,
+    ) -> CustomerEntity | None:
+        statement = select(Customer).where(
+            Customer.user_id == user_id
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        customer = result.scalar_one_or_none()
+
+        if customer is None:
+            return None
+
+        return self._base_mapper.to_entity(customer)
+
+    async def get_by_session_id(
+        self,
+        session_id: str,
+    ) -> CustomerEntity | None:
+        statement = select(Customer).where(
+            Customer.session_id == session_id
+        )
+
+        result = await self._db_session.execute(
+            statement
+        )
+
+        customer = result.scalar_one_or_none()
+
+        if customer is None:
+            return None
+
+        return self._base_mapper.to_entity(customer)
 
     async def search_options(
         self,

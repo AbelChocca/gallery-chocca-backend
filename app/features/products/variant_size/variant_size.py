@@ -1,23 +1,32 @@
+import secrets
+import string
+
 from typing import Dict, Any
 from app.core.exceptions import ValidationError
 
 class VariantSize:
-    def __init__(
-            self,
-            size: str,
-            id: int|None = None,
-            sku: str | None = None,
-            variant_id: int|None = None,
-            barcode: str | None = None
-            ):
-        
+    BARCODE_PREFIX = "GC"
+    BARCODE_LENGTH = 12
+    BARCODE_ALPHABET = string.ascii_uppercase + string.digits
 
-        self.id: int|None = id
-        self.variant_id: int|None = variant_id
-        self.size: str = size
+    def __init__(
+        self,
+        size: str,
+        id: int | None = None,
+        sku: str | None = None,
+        variant_id: int | None = None,
+        barcode: str | None = None,
+    ):
+        self.id = id
+        self.variant_id = variant_id
+        self.size = size
         self.sku = sku
 
-        self.barcode = barcode
+        self.barcode = (
+            barcode
+            if barcode is not None
+            else self.generate_barcode()
+        )
 
     @property
     def to_dict(self) -> Dict[str, Any]:
@@ -26,6 +35,14 @@ class VariantSize:
             "variant_id": self.variant_id,
             "size": self.size,
         }
+
+    @staticmethod
+    def generate_barcode() -> str:
+        suffix = "".join(
+            secrets.choice(VariantSize.BARCODE_ALPHABET)
+            for _ in range(VariantSize.BARCODE_LENGTH)
+        )
+        return f"{VariantSize.BARCODE_PREFIX}{suffix}"
     
     @classmethod
     def from_dict(

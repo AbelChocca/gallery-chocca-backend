@@ -3,7 +3,7 @@ from app.features.pricing.types.promotion_types import (
     PromotionConditionType,
 )
 
-from app.features.sales.types.payment import (
+from app.features.payments.types.payment_legacy import (
     PaymentMethod,
 )
 from app.features.pricing.dtos.pricing_rule_dto import (

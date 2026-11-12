@@ -9,7 +9,7 @@ from app.features.cart.dto import (
 from app.features.cart.service import (
     CartService,
 )
-from app.features.sales.types.customer import (
+from app.features.customer.customer_types import (
     CustomerType,
 )
 from app.features.pricing.dtos.cart_pricing_dto import (
@@ -20,7 +20,7 @@ from app.features.pricing.dtos.cart_pricing_dto import (
 from app.features.pricing.services.cart_pricing import (
     CartPricingService,
 )
-from app.features.sales.types.sale import (
+from app.features.orders.types.sale import (
     SaleChannel,
 )
 
@@ -46,21 +46,21 @@ class GetFullCartUseCase:
         customer_id: int | None,
         customer_type: CustomerType | None,
     ) -> FullCartDTO | None:
-        cart = await self._cart_service.get_cart_by_owner(
+        cart_id = await self._cart_service.get_cart_id_by_owner(
             user_id=user_id,
             session_id=session_id,
         )
 
-        if cart is None:
+        if cart_id is None:
             return None
 
         items = await self._cart_service.get_cart_items(
-            cart_id=cart.id,
+            cart_id=cart_id,
         )
 
         if not items:
             return self._empty_cart(
-                cart_id=cart.id,
+                cart_id=cart_id,
             )
 
         pricing_context = (
@@ -88,7 +88,7 @@ class GetFullCartUseCase:
         )
 
         return FullCartDTO(
-            cart_id=cart.id,
+            cart_id=cart_id,
             items=parsed_items,
             subtotal=pricing.subtotal,
             discount_amount=pricing.discount_amount,

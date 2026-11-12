@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Union
 
 from pydantic import BaseModel, ConfigDict
-from app.features.sales.types.payment import PaymentMethod
+from app.features.payments.types.payment_legacy import PaymentMethod
 from app.features.pricing.types.promotion_types import PromotionConditionType
 
 class MinimumOrderAmountConditionParametersSchema(BaseModel):

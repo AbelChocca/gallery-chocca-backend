@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.features.pricing.types.promotion_types import PromotionStackingMode
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 
 @dataclass(slots=True)
 class CouponPromotionDTO:

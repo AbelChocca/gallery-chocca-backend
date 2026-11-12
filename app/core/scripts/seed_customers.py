@@ -5,8 +5,8 @@ from sqlalchemy import select
 
 from app.infra.db.config import async_session_factory
 from app.features.customer.models.customer import Customer
-from app.features.sales.types.customer import (
-    CustomerDocumentType,
+from app.features.customer.customer_types import (
+    IdentityDocumentType,
     CustomerType,
 )
 
@@ -76,9 +76,11 @@ def build_customer(index: int) -> Customer:
     )[0]
 
     return Customer(
-        document_type=CustomerDocumentType.DNI,
+        document_type=IdentityDocumentType.DNI,
+        session_id=f"test-session-{index:03d}",
         document_number=document_number,
-        name=f"{first_name} {last_name}",
+        name=first_name,
+        last_name=last_name,
         email=f"customer{index}@chocca.test",
         phone=str(910_000_000 + index),
         address=f"Dirección de prueba #{index}",

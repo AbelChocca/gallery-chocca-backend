@@ -1,10 +1,8 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 from decimal import Decimal
 from datetime import datetime
 
-from app.features.inventory.types.inventory_location import (
-    InventoryLocationType,
-)
+from app.features.locations.types import LocationType
 from app.features.inventory.types.inventory import AvailabilityStatus
 
 class InventoryLocationStockSchema(BaseModel):
@@ -12,7 +10,7 @@ class InventoryLocationStockSchema(BaseModel):
 
     location_id: int
     location_name: str
-    location_type: InventoryLocationType
+    location_type: LocationType
 
     quantity: Decimal
     reserved_quantity: Decimal
@@ -37,7 +35,7 @@ class InventoryLocationResponseSchema(BaseModel):
 
     name: str
 
-    type: InventoryLocationType
+    type: LocationType
 
     address: str | None
 
@@ -50,30 +48,5 @@ class InventoryLocationFiltersSchema(BaseModel):
 
     is_active: bool | None = None
 
-    location_type: InventoryLocationType | None = None
+    location_type: LocationType | None = None
 
-class CreateInventoryLocationSchema(BaseModel):
-    name: str = Field(max_length=100)
-
-    type: InventoryLocationType
-
-    address: str | None = Field(
-        default=None,
-        max_length=255,
-    )
-
-class UpdateInventoryLocationSchema(BaseModel):
-    name: str = Field(max_length=100)
-
-    type: InventoryLocationType
-
-    address: str | None = Field(
-        default=None,
-        max_length=255,
-    )
-
-    is_active: bool
-
-
-class ToggleInventoryLocationSchema(BaseModel):
-    is_active: bool

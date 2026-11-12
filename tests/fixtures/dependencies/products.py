@@ -2,8 +2,8 @@ import pytest_asyncio
 from decimal import Decimal
 
 from app.features.products.models.model_product import VariantSizeTable, ProductTable, VariantTable
-from app.features.inventory.models.inventory_location import InventoryLocationTable
-from app.features.inventory.types.inventory_location import InventoryLocationType
+from app.features.locations.models.locations import LocationTable
+from app.features.locations.types import LocationType
 
 from app.features.products.types import (
     BrandType,
@@ -255,16 +255,17 @@ async def variant_size(
     scope="function",
     loop_scope="session",
 )
-async def location(db_session):
-    location = InventoryLocationTable(
+async def location(db_session) -> LocationTable:
+    location = LocationTable(
         name="Test Store",
-        type=InventoryLocationType.STORE,
-        address="Gamarra, jr. atahualpa. Lima, Peru."
+        type=LocationType.STORE,
+        address="Gamarra, Jr. Atahualpa, Lima, Perú",
+        is_active=True,
+        pickup_enabled=True,
     )
 
     db_session.add(location)
     await db_session.commit()
-
     await db_session.refresh(location)
 
     return location

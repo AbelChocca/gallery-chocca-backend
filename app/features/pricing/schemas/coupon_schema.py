@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 from app.features.pricing.types.promotion_types import (
     PromotionStackingMode,
 )
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 
 
 class CreateCouponSchema(BaseModel):

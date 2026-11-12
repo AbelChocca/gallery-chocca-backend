@@ -7,7 +7,7 @@ from app.features.pricing.types.promotion_types import PromotionStackingMode, Pr
 from app.features.pricing.entities.promotion_condition import PromotionCondition
 from app.features.pricing.entities.coupon import Coupon
 from app.features.pricing.entities.promotion_target import PromotionTarget
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.core.exceptions import ValidationError
 
 @dataclass

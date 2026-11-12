@@ -8,7 +8,7 @@ from app.features.pricing.types.promotion_types import (
     PromotionStackingMode,
     PromotionApplicationScope
 )
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.shared.pagination.pagination_service import PaginationService
 from app.shared.pagination.dto import PaginatedDTO
 from app.features.pricing.dtos.promotion_dto import PromotionRowDTO

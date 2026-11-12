@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, String, Index
+from sqlmodel import SQLModel, Field, String, Index, ForeignKey
 from app.features.inventory.types.inventory_movement import InventoryMovementType, InventoryOwnerType
 from app.features.inventory.types.inventory_reference import InventoryReferenceType
 from datetime import datetime, timezone
@@ -55,7 +55,17 @@ class InventoryMovementTable(SQLModel, table=True):
         )
     )
 
-    location_id: int = Field(foreign_key="inventory_location.id", nullable=True)
+    location_id: int | None = Field(
+        default=None,
+        sa_column=Column(
+            ForeignKey(
+                "locations.id",
+                name="fk_inventory_movement_location",
+                ondelete="RESTRICT",
+            ),
+            nullable=True,
+        ),
+    )
 
     type: InventoryMovementType = Field(
         sa_column=Column(

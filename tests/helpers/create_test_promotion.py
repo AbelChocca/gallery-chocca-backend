@@ -18,7 +18,7 @@ from app.features.pricing.types.promotion_types import (
     PromotionTargetType,
     PromotionConditionType
 )
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.features.pricing.models.promotion_condition import PromotionConditionTable
 from app.features.products.types import CategoryType
 

@@ -1,17 +1,11 @@
+
 import pytest
 
-from app.core.exceptions import (
-    ValidationError,
-    InvalidOperation,
-)
+from app.core.exceptions import ValidationError
 
-from app.features.inventory.services.inventory_location_service import (
-    InventoryLocationService,
-)
+from app.features.locations.services.location_service import LocationService
+from app.features.locations.types import LocationType
 
-from app.features.inventory.types.inventory_location import (
-    InventoryLocationType,
-)
 
 pytestmark = pytest.mark.asyncio(
     loop_scope="session",
@@ -19,171 +13,123 @@ pytestmark = pytest.mark.asyncio(
 
 
 async def test_create_location_success(
-    inventory_location_service: InventoryLocationService,
+    inventory_location_service: LocationService,
 ):
-
-    location = await inventory_location_service.create_location(
-        name="  Tienda Gamarra  ",
-        type=InventoryLocationType.STORE,
-        address="  Lima  ",
+    location = await inventory_location_service.create(
+        name="Tienda Gamarra",
+        type=LocationType.STORE,
+        address="Lima",
+        is_active=True,
+        pickup_enabled=False,
     )
 
     assert location.id is not None
     assert location.name == "Tienda Gamarra"
+    assert location.type == LocationType.STORE
     assert location.address == "Lima"
     assert location.is_active is True
 
 
 async def test_create_location_empty_name(
-    inventory_location_service: InventoryLocationService,
+    inventory_location_service: LocationService,
 ):
-
-    with pytest.raises(
-        ValidationError,
-        match="The location name is required.",
-    ):
-        await inventory_location_service.create_location(
+    with pytest.raises(ValidationError):
+        await inventory_location_service.create(
             name="   ",
-            type=InventoryLocationType.STORE,
+            type=LocationType.STORE,
             address=None,
         )
 
 
 async def test_create_location_duplicate_name(
-    inventory_location_service: InventoryLocationService,
+    inventory_location_service: LocationService,
 ):
-
-    await inventory_location_service.create_location(
+    await inventory_location_service.create(
         name="Tienda Centro",
-        type=InventoryLocationType.STORE,
+        type=LocationType.STORE,
         address=None,
     )
 
-    with pytest.raises(
-        ValidationError,
-        match="A location with this name already exists.",
-    ):
-        await inventory_location_service.create_location(
+    with pytest.raises(ValidationError):
+        await inventory_location_service.create(
             name="Tienda Centro",
-            type=InventoryLocationType.STORE,
+            type=LocationType.STORE,
             address=None,
         )
 
-async def test_update_location_success(
-    inventory_location_service: InventoryLocationService,
-):
 
-    location = await inventory_location_service.create_location(
-        name="Tienda Vieja",
-        type=InventoryLocationType.STORE,
+async def test_get_location_by_id_success(
+    inventory_location_service: LocationService,
+):
+    created = await inventory_location_service.create(
+        name="Tienda Principal",
+        type=LocationType.STORE,
         address="Lima",
     )
 
-
-    updated = await inventory_location_service.update_location(
-        location_id=location.id,
-        name="Tienda Nueva",
-        type=InventoryLocationType.WAREHOUSE,
-        address="Surco",
-        is_active=False,
+    location = await inventory_location_service.get_by_id(
+        location_id=created.id,
+        raises=True,
     )
 
-    assert updated.name == "Tienda Nueva"
-    assert updated.type == InventoryLocationType.WAREHOUSE
-    assert updated.address == "Surco"
-    assert updated.is_active is False
+    assert location is not None
+    assert location.id == created.id
+    assert location.name == "Tienda Principal"
 
-async def test_update_location_duplicate_name(
-    inventory_location_service: InventoryLocationService,
+
+async def test_delete_location_success(
+    inventory_location_service: LocationService,
 ):
-
-    first = await inventory_location_service.create_location(
-        name="Tienda A",
-        type=InventoryLocationType.STORE,
-        address=None,
-    )
-
-    await inventory_location_service.create_location(
-        name="Tienda B",
-        type=InventoryLocationType.STORE,
-        address=None,
-    )
-
-
-    with pytest.raises(
-        ValidationError,
-        match="A location with this name already exists.",
-    ):
-        await inventory_location_service.update_location(
-            location_id=first.id,
-            name="Tienda B",
-            type=InventoryLocationType.STORE,
-            address=None,
-            is_active=True,
-        )
-
-async def test_toggle_location_deactivate_success(
-    inventory_location_service: InventoryLocationService,
-):
-
-    location = await inventory_location_service.create_location(
+    location = await inventory_location_service.create(
         name="Tienda Test",
-        type=InventoryLocationType.STORE,
-        address=None,
+        type=LocationType.STORE,
+        address="Lima",
+        is_active=True,
+        pickup_enabled=False,
     )
 
-    await inventory_location_service.toggle_status(
+    await inventory_location_service.delete(
         location_id=location.id,
-        is_active=False,
     )
 
-    updated = await inventory_location_service.get_location_by_id(
-        location.id
+    updated = await inventory_location_service.get_by_id(
+        location_id=location.id,
+        raises=True,
     )
 
     assert updated.is_active is False
+    assert updated.pickup_enabled is False
 
-async def test_toggle_location_already_active(
-    inventory_location_service: InventoryLocationService,
+
+async def test_get_inactive_pickup_location(
+    inventory_location_service: LocationService,
 ):
-
-    location = await inventory_location_service.create_location(
-        name="Tienda Test",
-        type=InventoryLocationType.STORE,
-        address=None,
+    location = await inventory_location_service.create(
+        name="Tienda Inactiva",
+        type=LocationType.STORE,
+        address="Lima",
+        is_active=False,
+        pickup_enabled=False,
     )
 
-
-    with pytest.raises(
-        InvalidOperation,
-        match="Inventory location is already active.",
-    ):
-        await inventory_location_service.toggle_status(
+    with pytest.raises(ValidationError):
+        await inventory_location_service.get_pickup_location(
             location_id=location.id,
-            is_active=True,
         )
 
-async def test_toggle_location_already_inactive(
-    inventory_location_service: InventoryLocationService,
+
+async def test_get_warehouse_as_pickup_location(
+    inventory_location_service: LocationService,
 ):
-
-    location = await inventory_location_service.create_location(
-        name="Tienda Test",
-        type=InventoryLocationType.STORE,
-        address=None,
+    location = await inventory_location_service.create(
+        name="Almacen Central",
+        type=LocationType.WAREHOUSE,
+        address="Lima",
+        is_active=True,
+        pickup_enabled=False,
     )
 
-    await inventory_location_service.toggle_status(
-        location_id=location.id,
-        is_active=False,
-    )
-
-
-    with pytest.raises(
-        InvalidOperation,
-        match="Inventory location is already inactive.",
-    ):
-        await inventory_location_service.toggle_status(
+    with pytest.raises(ValidationError):
+        await inventory_location_service.get_pickup_location(
             location_id=location.id,
-            is_active=False,
         )

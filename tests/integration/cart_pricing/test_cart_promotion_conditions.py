@@ -3,8 +3,8 @@ from decimal import Decimal
 
 import pytest
 
-from app.features.sales.types.sale import SaleChannel
-from app.features.sales.types.customer import CustomerType
+from app.features.orders.types.sale import SaleChannel
+from app.features.customer.customer_types import CustomerType
 from app.features.products.types import CategoryType
 from app.features.pricing.types.promotion_types import PromotionConditionType, PromotionAudienceType
 from tests.helpers.create_test_promotion import create_cart_condition_promotion, create_category_audience_promotion

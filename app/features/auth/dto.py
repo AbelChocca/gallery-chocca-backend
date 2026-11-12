@@ -6,6 +6,8 @@ class RegisterUserCommand:
     email: str
     password: str
 
+    accepted_terms: bool
+
 @dataclass(frozen=True)
 class LoginUserCommand:
     email: str

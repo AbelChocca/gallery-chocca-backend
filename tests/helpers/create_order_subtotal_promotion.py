@@ -10,7 +10,7 @@ from app.features.pricing.models.promotion_pricing_rule import (
 from app.features.pricing.models.promotion_target import PromotionTargetTable
 from app.features.pricing.models.promotion_audience import PromotionAudienceTable
 from app.features.pricing.models.promotion_condition import PromotionConditionTable, PromotionConditionType
-from app.features.sales.types.customer import CustomerType
+from app.features.customer.customer_types import CustomerType
 from app.features.products.types import BrandType
 
 from app.features.pricing.types.promotion_types import (
@@ -24,7 +24,7 @@ from app.features.pricing.types.pricing_rules_types import (
     PricingRuleType,
 )
 
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 
 
 async def create_order_subtotal_promotion(

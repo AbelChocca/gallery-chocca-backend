@@ -4,7 +4,7 @@ from app.features.pricing.dtos.sale_pricing import (
     PricingItemDTO,
     SalePricingContext,
 )
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.core.exceptions import ValidationError
 from app.features.pricing.models.coupon import CouponTable
 from app.features.pricing.models.coupon_redemption import CouponRedemptionTable
@@ -43,6 +43,7 @@ async def test_calculate_rejects_inactive_coupon(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,
@@ -94,6 +95,7 @@ async def test_calculate_rejects_coupon_before_start_date(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,
@@ -145,6 +147,7 @@ async def test_calculate_rejects_expired_coupon(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,
@@ -194,6 +197,7 @@ async def test_calculate_rejects_exhausted_coupon(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,
@@ -254,6 +258,7 @@ async def test_calculate_rejects_customer_coupon_redemption_limit(
     context = SalePricingContext(
         items=[
             PricingItemDTO(
+                item_id=1,
                 product_id=products[0].id,
                 quantity=2,
                 category=products[0].category,

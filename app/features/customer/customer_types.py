@@ -1,0 +1,19 @@
+from enum import Enum
+
+class IdentityDocumentType(str, Enum):
+    DNI = "DNI"
+    RUC = "RUC"
+    PASSPORT = "PASSPORT"
+    FOREIGNER_CARD = "FOREIGNER_CARD"
+    DIPLOMATIC_ID = "DIPLOMATIC_ID"
+    FOREIGN_RESIDENCE_ID = "FOREIGN_RESIDENCE_ID"
+    NO_DOMICILED = "NO_DOMICILED"
+    SAFE_CONDUCT = "SAFE_CONDUCT"
+    OTHER = "OTHER"
+
+class CustomerType(str, Enum):
+    REGULAR = "REGULAR"
+    WHOLESALE = "WHOLESALE"
+    VIP = "VIP"
+
+    

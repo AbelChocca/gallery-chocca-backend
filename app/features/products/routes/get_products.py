@@ -28,12 +28,15 @@ from app.features.customer.helpers.get_customer_pricing_context import (
 from app.shared.pagination.schema import (
     PaginationSchema,
 )
+from app.api.security.rate_limiter.ratelimiter import limiter
+
 
 
 @router.get(
     "/all",
     response_model=GetGridProductsResponse,
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(limiter.limiter(80, 60))],
     summary="Get all products",
 )
 async def get_products(

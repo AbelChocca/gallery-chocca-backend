@@ -1,4 +1,4 @@
-from app.features.sales.types.customer import CustomerDocumentType, CustomerType
+from app.features.customer.customer_types import IdentityDocumentType, CustomerType
 
 from datetime import datetime, timezone
 
@@ -10,6 +10,17 @@ class Customer(SQLModel, table=True):
     __tablename__ = "customer"
 
     __table_args__ = (
+        CheckConstraint(
+            """
+            (
+                (user_id IS NOT NULL AND session_id IS NULL)
+                OR
+                (user_id IS NULL AND session_id IS NOT NULL)
+            )
+            """,
+            name="ck_customer_identity",
+        ),
+
         CheckConstraint(
             """
             (
@@ -34,11 +45,18 @@ class Customer(SQLModel, table=True):
         index=True,
     )
 
-    document_type: CustomerDocumentType | None = Field(
+    session_id: str | None = Field(
+        default=None,
+        max_length=100,
+        unique=True,
+        index=True,
+    )
+
+    document_type: IdentityDocumentType | None = Field(
         default=None,
         sa_column=Column(
             ENUM(
-                CustomerDocumentType,
+                IdentityDocumentType,
                 name="customer_document_type",
             ),
             nullable=True,
@@ -63,7 +81,12 @@ class Customer(SQLModel, table=True):
     )
 
     name: str = Field(
-        max_length=150,
+        max_length=100,
+        nullable=False,
+    )
+
+    last_name: str = Field(
+        max_length=100,
         nullable=False,
     )
 

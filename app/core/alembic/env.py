@@ -6,7 +6,7 @@ from sqlalchemy.engine import URL
 from sqlmodel import SQLModel
 
 from app.core.alembic.alembic_settings import alembic_settings
-
+from app.infra.db.model_registry import * # noqa: F401, F403
 
 config = context.config
 

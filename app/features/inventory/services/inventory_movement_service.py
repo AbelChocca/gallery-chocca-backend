@@ -15,6 +15,19 @@ class InventoryMovementService:
         self._inventory_movement_repo = inventory_movement_repo
         self._pagination_service = pagination_service
 
+    async def get_by_reference(
+        self,
+        *,
+        reference_type: InventoryReferenceType,
+        reference_id: int,
+        movement_type: InventoryMovementType | None = None,
+    ) -> list[InventoryMovement]:
+        return await self._inventory_movement_repo.get_by_reference(
+            reference_type=reference_type,
+            reference_id=reference_id,
+            movement_type=movement_type,
+        )
+
     async def create_movement(
         self,
         *,

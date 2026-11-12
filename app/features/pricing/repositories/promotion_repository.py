@@ -14,7 +14,7 @@ from app.features.pricing.types.promotion_types import PromotionTargetType
 from app.features.pricing.models.model_pricing_rule import PricingRuleTable
 from app.features.pricing.models.promotion_pricing_rule import PromotionPricingRuleTable
 from app.features.pricing.types.promotion_types import PromotionApplicationScope
-from app.features.sales.types.sale import SaleChannel
+from app.features.orders.types.sale import SaleChannel
 from app.features.pricing.entities.pricing_rule import PricingRule
 from app.features.pricing.mappers.pricing_rule_mapper import PricingRuleMapper
 from app.features.pricing.mappers.promotion_audience_mapper import (

@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from app.features.cart.dependency import (
+from app.features.cart.dependencies.services import (
     get_cart_service,
 )
 from app.features.cart.service import (

@@ -163,6 +163,7 @@ class CatalogPricingService:
                     original_price=calculation.original_unit_price,
                     final_price=calculation.final_unit_price,
                     discount_amount=calculation.discount_amount,
+                    applied_promotions=calculation.applied_promotions,
                 )
             )
 

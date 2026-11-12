@@ -16,6 +16,42 @@ from sqlmodel import col
 
 class CartRepository(BaseRepository[Cart, CartTable]):   
 
+    async def get_active_cart_items_count(
+        self,
+        *,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> int:
+        if user_id is None and session_id is None:
+            return 0
+
+        stmt = (
+            select(
+                func.coalesce(
+                    func.sum(CartItemTable.quantity),
+                    0,
+                )
+            )
+            .select_from(CartTable)
+            .join(
+                CartItemTable,
+                CartItemTable.cart_id == CartTable.id,
+            )
+            .where(
+                CartTable.status == CartStatus.ACTIVE,
+            )
+        )
+
+        if user_id is not None:
+            stmt = stmt.where(CartTable.user_id == user_id)
+        else:
+            stmt = stmt.where(CartTable.session_id == session_id)
+
+        result = await self._db_session.execute(stmt)
+
+        return int(result.scalar_one())
+
+
     async def delete_product_from_carts(
         self,
         product_id: int,
@@ -432,12 +468,40 @@ class CartRepository(BaseRepository[Cart, CartTable]):
             )
             for row in result.all()
         ]
+
+    async def get_active_cart_id_by_owner(
+        self,
+        user_id: int | None,
+        session_id: str | None,
+    ) -> int | None:
+        conditions = []
+
+        if user_id is not None:
+            conditions.append(CartTable.user_id == user_id)
+
+        if session_id is not None:
+            conditions.append(CartTable.session_id == session_id)
+
+        if not conditions:
+            return None
+
+        stmt = (
+            select(CartTable.id)
+            .where(
+                CartTable.status == CartStatus.ACTIVE,
+                or_(*conditions),
+            )
+        )
+
+        result = await self._db_session.execute(stmt)
+
+        return result.scalar_one_or_none()
         
     async def get_active_cart(
         self,
         user_id: int | None,
         session_id: str | None,
-    ):
+    ) -> Cart | None:
         stmt = select(CartTable).where(
             CartTable.status == CartStatus.ACTIVE,
             or_(
@@ -447,7 +511,10 @@ class CartRepository(BaseRepository[Cart, CartTable]):
         )
 
         result = await self._db_session.execute(stmt)
-        return result.scalar_one_or_none()
+
+        cart = result.scalar_one_or_none()
+
+        return self._base_mapper.to_entity(cart) if cart is not None else None
     
     async def delete_items_by_variant_id(
         self,
