@@ -42,16 +42,16 @@ class Settings(BaseSettings):
 
     ENV: str
 
-    OPENPAY_MERCHANT_ID: str
-    OPENPAY_PRIVATE_KEY: str
-    OPENPAY_BASE_URL: str
-    OPENPAY_TEST_CLIENT_IP: str
+    OPENPAY_MERCHANT_ID: str | None = None
+    OPENPAY_PRIVATE_KEY: str | None = None
+    OPENPAY_BASE_URL: str | None = None
+    OPENPAY_TEST_CLIENT_IP: str | None = None
 
     FRONTEND_URL: str
 
-    FACTUSMART_BASE_URL: str
-    FACTUSMART_API_KEY: str
-    FACTUSMART_RUC: str
+    FACTUSMART_BASE_URL: str | None = None
+    FACTUSMART_API_KEY: str | None = None
+    FACTUSMART_RUC: str | None = None
 
     RESEND_API_KEY: str
     RESEND_FROM_EMAIL: str
