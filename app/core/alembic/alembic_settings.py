@@ -2,11 +2,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AlembicSettings(BaseSettings):
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    POSTGRES_HOST: str
     ENV: str
+
+    DATABASE_URL: str | None = None
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_HOST: str | None = None
+    POSTGRES_DB: str | None = None
+    POSTGRES_PORT: int = 5432
 
     model_config = SettingsConfigDict(extra="ignore")
 

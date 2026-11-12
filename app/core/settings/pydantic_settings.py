@@ -30,26 +30,28 @@ class Settings(BaseSettings):
     REDIS_MIN_TTL: int
 
     # base de datos que usaremos en producción
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    POSTGRES_HOST: str
+    DATABASE_URL: str | None = None
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_HOST: str | None = None
+    POSTGRES_DB: str | None = None
+    POSTGRES_PORT: int = 5432
 
     # google captcha
     RECAPTCHA_SECRET_KEY: str
 
     ENV: str
 
-    OPENPAY_MERCHANT_ID: str
-    OPENPAY_PRIVATE_KEY: str
-    OPENPAY_BASE_URL: str
-    OPENPAY_TEST_CLIENT_IP: str
+    OPENPAY_MERCHANT_ID: str | None = None
+    OPENPAY_PRIVATE_KEY: str | None = None
+    OPENPAY_BASE_URL: str | None = None
+    OPENPAY_TEST_CLIENT_IP: str | None = None
 
     FRONTEND_URL: str
 
-    FACTUSMART_BASE_URL: str
-    FACTUSMART_API_KEY: str
-    FACTUSMART_RUC: str
+    FACTUSMART_BASE_URL: str | None = None
+    FACTUSMART_API_KEY: str | None = None
+    FACTUSMART_RUC: str | None = None
 
     RESEND_API_KEY: str
     RESEND_FROM_EMAIL: str
