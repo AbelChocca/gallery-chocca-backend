@@ -22,7 +22,15 @@ def get_db_url():
     )
 
 
-engine: AsyncEngine = create_async_engine(get_db_url(), echo=False, pool_size=10, max_overflow=5)
+engine = create_async_engine(
+    get_db_url(),
+    echo=False,
+    pool_size=3,
+    max_overflow=2,
+    pool_pre_ping=True,
+    pool_recycle=1800,
+    pool_timeout=30,
+)
 
 async_session_factory = async_sessionmaker(
     engine,
