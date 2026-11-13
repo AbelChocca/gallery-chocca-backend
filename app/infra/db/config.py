@@ -6,14 +6,22 @@ from app.core.settings.pydantic_settings import settings
 from app.infra.db import model_registry  # noqa: F401
 
 def get_db_url() -> URL:
+    
     if settings.DATABASE_URL:
         url = make_url(settings.DATABASE_URL)
 
-        if not url.drivername.startswith("postgresql"):
-            raise ValueError("DATABASE_URL debe utilizar PostgreSQL")
+        if url.drivername not in (
+            "postgres",
+            "postgresql",
+            "postgresql+asyncpg",
+            "postgresql+psycopg2",
+        ):
+            raise ValueError(
+                "DATABASE_URL debe utilizar PostgreSQL"
+            )
 
         return url.set(
-            drivername="postgresql+asyncpg",
+            drivername="postgresql+asyncpg"
         ).difference_update_query(
             ["sslmode", "ssl"]
         )

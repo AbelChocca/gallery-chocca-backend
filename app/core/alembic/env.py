@@ -16,31 +16,28 @@ if config.config_file_name is not None:
 
 target_metadata = SQLModel.metadata
 
+
 def get_alembic_db_url() -> URL:
     if alembic_settings.DATABASE_URL:
         url = make_url(alembic_settings.DATABASE_URL)
 
-        if not url.drivername.startswith("postgresql"):
-            raise ValueError("DATABASE_URL debe utilizar PostgreSQL")
+        if url.drivername not in (
+            "postgres",
+            "postgresql",
+            "postgresql+psycopg2",
+            "postgresql+asyncpg",
+        ):
+            raise ValueError(
+                "DATABASE_URL debe utilizar PostgreSQL"
+            )
 
-        return url.set(drivername="postgresql+psycopg2")
+        return url.set(
+            drivername="postgresql+psycopg2"
+        )
 
-    if not all((
-        alembic_settings.POSTGRES_USER,
-        alembic_settings.POSTGRES_PASSWORD,
-        alembic_settings.POSTGRES_HOST,
-        alembic_settings.POSTGRES_DB,
-    )):
-        raise ValueError("Configuración PostgreSQL incompleta")
+    # Mantén aquí tu construcción actual con POSTGRES_*
+    ...
 
-    return URL.create(
-        drivername="postgresql+psycopg2",
-        username=alembic_settings.POSTGRES_USER,
-        password=alembic_settings.POSTGRES_PASSWORD,
-        host=alembic_settings.POSTGRES_HOST,
-        port=alembic_settings.POSTGRES_PORT,
-        database=alembic_settings.POSTGRES_DB,
-    )
 
 
 database_url = get_alembic_db_url()
