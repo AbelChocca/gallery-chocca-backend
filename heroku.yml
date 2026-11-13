@@ -2,5 +2,10 @@ build:
   docker:
     web: Dockerfile.prod
 
+release:
+  image: web
+  command:
+    - alembic upgrade head
+
 run:
   web: sh -c 'exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1'

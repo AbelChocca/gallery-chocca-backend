@@ -1,11 +1,20 @@
-"""Bootstrap PostgreSQL objects."""
+"""initialize gc-v1.0.0
+
+Revision ID: a5ab5d9659b7
+Revises: 001_postgres_bootstrap
+Create Date: 2026-11-12 23:49:07.396393
+
+"""
+from typing import Sequence, Union
 
 from alembic import op
 
-revision = "001_postgres_bootstrap"
-down_revision = None
-branch_labels = None
-depends_on = None
+
+# revision identifiers, used by Alembic.
+revision: str = 'a5ab5d9659b7'
+down_revision: Union[str, Sequence[str], None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
