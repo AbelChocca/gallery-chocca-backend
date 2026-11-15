@@ -95,27 +95,30 @@ def load_ubigeos() -> list[dict]:
     return list(ubigeos.values())
 
 
-async def fill_ubigeos(
-    session: AsyncSession,
-) -> None:
+async def fill_ubigeos(session: AsyncSession) -> None:
     ubigeos = load_ubigeos()
+    batch_size = 500
 
-    statement = insert(UbigeoTable).values(ubigeos)
+    for start in range(0, len(ubigeos), batch_size):
+        batch = ubigeos[start:start + batch_size]
 
-    statement = statement.on_conflict_do_update(
-        index_elements=[UbigeoTable.code],
-        set_={
-            "department": statement.excluded.department,
-            "province": statement.excluded.province,
-            "district": statement.excluded.district,
-            "city_name": statement.excluded.city_name,
-        },
-    )
+        statement = insert(UbigeoTable).values(batch)
 
-    await session.execute(statement)
+        statement = statement.on_conflict_do_update(
+            index_elements=[UbigeoTable.code],
+            set_={
+                "department": statement.excluded.department,
+                "province": statement.excluded.province,
+                "district": statement.excluded.district,
+                "city_name": statement.excluded.city_name,
+            },
+        )
+
+        await session.execute(statement)
+
     await session.commit()
 
-    print(f"Processed {len(ubigeos)} ubigeos successfully.")
+    print(f"✅ Processed {len(ubigeos)} ubigeos successfully.")
 
 
 async def main() -> None:
