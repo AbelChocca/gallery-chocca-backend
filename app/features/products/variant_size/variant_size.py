@@ -1,5 +1,7 @@
 import secrets
 import string
+from uuid import uuid4
+
 
 from typing import Dict, Any
 from app.core.exceptions import ValidationError
@@ -55,12 +57,17 @@ class VariantSize:
             size=data["size"],
         )
     
-    def assign_sku(self, product_name: str, variant_color: str):
-        variant_sku = ''.join(s[0].upper() for s in product_name.split(' '))
-        variant_sku += '-' + variant_color[0:3].upper()
-        variant_sku += '-' + self.size.upper()
+    def assign_sku(self, product_name: str, variant_color: str) -> None:
+        initials = ''.join(
+            word[0].upper()
+            for word in product_name.split()
+        )
 
-        self.sku = variant_sku
+        color = variant_color[:3].upper()
+        size = self.size.upper()
+        suffix = uuid4().hex[:4].upper()
+
+        self.sku = f"{initials}-{color}-{size}-{suffix}"
     
     def restock(self, quantity: int) -> None:
         if (self._stock + quantity) < 0:
