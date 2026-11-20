@@ -33,6 +33,7 @@ class InputSchemaMapper:
                                 location_id=inventory.location_id,
                                 minimum_stock=inventory.minimum_stock,
                                 initial_stock=inventory.initial_stock,
+                                unit_price=inventory.unit_price,
                             )
                             for inventory in (size.inventories or [])
                         ],
