@@ -1,3 +1,9 @@
+from typing import Annotated
+
+from app.features.inventory.use_cases.get_inventory_locations import (
+    GetInventoryLocationsUseCase,
+)
+
 from app.features.inventory.use_cases.get_inventory_products import (
     GetInventoryProductsUseCase,
 )
@@ -83,14 +89,14 @@ def get_update_inventory_locations_use_case(
     inventory_service: InventoryService = Depends(
         get_inventory_service,
     ),
-    inventory_location_service: LocationService = Depends(
+    location_service: LocationService = Depends(
         get_location_service,
     ),
 ) -> UpdateInventoryLocationsUseCase:
 
     return UpdateInventoryLocationsUseCase(
         inventory_service=inventory_service,
-        inventory_location_service=inventory_location_service,
+        location_service=location_service,
     )
 
 def get_inventory_product_detail_use_case(
@@ -185,4 +191,20 @@ def get_inventory_consumption_chart_use_case(
     return GetInventoryConsumptionChartUseCase(
         inventory_movement_service=inventory_movement_service,
         inventory_owner_resolver=inventory_owner_resolver,
+    )
+
+def get_inventory_locations_use_case(
+    inventory_service: Annotated[
+        InventoryService,
+        Depends(get_inventory_service),
+    ],
+    location_service: Annotated[
+        LocationService,
+        Depends(get_location_service),
+    ],
+) -> GetInventoryLocationsUseCase:
+
+    return GetInventoryLocationsUseCase(
+        inventory_service=inventory_service,
+        location_service=location_service,
     )
