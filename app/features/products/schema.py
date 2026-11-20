@@ -76,8 +76,8 @@ class GridProductRead(BaseModel):
 class CreateVariantSizeSchema(BaseModel):
     size: SizeType
 
-    inventories: List[CreateInventorySchema] = Field(
-        default_factory=list,
+    inventories: list[CreateInventorySchema] = Field(
+        min_length=1,
     )
 
     barcode: str | None = None
