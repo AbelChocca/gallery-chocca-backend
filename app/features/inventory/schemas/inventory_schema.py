@@ -12,8 +12,7 @@ class UpdateInventoryLocationSchema(BaseModel):
         ge=0,
     )
 
-    unit_price: Decimal | None = Field(
-        default=None,
+    unit_price: Decimal = Field(
         max_digits=12,
         decimal_places=2,
     )
