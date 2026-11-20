@@ -126,7 +126,7 @@ class BaseRepository(Generic[E, M]):
                 return self._base_mapper.to_entity(model)
         except IntegrityError as i:
             raise DatabaseException(
-                "Integrity constraint violation",
+                "Ocurrio un error de integridad con los datos.",
                 {
                     "repository": f"postgres_{E.__name__.lower()}",
                     "base_model": self._base_model.__name__,
@@ -137,7 +137,7 @@ class BaseRepository(Generic[E, M]):
             )
         except SQLAlchemyError as s:
             raise DatabaseException(
-                "Postgres error while saving",
+                "Error del servidor mientras se guardaban los datos.",
                 {
                     "repository": f"postgres_{E.__name__.lower()}",
                     "base_model": self._base_model.__name__,
@@ -151,7 +151,7 @@ class BaseRepository(Generic[E, M]):
             model = await self._get_model_by_id_non_raise(model_id)
             if not model:
                 raise ValueNotFound(
-                    "Model to delete wasn't found.",
+                    "La entidad a eliminar no fue encontrada.",
                     {
                         "repository": f"postgres_{E.__name__.lower()}",
                         "base_model": self._base_model.__name__,
