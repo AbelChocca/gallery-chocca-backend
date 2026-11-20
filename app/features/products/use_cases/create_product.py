@@ -214,14 +214,22 @@ class CreateProductUseCase(UseCaseSaga):
 
         for inv in inventories:
 
-            await self._inventory_service.create_inventory(
+            initial_stock = (
+                inv.initial_stock
+                if inv.initial_stock is not None
+                else Decimal("0")
+            )
+
+            await self._inventory_service.create_inventory_with_stock(
                 owner_type=InventoryOwnerType.PRODUCT,
                 owner_id=variant_size.id,
                 location_id=inv.location_id,
+                quantity=initial_stock,
                 minimum_stock=inv.minimum_stock,
+                unit_price=inv.unit_price or Decimal("0"),
             )
 
-            if inv.initial_stock is None:
+            if inv.initial_stock is None or inv.initial_stock == Decimal("0"):
                 continue
 
             await self._inventory_movement_service.create_movement(
