@@ -41,6 +41,18 @@ class InventoryService:
     ) -> None:
         self._inventory_repository = inventory_repository
 
+    async def get_location_ids_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+    ) -> list[int]:
+
+        return await self._inventory_repository.get_location_ids_by_owner(
+            owner_type=owner_type,
+            owner_id=owner_id,
+        )
+
     async def release_reserved_stock(
         self,
         *,
@@ -780,7 +792,7 @@ class InventoryService:
         minimum_stock: Decimal = Decimal("0"),
         unit_price: Decimal = Decimal("0"),
         last_movement_at: datetime | None = None,
-    ) -> Inventory:
+    ) -> InventoryStockUpdateResult:
 
         if quantity < Decimal("0"):
             raise InvalidOperation(
