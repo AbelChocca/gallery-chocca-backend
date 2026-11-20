@@ -34,6 +34,7 @@ class LocationRepository(BaseRepository[Location, LocationTable]):
         *,
         search: str | None = None,
         is_active: bool | None = None,
+        location_ids: list[int] | None = None,
     ) -> list[Location]:
 
         allowed_types = (
@@ -46,9 +47,19 @@ class LocationRepository(BaseRepository[Location, LocationTable]):
             LocationTable.type.in_(allowed_types)
         )
 
-        if search:
+        if location_ids is not None:
+            if not location_ids:
+                return []
+
             stmt = stmt.where(
-                LocationTable.name.ilike(f"%{search.strip()}%")
+                LocationTable.id.in_(location_ids)
+            )
+
+        if search and search.strip():
+            stmt = stmt.where(
+                LocationTable.name.ilike(
+                    f"%{search.strip()}%"
+                )
             )
 
         if is_active is not None:
@@ -56,15 +67,16 @@ class LocationRepository(BaseRepository[Location, LocationTable]):
                 LocationTable.is_active == is_active
             )
 
-        stmt = stmt.order_by(LocationTable.name.asc())
+        stmt = stmt.order_by(
+            LocationTable.name.asc(),
+            LocationTable.id.asc(),
+        )
 
         result = await self._db_session.execute(stmt)
 
-        locations = result.scalars().all()
-
         return [
-            self._base_mapper.to_entity(location)
-            for location in locations
+            self._base_mapper.to_entity(model)
+            for model in result.scalars().all()
         ]
 
     async def get_locations(
