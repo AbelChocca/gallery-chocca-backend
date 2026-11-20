@@ -19,6 +19,27 @@ from app.features.locations.models.locations import LocationTable
 class InventoryRepository(
     BaseRepository[Inventory, InventoryTable],
 ):
+    
+    async def get_location_ids_by_owner(
+        self,
+        *,
+        owner_type: InventoryOwnerType,
+        owner_id: int,
+    ) -> list[int]:
+
+        statement = (
+            select(InventoryTable.location_id)
+            .where(
+                InventoryTable.owner_type == owner_type,
+                InventoryTable.owner_id == owner_id,
+            )
+            .distinct()
+        )
+
+        result = await self._db_session.execute(statement)
+
+        return list(result.scalars().all())
+    
     async def get_total_available_stock_by_owner(
         self,
         *,
