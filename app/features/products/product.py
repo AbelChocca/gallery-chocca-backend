@@ -73,7 +73,7 @@ class Product:
     def slug(self, new_slug: str) -> None:
         if not isinstance(new_slug, str):
             raise ValidationError(
-                "'new_slug' must be a string",
+                "'new_slug' debe ser un texto",
                 {
                     "entity": "Product",
                     "event": "slug.setter",
@@ -178,7 +178,7 @@ class Product:
     def _not_number(self, v: str) -> None:
         if any(c.isdigit() for c in v):
             raise ValidationError(
-                "Value can't have any digit",
+                f"El valor de nombre, categoria o marca no puede tener digitos",
                 {
                     "event": '_not_number/validator',
                     "module": "product"
@@ -191,7 +191,7 @@ class Product:
         
         if not v.strip():
             raise ValidationError(
-                "Value cannot be empty",
+                "El valor del nombre o descripcion no puede estar vacio.",
                 {
                     "event": '_not_empty/validator',
                     "module": "product"
