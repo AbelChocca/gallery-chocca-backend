@@ -1,9 +1,10 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from decimal import Decimal
 from datetime import datetime
 
 from app.features.locations.types import LocationType
 from app.features.inventory.types.inventory import AvailabilityStatus
+from app.features.inventory.types.inventory_movement import InventoryOwnerType
 
 class InventoryLocationStockSchema(BaseModel):
     inventory_id: int
@@ -45,8 +46,8 @@ class InventoryLocationResponseSchema(BaseModel):
 
 class InventoryLocationFiltersSchema(BaseModel):
     search: str | None = None
-
     is_active: bool | None = None
 
-    location_type: LocationType | None = None
+    owner_type: InventoryOwnerType | None = None
+    owner_id: int | None = Field(default=None, gt=0)
 
