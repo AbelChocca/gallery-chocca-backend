@@ -171,7 +171,6 @@ class LocationService:
             with_lock=True,
         )
 
-        # Baja lógica: mantiene los registros históricos.
         location.is_active = False
         location.pickup_enabled = False
         location.updated_at = datetime.now(timezone.utc)
@@ -186,11 +185,13 @@ class LocationService:
         *,
         search: str | None = None,
         is_active: bool | None = None,
+        location_ids: list[int] | None = None,
     ) -> list[Location]:
 
         return await self._repository.get_inventory_locations(
             search=search,
             is_active=is_active,
+            location_ids=location_ids,
         )
 
     async def get_locations(
