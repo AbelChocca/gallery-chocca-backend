@@ -131,7 +131,7 @@ class UpdateInventoryLocationDTO:
 
     minimum_stock: Decimal
 
-    unit_price: Decimal | None = None
+    unit_price: Decimal
 
 @dataclass
 class InventoryStockUpdateResult:
